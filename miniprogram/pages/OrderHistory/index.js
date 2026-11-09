@@ -12,6 +12,9 @@ const FILTERS = [
 const STATUS_LABEL = { pending: '待做', completed: '已完成', cancelled: '已取消' }
 const STATUS_CLASS = { pending: 'pending', completed: 'done', cancelled: 'cancelled' }
 
+// 分享图标：内联 SVG（托盘 + 向上箭头），不依赖字体或额外图片资源
+const SHARE_ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xMiAxNVYzIi8+PHBhdGggZD0iTTcuNSA3LjVMMTIgM2w0LjUgNC41Ii8+PHBhdGggZD0iTTUgMTN2NWEzIDMgMCAwIDAgMyAzaDhhMyAzIDAgMCAwIDMtM3YtNSIvPjwvc3ZnPg=='
+
 function pad(value) {
   return value < 10 ? '0' + value : String(value)
 }
@@ -52,6 +55,7 @@ Page({
     filters: FILTERS,
     activeFilter: 'pending',
     orders: [],
+    shareIcon: SHARE_ICON,
     showSnapshot: false,
     detail: null
   },

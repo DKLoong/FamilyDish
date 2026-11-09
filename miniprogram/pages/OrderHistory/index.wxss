@@ -144,10 +144,9 @@
   border: none;
 }
 
-.share-glyph {
-  color: #FFFFFF;
-  font-size: 24px;
-  line-height: 1;
+.share-icon {
+  width: 24px;
+  height: 24px;
 }
 
 .mask {

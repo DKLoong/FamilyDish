@@ -47,7 +47,7 @@
   <view class="share-space"></view>
 
   <button class="share-fab" open-type="share" aria-label="分享给家人">
-    <text class="share-glyph">↗</text>
+    <image class="share-icon" src="{{shareIcon}}" mode="aspectFit" />
   </button>
 
   <view class="mask" wx:if="{{showSnapshot}}" bindtap="closeSnapshot">

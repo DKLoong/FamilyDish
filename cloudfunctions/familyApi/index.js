@@ -15,9 +15,12 @@ const { ACTIONS: FAMILY_ACTIONS } = require('./lib/actions/family')
 const { ACTIONS: DISH_ACTIONS } = require('./lib/actions/dish')
 const { ACTIONS: ORDER_ACTIONS } = require('./lib/actions/order')
 const { ACTIONS: SHOPPING_ACTIONS } = require('./lib/actions/shopping')
+const { ACTIONS: CATEGORY_ACTIONS } = require('./lib/actions/category')
 
 // 动作注册表：新增动作模块时在此合并，动作名全局唯一
-const ACTIONS = Object.assign({}, FAMILY_ACTIONS, DISH_ACTIONS, ORDER_ACTIONS, SHOPPING_ACTIONS)
+const ACTIONS = Object.assign(
+  {}, FAMILY_ACTIONS, DISH_ACTIONS, ORDER_ACTIONS, SHOPPING_ACTIONS, CATEGORY_ACTIONS
+)
 
 exports.main = async function (event) {
   try {

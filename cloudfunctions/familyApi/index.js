@@ -11,7 +11,11 @@ const { ok, fail } = require('./lib/response')
 const { ApiError, E } = require('./lib/errors')
 const { getOpenid, authenticate } = require('./lib/auth')
 const crud = require('./lib/crud')
-const { ACTIONS } = require('./lib/actions/family')
+const { ACTIONS: FAMILY_ACTIONS } = require('./lib/actions/family')
+const { ACTIONS: DISH_ACTIONS } = require('./lib/actions/dish')
+
+// 动作注册表：新增动作模块时在此合并，动作名全局唯一
+const ACTIONS = Object.assign({}, FAMILY_ACTIONS, DISH_ACTIONS)
 
 exports.main = async function (event) {
   try {

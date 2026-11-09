@@ -3,6 +3,13 @@
 const { COL, ROLE, SHOPPING_SOURCE } = require('./constants')
 const { ApiError, E } = require('./errors')
 const schema = require('./schema')
+const validators = require('./validators')
+
+// 白名单保证「字段名合法」，validator 保证「字段内容合法」
+function applyValidator(collection, data, isUpdate) {
+  const validator = validators[collection]
+  return validator ? validator(data, isUpdate) : data
+}
 
 function buildWhere(collection, table, ctx, filters) {
   const where = { familyId: ctx.familyId }
@@ -67,7 +74,7 @@ async function get(db, ctx, payload) {
 async function add(db, ctx, payload) {
   const collection = payload.collection
   const table = schema.getTable(collection)
-  const cleaned = schema.sanitize(collection, 'add', payload.data)
+  const cleaned = applyValidator(collection, schema.sanitize(collection, 'add', payload.data), false)
   const now = new Date()
 
   const doc = Object.assign({}, table.createDefaults || {}, cleaned, {
@@ -86,13 +93,6 @@ async function add(db, ctx, payload) {
     doc.purchasedAt = null
     doc.purchaseGroupId = ''
     doc.ingredient = normalizeIngredient(doc.ingredient)
-  }
-
-  if (collection === COL.DISH && !String(doc.name || '').trim()) {
-    throw new ApiError(E.INVALID_PAYLOAD, '菜品名称必填')
-  }
-  if (collection === COL.CATEGORY && !String(doc.name || '').trim()) {
-    throw new ApiError(E.INVALID_PAYLOAD, '分类名称必填')
   }
 
   const res = await db.collection(collection).add({ data: doc })
@@ -117,7 +117,7 @@ function normalizeIngredient(input) {
 async function update(db, ctx, payload) {
   const collection = payload.collection
   const table = schema.getTable(collection)
-  const cleaned = schema.sanitize(collection, 'update', payload.data)
+  const cleaned = applyValidator(collection, schema.sanitize(collection, 'update', payload.data), true)
   const existing = await getOwnedDoc(db, collection, payload.id, ctx.familyId)
 
   const res = await db.collection(collection)

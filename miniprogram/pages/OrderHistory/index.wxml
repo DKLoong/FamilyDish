@@ -38,7 +38,7 @@
         <view class="order-time">{{item.createdText}}</view>
         <view class="order-ops" wx:if="{{item.canOperate}}">
           <view class="op" data-id="{{item.id}}" catchtap="complete">完成</view>
-          <view class="op danger" data-id="{{item.id}}" data-count="{{item.shoppingCount}}" catchtap="cancel">取消</view>
+          <view class="op danger" data-id="{{item.id}}" data-count="{{item.shoppingCount}}" data-people="{{item.ordererCount}}" catchtap="cancel">取消</view>
         </view>
       </view>
     </view>

@@ -348,11 +348,16 @@ Page({
       })
 
       this.setData({ showOrderSheet: false })
-      wx.showToast({
-        title: result.duplicated ? '这笔点菜已提交过' : '已点菜，可分享给家人',
-        icon: 'none',
-        duration: 2000
-      })
+
+      // 同菜同餐次不会再建一条记录，必须明确告诉用户发生了什么，
+      // 否则「点了但记录没变」会被当成失败。
+      let title = '已点菜，可分享给家人'
+      if (result.duplicated) title = '这笔点菜已提交过'
+      else if (result.merged && result.alreadyJoined) title = '你已点过这道菜'
+      else if (result.merged) title = '已合并，共 ' + result.ordererCount + ' 人点这道菜'
+      if (result.shoppingFailed) title = '已合并，请手动补充购物清单'
+
+      wx.showToast({ title: title, icon: 'none', duration: 2400 })
     } catch (err) {
       api.toastError(err)
     } finally {

@@ -30,6 +30,21 @@ function formatAmount(item) {
   return item.note || '适量'
 }
 
+// 同菜同餐次的记录可由多人共同点，点菜人存在 orderers 数组里。
+// 改造前的记录只有单点菜人字段，读取时兜底，避免旧数据展示为空。
+function readOrderers(order) {
+  if (order && Array.isArray(order.orderers) && order.orderers.length > 0) return order.orderers
+  if (!order || (!order.ordererOpenid && !order.ordererNickname)) return []
+  return [{ openid: order.ordererOpenid || '', nickname: order.ordererNickname || '' }]
+}
+
+function ordererText(orderers) {
+  const names = orderers.map(function (item) { return item.nickname }).filter(Boolean)
+  if (names.length === 0) return ''
+  if (names.length <= 2) return names.join('、')
+  return names.slice(0, 2).join('、') + ' 等 ' + names.length + ' 人'
+}
+
 Page({
   data: {
     loading: true,
@@ -74,11 +89,13 @@ Page({
   decorate(order, openid, isManager) {
     const snapshot = order.dishSnapshot || {}
     const status = order.status
-    const isSelf = order.ordererOpenid === openid
+    const orderers = readOrderers(order)
+    const isSelf = orderers.some(function (item) { return item.openid === openid })
     const pending = status === 'pending'
 
     const metaParts = []
-    if (order.ordererNickname) metaParts.push(order.ordererNickname)
+    const who = ordererText(orderers)
+    if (who) metaParts.push(who)
     if (order.mealDate) metaParts.push(order.mealDate)
     if (order.mealType) metaParts.push(order.mealType)
 
@@ -104,6 +121,8 @@ Page({
       remark: order.remark || '',
       createdText: formatTime(order.createTime),
       shoppingCount: order.shoppingCount || 0,
+      ordererCount: orderers.length,
+      ordererText: who,
       isSelf: isSelf,
       canOperate: pending && (isManager || isSelf),
       ingredients: ingredients,
@@ -153,9 +172,15 @@ Page({
   cancel(e) {
     const orderId = e.currentTarget.dataset.id
     const count = Number(e.currentTarget.dataset.count || 0)
-    const content = count > 0
-      ? '取消后将同时移除本次点菜带入的 ' + count + ' 项购物清单项目，其他菜品不受影响。记录本身会保留。'
-      : '取消后这条记录标记为已取消，历史仍保留。'
+    const people = Number(e.currentTarget.dataset.people || 0)
+
+    // 取消是整条取消：一道菜做不做，不拆成「退出自己那一份」。
+    // 多人点过时必须说清会把别人的意愿一起去掉。
+    const parts = []
+    if (people > 1) parts.push('这道菜有 ' + people + ' 人点过，取消后一并移除。')
+    if (count > 0) parts.push('将同时移除本次点菜带入的 ' + count + ' 项购物清单项目，其他菜品不受影响。')
+    if (parts.length === 0) parts.push('取消后这条记录标记为已取消，历史仍保留。')
+    const content = parts.join('')
 
     const that = this
     wx.showModal({

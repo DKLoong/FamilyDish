@@ -41,11 +41,11 @@
 
 .row-op {
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  line-height: 34px;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
   text-align: center;
-  margin-left: 4px;
+  margin-left: 3px;
   border-radius: 8px;
   background: #F4E6D7;
   color: #7A4E2D;
@@ -54,11 +54,15 @@
 
 .row-action {
   flex: 0 0 auto;
-  margin-left: 8px;
-  padding: 7px 10px;
+  margin-left: 6px;
+  padding: 7px 6px;
   border-radius: 8px;
   font-size: 12px;
   color: #C9663B;
+}
+
+.row-action.danger {
+  color: #B4453A;
 }
 
 .state {

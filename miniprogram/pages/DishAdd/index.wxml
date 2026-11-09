@@ -19,7 +19,7 @@
       <view class="field">
         <view class="label">分类</view>
         <input class="input" value="{{category}}" maxlength="20" placeholder="例如：家常菜" data-field="category" bindinput="onFieldInput" />
-        <scroll-view class="chips" scroll-x>
+        <scroll-view class="chips" scroll-x wx:if="{{categories.length > 0}}">
           <view
             class="chip {{category === item ? 'active' : ''}}"
             wx:for="{{categories}}"

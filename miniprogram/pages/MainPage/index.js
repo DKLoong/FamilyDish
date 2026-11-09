@@ -83,13 +83,21 @@ Page({
       const categoryRes = results[3]
 
       const dishes = (listRes.items || []).map(this.decorate)
+      // 分类以分类表为唯一来源，保证与分类管理页、菜谱编辑页一致。
+      // 只有分类表为空（老数据尚未同步）时才退回菜品顺序，作为兜底。
       const categories = [ALL]
-      ;(categoryRes.items || []).forEach(function (item) {
-        if (item.name && categories.indexOf(item.name) < 0) categories.push(item.name)
-      })
-      dishes.forEach(function (dish) {
-        if (dish.category && categories.indexOf(dish.category) < 0) categories.push(dish.category)
-      })
+      const registered = (categoryRes.items || [])
+        .map(function (item) { return item.name })
+        .filter(Boolean)
+      if (registered.length > 0) {
+        registered.forEach(function (name) {
+          if (categories.indexOf(name) < 0) categories.push(name)
+        })
+      } else {
+        dishes.forEach(function (dish) {
+          if (dish.category && categories.indexOf(dish.category) < 0) categories.push(dish.category)
+        })
+      }
 
       // 当前分类若已不存在（菜品被归档或改名），回到「全部」
       const activeCategory = categories.indexOf(this.data.activeCategory) >= 0

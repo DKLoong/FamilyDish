@@ -3,7 +3,6 @@
 const api = require('../../utils/api.js')
 
 const DIFFICULTIES = ['简单', '中等', '较难']
-const PRESET_CATEGORIES = ['家常菜', '荤菜', '素菜', '汤品', '主食', '凉菜']
 
 function newKey() {
   return 'i' + Date.now() + Math.floor(Math.random() * 1000)
@@ -17,7 +16,8 @@ Page({
     submitting: false,
 
     difficulties: DIFFICULTIES,
-    categories: PRESET_CATEGORIES,
+    // 分类候选唯一来源是分类表，不再内置常量，避免与分类管理页不一致
+    categories: [],
     name: '',
     category: '',
     difficultyIndex: 0,
@@ -54,17 +54,39 @@ Page({
     return { id: newKey(), text: '', minutes: '' }
   },
 
-  // 分类候选：内置常用 + 已有菜品里出现过的
+  // 分类候选来自分类表（含排序），与首页、分类管理页同源
   async loadCategories() {
     try {
-      const res = await api.list('DishList', { limit: 100 })
-      const merged = PRESET_CATEGORIES.slice()
-      ;(res.items || []).forEach(function (dish) {
-        if (dish.category && merged.indexOf(dish.category) < 0) merged.push(dish.category)
-      })
-      this.setData({ categories: merged })
+      let res = await api.list('Category', { orderBy: 'sort', order: 'asc', limit: 100 })
+      let names = (res.items || []).map(function (item) { return item.name })
+
+      // 分类表为空说明老数据还没登记过，先同步一次再读
+      if (names.length === 0) {
+        try {
+          await api.action('syncCategories')
+          res = await api.list('Category', { orderBy: 'sort', order: 'asc', limit: 100 })
+          names = (res.items || []).map(function (item) { return item.name })
+        } catch (err) {
+          console.error('[DishAdd] sync categories failed', err)
+        }
+      }
+
+      this.setData({ categories: names })
     } catch (err) {
       console.error('[DishAdd] load categories failed', err)
+      this.setData({ categories: [] })
+    }
+  },
+
+  // 输入了分类表里没有的名称时自动登记，让首页和分类管理页立刻同步。
+  // 分类属于附属信息，登记失败不阻塞菜品保存，下次进分类页会由同步动作补上。
+  async ensureCategory(name) {
+    if (!name || this.data.categories.indexOf(name) >= 0) return
+    try {
+      await api.action('saveCategory', { name: name })
+      this.setData({ categories: this.data.categories.concat([name]) })
+    } catch (err) {
+      console.error('[DishAdd] register category failed', err)
     }
   },
 
@@ -263,6 +285,8 @@ Page({
     const isEdit = !!this.data.id
     const dishId = this.data.id
     try {
+      // 先保证分类已登记，再保存菜品，避免菜品挂着表里没有的分类
+      await this.ensureCategory(payload.category)
       await api.withLoading('保存中', function () {
         return isEdit
           ? api.update('DishList', dishId, payload)

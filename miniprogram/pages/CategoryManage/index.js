@@ -81,6 +81,53 @@ Page({
     this.setData({ showSheet: true, editingId: '', formName: '' })
   },
 
+  // 删除：先直接尝试，若还有菜品在用，服务端返回 CONFIRM_REQUIRED，
+  // 直接用服务端文案做二次确认，确认后带 confirm 重试。
+  removeCategory(e) {
+    if (this.data.submitting) return
+    const id = e.currentTarget.dataset.id
+    const found = this.data.categories.find(function (item) { return item.id === id })
+    const name = found ? found.name : ''
+    const that = this
+
+    wx.showModal({
+      title: '删除分类',
+      content: '删除「' + name + '」？',
+      confirmText: '删除',
+      confirmColor: '#B4453A',
+      success(res) {
+        if (!res.confirm) return
+        that.doDelete(id, false)
+      }
+    })
+  },
+
+  async doDelete(id, confirm) {
+    this.setData({ submitting: true })
+    try {
+      await api.action('deleteCategory', { id: id, confirm: confirm === true })
+      await this.load(true)
+      wx.showToast({ title: '已删除', icon: 'none' })
+    } catch (err) {
+      if (err && err.code === 'CONFIRM_REQUIRED') {
+        const that = this
+        wx.showModal({
+          title: '确认删除',
+          content: err.message,
+          confirmText: '仍然删除',
+          confirmColor: '#B4453A',
+          success(res) {
+            if (res.confirm) that.doDelete(id, true)
+          }
+        })
+        return
+      }
+      api.toastError(err)
+    } finally {
+      this.setData({ submitting: false })
+    }
+  },
+
   openRename(e) {
     const id = e.currentTarget.dataset.id
     const found = this.data.categories.find(function (item) { return item.id === id })

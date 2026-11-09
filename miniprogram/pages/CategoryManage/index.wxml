@@ -20,6 +20,7 @@
       <view class="row-op" data-index="{{index}}" data-dir="-1" catchtap="move" wx:if="{{index > 0}}">↑</view>
       <view class="row-op" data-index="{{index}}" data-dir="1" catchtap="move" wx:if="{{index < categories.length - 1}}">↓</view>
       <view class="row-action" data-id="{{item.id}}" catchtap="openRename">改名</view>
+      <view class="row-action danger" data-id="{{item.id}}" catchtap="removeCategory">删除</view>
     </view>
 
     <view class="bottom-space"></view>

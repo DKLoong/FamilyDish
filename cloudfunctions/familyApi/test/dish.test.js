@@ -31,6 +31,11 @@ function createMockDb() {
       limit(n) { st.limit = n; return api },
       async count() { return { total: rows.filter(r => match(r, st.query)).length } },
       async get() { return { data: rows.filter(r => match(r, st.query)).slice(0, st.limit) } },
+      async update({ data }) {
+        const targets = rows.filter(r => match(r, st.query))
+        targets.forEach(r => Object.assign(r, data))
+        return { stats: { updated: targets.length } }
+      },
       doc(id) {
         return {
           async get() {
@@ -145,6 +150,18 @@ const validDish = {
   const row = db._store.DishList[0]
   assert('写入归属与服务端字段', row.familyId === 'f1' && row.createdBy === 'u1' && row.archived === false && row.version === 1)
   assert('仅创建者可导入', JSON.stringify(ACTIONS.seedSampleDishes.auth.roles) === '["owner"]')
+
+  console.log('6. 撤销归档 restoreDish')
+  const archived = db._store.DishList[0]
+  archived.archived = true
+  const restored = await ACTIONS.restoreDish.run(db, { openid: 'u2', familyId: 'f1', role: 'admin' }, { dishId: archived._id })
+  assert('恢复成功', restored.archived === false && archived.archived === false)
+  await expectCode('对未归档菜品再恢复', () => ACTIONS.restoreDish.run(db, ctx, { dishId: archived._id }), 'CONFLICT')
+  await expectCode('缺少菜品参数', () => ACTIONS.restoreDish.run(db, ctx, {}), 'INVALID_PAYLOAD')
+  await expectCode('跨家庭菜品', () => ACTIONS.restoreDish.run(
+    db, { openid: 'u9', familyId: 'f2', role: 'owner' }, { dishId: archived._id }
+  ), 'CONFLICT')
+  assert('管理员可恢复', JSON.stringify(ACTIONS.restoreDish.auth.roles) === '["owner","admin"]')
 
   console.log('\nRESULT: ' + pass + ' passed, ' + failCount + ' failed')
   if (failCount) process.exit(1)

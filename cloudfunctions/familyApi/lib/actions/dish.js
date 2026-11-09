@@ -1,5 +1,6 @@
 // 菜品领域动作。菜品本身的增删改查走白名单 CRUD，这里只放需要跨多条数据的动作。
 const { COL, ROLE } = require('../constants')
+const { ApiError, E } = require('../errors')
 const SAMPLE_DISHES = require('../sampleDishes')
 
 // 一次性导入 5 道示例菜。幂等：同名菜品已存在则跳过，可重复调用。
@@ -49,8 +50,27 @@ async function seedSampleDishes(db, ctx) {
   }
 }
 
+// 撤销归档。归档是软删除，管理页需要一个对称的回退入口。
+// 只有确实处于归档状态的菜品才会更新，避免无意义的写。
+async function restoreDish(db, ctx, payload) {
+  const id = typeof payload.dishId === 'string' ? payload.dishId.trim() : ''
+  if (!id) throw new ApiError(E.INVALID_PAYLOAD, '缺少菜品')
+
+  const res = await db.collection(COL.DISH)
+    .where({ _id: id, familyId: ctx.familyId, archived: true })
+    .update({ data: { archived: false, updateTime: new Date() } })
+
+  if (!res.stats || res.stats.updated !== 1) {
+    throw new ApiError(E.CONFLICT, '菜品不存在或未归档')
+  }
+  return { id: id, archived: false }
+}
+
+const manager = { roles: [ROLE.OWNER, ROLE.ADMIN] }
+
 const ACTIONS = {
-  seedSampleDishes: { auth: { roles: [ROLE.OWNER] }, run: seedSampleDishes }
+  seedSampleDishes: { auth: { roles: [ROLE.OWNER] }, run: seedSampleDishes },
+  restoreDish: { auth: manager, run: restoreDish }
 }
 
 module.exports = { ACTIONS: ACTIONS }

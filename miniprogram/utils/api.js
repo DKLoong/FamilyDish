@@ -15,6 +15,10 @@ async function invoke(body) {
     res = await wx.cloud.callFunction({ name: API_NAME, data: body })
   } catch (e) {
     console.error('[api] callFunction failed', body && (body.action || body.op), e)
+    // -504002 = 云函数内部执行失败（依赖缺失、代码抛错），与网络无关，不能一律报「网络异常」
+    if (e && e.errCode === -504002) {
+      throw makeError('FUNCTION_ERROR', '云函数执行失败，请检查部署与依赖')
+    }
     throw makeError('NETWORK_ERROR', '网络异常，请重试')
   }
 

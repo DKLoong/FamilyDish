@@ -70,7 +70,7 @@
 }
 
 .status.done {
-  background: #EAF3DE;
+  background: #E9EFE2;
   color: #708B57;
 }
 
@@ -108,15 +108,26 @@
   display: flex;
 }
 
+/* 与菜品管理页同一套 btn-small 规格：32pt 高、圆角 9、13pt 字。
+   完成走绿色语义，取消走危险语义。 */
 .op {
-  margin-left: 12px;
+  flex: 0 0 auto;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  border-radius: 9px;
   font-size: 13px;
+  background: #E9EFE2;
   color: #708B57;
-  padding: 4px 6px;
 }
 
 .op.danger {
-  color: #C0392B;
+  background: #F6E4DF;
+  color: #C94F3B;
 }
 
 .share-space {

@@ -61,19 +61,149 @@ async function findOrderByRequestId(db, familyId, requestId) {
   return res.data && res.data[0] ? res.data[0] : null
 }
 
-// 写入失败时回收已产生的数据，避免留下「有订单没食材」的半成品
-async function rollbackOrder(db, orderId, shoppingIds) {
-  for (const id of shoppingIds) {
+// 同菜同餐次的合并键：家庭 + 菜品 + 用餐日期 + 餐次。
+// 只有「待做」记录参与合并；已完成或已取消视为历史，不占位。
+async function findPendingOrder(db, familyId, dishId, mealDate, mealType) {
+  const res = await db.collection(COL.ORDER)
+    .where({
+      familyId: familyId,
+      dishId: dishId,
+      mealDate: mealDate,
+      mealType: mealType,
+      status: ORDER_STATUS.PENDING
+    })
+    .limit(1)
+    .get()
+  return res.data && res.data[0] ? res.data[0] : null
+}
+
+// 兼容改造前的单点菜人记录：没有 orderers 时用 ordererOpenid 兜底
+function readOrderers(order) {
+  if (order && Array.isArray(order.orderers) && order.orderers.length > 0) {
+    return order.orderers
+  }
+  const at = order && order.statusTimes && order.statusTimes.createdAt
+    ? order.statusTimes.createdAt
+    : (order ? order.createTime : null)
+  return [{
+    openid: (order && order.ordererOpenid) || '',
+    nickname: (order && order.ordererNickname) || '',
+    at: at
+  }]
+}
+
+function ordererNames(order) {
+  return readOrderers(order).map(function (item) { return item.nickname }).filter(Boolean)
+}
+
+// 合并时补齐购物项：新点菜人认为「未准备」的食材，若该单下还没有对应购物项就补建。
+// 典型场景：第一人把鸡蛋勾成已准备，第二人没勾，鸡蛋应当出现在清单里。
+async function addMissingShoppingItems(db, ctx, orderId, dishId, pendingIngredients) {
+  if (!pendingIngredients || pendingIngredients.length === 0) return { count: 0, failed: false }
+
+  let existing = []
+  try {
+    const res = await db.collection(COL.SHOPPING)
+      .where({ familyId: ctx.familyId, orderId: orderId })
+      .limit(100)
+      .get()
+    existing = res.data || []
+  } catch (err) {
+    console.error('[familyApi] read existing shopping failed', { orderId: orderId, err: err })
+    return { count: 0, failed: true }
+  }
+
+  // 按「名称 + 单位」判断是否已有，避免菜品 key 变化导致重复生成
+  const existingKeys = existing.map(function (item) {
+    const ing = item.ingredient || {}
+    return String(ing.name || '') + '|' + String(ing.unit || '')
+  })
+
+  const missing = pendingIngredients.filter(function (item) {
+    return existingKeys.indexOf(item.name + '|' + item.unit) < 0
+  })
+  if (missing.length === 0) return { count: 0, failed: false }
+
+  const now = new Date()
+  let count = 0
+  for (const item of missing) {
     try {
-      await db.collection(COL.SHOPPING).doc(id).remove()
+      await db.collection(COL.SHOPPING).add({
+        data: {
+          familyId: ctx.familyId,
+          sourceType: SHOPPING_SOURCE.ORDER,
+          orderId: orderId,
+          dishId: dishId,
+          ingredient: item,
+          purchased: false,
+          purchasedBy: '',
+          purchasedAt: null,
+          purchaseGroupId: '',
+          createdBy: ctx.openid,
+          createTime: now
+        }
+      })
+      count++
     } catch (err) {
-      console.error('[familyApi] rollback shopping failed', { id: id, err: err })
+      // 订单本身已成立，购物项补齐失败不回滚，由前端提示手动补
+      console.error('[familyApi] add missing shopping failed', { orderId: orderId, name: item.name, err: err })
+      return { count: count, failed: true }
     }
   }
-  try {
-    await db.collection(COL.ORDER).doc(orderId).remove()
-  } catch (err) {
-    console.error('[familyApi] rollback order failed', { orderId: orderId, err: err })
+  return { count: count, failed: false }
+}
+
+// 同一道菜同一餐次已有待做记录：只追加点菜人，不新建记录、不重复计算菜量
+async function mergeIntoPendingOrder(db, ctx, order, dishId, pendingIngredients) {
+  const orderers = readOrderers(order)
+  const already = orderers.some(function (item) { return item.openid === ctx.openid })
+
+  // 同一人重复点：幂等返回，不产生副作用，由前端提示「你已点过」
+  if (already) {
+    return {
+      orderId: order._id,
+      merged: true,
+      alreadyJoined: true,
+      ordererCount: orderers.length,
+      ordererNames: ordererNames(order),
+      addedShopping: 0
+    }
+  }
+
+  const now = new Date()
+  const nextOrderers = orderers.concat([{
+    openid: ctx.openid,
+    nickname: ctx.membership ? ctx.membership.nickname : '',
+    at: now
+  }])
+
+  const added = await addMissingShoppingItems(db, ctx, order._id, dishId, pendingIngredients)
+
+  const patch = {
+    orderers: nextOrderers,
+    ordererOpenids: nextOrderers.map(function (item) { return item.openid }),
+    updateTime: now
+  }
+  if (added.count > 0) {
+    patch.shoppingCount = (order.shoppingCount || 0) + added.count
+  }
+
+  const res = await db.collection(COL.ORDER)
+    .where({ _id: order._id, familyId: ctx.familyId, status: ORDER_STATUS.PENDING })
+    .update({ data: patch })
+
+  if (!res.stats || res.stats.updated !== 1) {
+    throw new ApiError(E.CONFLICT, '该记录已被处理，请刷新后重试')
+  }
+
+  return {
+    orderId: order._id,
+    merged: true,
+    alreadyJoined: false,
+    ordererCount: nextOrderers.length,
+    ordererNames: ordererNames({ orderers: nextOrderers }),
+    addedShopping: added.count,
+    shoppingFailed: added.failed === true
   }
 }
 
@@ -89,11 +219,21 @@ async function placeOrder(db, ctx, payload) {
   // 幂等：同一 requestId 只生成一条记录，重复提交直接返回原单
   const duplicated = await findOrderByRequestId(db, ctx.familyId, requestId)
   if (duplicated) {
-    return { orderId: duplicated._id, duplicated: true, shoppingCount: 0 }
+    return {
+      orderId: duplicated._id,
+      duplicated: true,
+      merged: false,
+      ordererCount: readOrderers(duplicated).length,
+      ordererNames: ordererNames(duplicated),
+      shoppingCount: 0
+    }
   }
 
   const dish = await readOwnedDoc(db, COL.DISH, dishId, ctx.familyId, '菜品')
   if (dish.archived) throw new ApiError(E.INVALID_PAYLOAD, '该菜品已归档，无法点菜')
+
+  const mealDate = normalizeMealDate(payload.mealDate)
+  const mealType = normalizeMealType(payload.mealType)
 
   const preparedKeys = Array.isArray(payload.preparedKeys)
     ? payload.preparedKeys.filter(function (key) { return typeof key === 'string' })
@@ -114,8 +254,15 @@ async function placeOrder(db, ctx, payload) {
     return preparedKeys.indexOf(item.key) < 0
   })
 
+  // 同菜同餐次已有待做记录：合并点菜人，不新建记录，采购量不随人数增加
+  const pendingOrder = await findPendingOrder(db, ctx.familyId, dishId, mealDate, mealType)
+  if (pendingOrder) {
+    return mergeIntoPendingOrder(db, ctx, pendingOrder, dishId, pendingIngredients)
+  }
+
   const now = new Date()
   const orderId = 'o' + now.getTime().toString(36) + Math.random().toString(36).slice(2, 8)
+  const nickname = ctx.membership ? ctx.membership.nickname : ''
 
   const dishSnapshot = {
     name: dish.name,
@@ -136,10 +283,14 @@ async function placeOrder(db, ctx, payload) {
       familyId: ctx.familyId,
       dishId: dishId,
       dishSnapshot: dishSnapshot,
+      // 点菜人列表：一条记录可由多人共同点，点菜顺序即数组顺序
+      orderers: [{ openid: ctx.openid, nickname: nickname, at: now }],
+      ordererOpenids: [ctx.openid],
+      // 保留首位点菜人字段，兼容改造前的记录与既有权限判断
       ordererOpenid: ctx.openid,
-      ordererNickname: ctx.membership ? ctx.membership.nickname : '',
-      mealDate: normalizeMealDate(payload.mealDate),
-      mealType: normalizeMealType(payload.mealType),
+      ordererNickname: nickname,
+      mealDate: mealDate,
+      mealType: mealType,
       remark: normalizeRemark(payload.remark),
       status: ORDER_STATUS.PENDING,
       statusTimes: { createdAt: now, completedAt: null, cancelledAt: null },
@@ -177,14 +328,41 @@ async function placeOrder(db, ctx, payload) {
     throw new ApiError(E.INTERNAL_ERROR, '点菜失败，请重试')
   }
 
-  return { orderId: orderId, duplicated: false, shoppingCount: createdIds.length }
+  return {
+    orderId: orderId,
+    duplicated: false,
+    merged: false,
+    ordererCount: 1,
+    ordererNames: nickname ? [nickname] : [],
+    shoppingCount: createdIds.length
+  }
 }
 
+// 写入失败时回收已产生的数据，避免留下「有订单没食材」的半成品
+async function rollbackOrder(db, orderId, shoppingIds) {
+  for (const id of shoppingIds) {
+    try {
+      await db.collection(COL.SHOPPING).doc(id).remove()
+    } catch (err) {
+      console.error('[familyApi] rollback shopping failed', { id: id, err: err })
+    }
+  }
+  try {
+    await db.collection(COL.ORDER).doc(orderId).remove()
+  } catch (err) {
+    console.error('[familyApi] rollback order failed', { orderId: orderId, err: err })
+  }
+}
+
+// 参与点菜的人（含合并进来的）或管理员都可以完成/取消。
+// 取消是整条取消：一道菜做不做，不拆成「退出自己那一份」。
 function assertOperable(ctx, order) {
   const isManager = ctx.role === ROLE.OWNER || ctx.role === ROLE.ADMIN
-  const isOrderer = order.ordererOpenid === ctx.openid
+  const isOrderer = readOrderers(order).some(function (item) {
+    return item.openid === ctx.openid
+  })
   if (!isManager && !isOrderer) {
-    throw new ApiError(E.FORBIDDEN, '只能操作自己点的菜')
+    throw new ApiError(E.FORBIDDEN, '只能操作自己点过的菜')
   }
 }
 

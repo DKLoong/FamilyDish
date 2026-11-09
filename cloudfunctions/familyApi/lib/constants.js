@@ -37,7 +37,8 @@ const INVITE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 const PROTECTED_FIELDS = [
   '_id', 'openid', 'familyId', 'createdBy', 'createTime', 'updateTime',
   'role', 'status', 'statusTimes', 'memberOpenids', 'invite', 'maxMembers',
-  'ordererOpenid', 'ordererNickname', 'dishSnapshot', 'requestId',
+  'ordererOpenid', 'ordererNickname', 'orderers', 'ordererOpenids',
+  'dishSnapshot', 'requestId',
   'purchasedBy', 'purchasedAt', 'purchaseGroupId',
   'version', 'archived', 'orderId', 'sourceType'
 ]

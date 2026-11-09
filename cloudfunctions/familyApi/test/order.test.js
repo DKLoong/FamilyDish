@@ -197,6 +197,124 @@ function assert(label, condition, detail) {
   const adminDone = await ACTIONS.completeOrder.run(db, owner, { orderId: mine.orderId })
   assert('管理员可完成他人记录', adminDone.status === 'completed')
 
+  console.log('7. 同菜同餐次合并')
+  db = createMockDb(seed())
+  const first = await ACTIONS.placeOrder.run(db, member, {
+    dishId: 'd1', requestId: 'req_aaaa0001', mealDate: '2026-11-09', mealType: '晚餐'
+  })
+  const joined = await ACTIONS.placeOrder.run(db, owner, {
+    dishId: 'd1', requestId: 'req_aaaa0002', mealDate: '2026-11-09', mealType: '晚餐'
+  })
+  assert('不新建第二条记录', db._store.OrderList.length === 1, 'orders=' + db._store.OrderList.length)
+  assert('返回合并标记', joined.merged === true && joined.orderId === first.orderId)
+  assert('点菜人追加为 2 人', joined.ordererCount === 2, 'count=' + joined.ordererCount)
+  assert('记录内保存两人', db._store.OrderList[0].orderers.length === 2)
+  assert('首位点菜人字段保留', db._store.OrderList[0].ordererOpenid === 'u2')
+  assert('点菜人昵称可取', joined.ordererNames.join(',') === '孩子,妈妈', joined.ordererNames.join(','))
+  assert('购物项不随人数翻倍', db._store.ShoppingItem.filter(s => s.orderId === first.orderId).length === 3)
+
+  console.log('8. 同一人重复点')
+  const repeat = await ACTIONS.placeOrder.run(db, member, {
+    dishId: 'd1', requestId: 'req_aaaa0003', mealDate: '2026-11-09', mealType: '晚餐'
+  })
+  assert('幂等返回且不追加', repeat.alreadyJoined === true && repeat.ordererCount === 2)
+  assert('记录仍是两人', db._store.OrderList[0].orderers.length === 2)
+  assert('未新增购物项', db._store.ShoppingItem.filter(s => s.orderId === first.orderId).length === 3)
+
+  console.log('9. 不同餐次与不同日期不合并')
+  db = createMockDb(seed())
+  await ACTIONS.placeOrder.run(db, member, { dishId: 'd1', requestId: 'req_bbbb0001', mealDate: '2026-11-09', mealType: '午餐' })
+  await ACTIONS.placeOrder.run(db, member, { dishId: 'd1', requestId: 'req_bbbb0002', mealDate: '2026-11-09', mealType: '晚餐' })
+  await ACTIONS.placeOrder.run(db, member, { dishId: 'd1', requestId: 'req_bbbb0003', mealDate: '2026-11-10', mealType: '晚餐' })
+  assert('三条独立记录', db._store.OrderList.length === 3, 'orders=' + db._store.OrderList.length)
+
+  console.log('10. 终态不占位')
+  db = createMockDb(seed())
+  const cancelledOne = await ACTIONS.placeOrder.run(db, member, {
+    dishId: 'd1', requestId: 'req_cccc0001', mealDate: '2026-11-09', mealType: '晚餐'
+  })
+  await ACTIONS.cancelOrder.run(db, owner, { orderId: cancelledOne.orderId })
+  const afterCancel = await ACTIONS.placeOrder.run(db, owner, {
+    dishId: 'd1', requestId: 'req_cccc0002', mealDate: '2026-11-09', mealType: '晚餐'
+  })
+  assert('取消后重新点生成新记录', afterCancel.orderId !== cancelledOne.orderId && db._store.OrderList.length === 2)
+
+  db = createMockDb(seed())
+  const doneOne = await ACTIONS.placeOrder.run(db, member, {
+    dishId: 'd1', requestId: 'req_dddd0001', mealDate: '2026-11-09', mealType: '晚餐'
+  })
+  await ACTIONS.completeOrder.run(db, owner, { orderId: doneOne.orderId })
+  const afterDone = await ACTIONS.placeOrder.run(db, owner, {
+    dishId: 'd1', requestId: 'req_dddd0002', mealDate: '2026-11-09', mealType: '晚餐'
+  })
+  assert('完成后重新点生成新记录', afterDone.orderId !== doneOne.orderId && db._store.OrderList.length === 2)
+
+  console.log('11. 合并时补齐购物项')
+  db = createMockDb(seed())
+  const allPrepared = await ACTIONS.placeOrder.run(db, member, {
+    dishId: 'd1', requestId: 'req_eeee0001', mealDate: '2026-11-09', mealType: '晚餐',
+    preparedKeys: ['i1', 'i2', 'i3']
+  })
+  assert('全部已准备时无购物项', allPrepared.shoppingCount === 0)
+  const filled = await ACTIONS.placeOrder.run(db, owner, {
+    dishId: 'd1', requestId: 'req_eeee0002', mealDate: '2026-11-09', mealType: '晚餐'
+  })
+  assert('第二人未准备时补建购物项', filled.addedShopping === 3, 'added=' + filled.addedShopping)
+  assert('订单 shoppingCount 累加', db._store.OrderList[0].shoppingCount === 3)
+
+  const third = await ACTIONS.placeOrder.run(db, { openid: 'u3', familyId: 'f1', role: 'member', membership: { nickname: '爷爷' } }, {
+    dishId: 'd1', requestId: 'req_eeee0003', mealDate: '2026-11-09', mealType: '晚餐'
+  })
+  assert('已有购物项不重复生成', third.addedShopping === 0)
+  assert('购物项总数仍为 3', db._store.ShoppingItem.filter(s => s.orderId === allPrepared.orderId).length === 3)
+
+  console.log('12. 合并记录的完成与取消权限')
+  db = createMockDb(seed())
+  const joint = await ACTIONS.placeOrder.run(db, member, {
+    dishId: 'd1', requestId: 'req_ffff0001', mealDate: '2026-11-09', mealType: '晚餐'
+  })
+  await ACTIONS.placeOrder.run(db, owner, {
+    dishId: 'd1', requestId: 'req_ffff0002', mealDate: '2026-11-09', mealType: '晚餐'
+  })
+  const doneByJoiner = await ACTIONS.completeOrder.run(db, owner, { orderId: joint.orderId })
+  assert('后合并者可完成整条记录', doneByJoiner.status === 'completed')
+
+  db = createMockDb(seed())
+  const joint2 = await ACTIONS.placeOrder.run(db, member, {
+    dishId: 'd1', requestId: 'req_gggg0001', mealDate: '2026-11-09', mealType: '晚餐'
+  })
+  await ACTIONS.placeOrder.run(db, owner, {
+    dishId: 'd1', requestId: 'req_gggg0002', mealDate: '2026-11-09', mealType: '晚餐'
+  })
+  await expectCode('未参与者不能取消', () => ACTIONS.cancelOrder.run(
+    db, { openid: 'u9', familyId: 'f1', role: 'member' }, { orderId: joint2.orderId }
+  ), 'FORBIDDEN')
+
+  console.log('13. 旧记录兼容')
+  db = createMockDb(seed())
+  db._store.OrderList.push({
+    _id: 'old1',
+    orderId: 'old1',
+    familyId: 'f1',
+    dishId: 'd1',
+    dishSnapshot: { name: '番茄炒蛋' },
+    ordererOpenid: 'u2',
+    ordererNickname: '孩子',
+    mealDate: '2026-11-09',
+    mealType: '晚餐',
+    status: 'pending',
+    statusTimes: { createdAt: new Date(), completedAt: null, cancelledAt: null },
+    shoppingCount: 0,
+    requestId: 'req_old00001',
+    createTime: new Date()
+  })
+  const mergeOld = await ACTIONS.placeOrder.run(db, owner, {
+    dishId: 'd1', requestId: 'req_hhhh0001', mealDate: '2026-11-09', mealType: '晚餐'
+  })
+  assert('无 orderers 的旧记录也能合并', mergeOld.merged === true && mergeOld.ordererCount === 2, 'count=' + mergeOld.ordererCount)
+  const oldOrder = db._store.OrderList.find(o => o._id === 'old1')
+  assert('旧记录被补上 orderers', Array.isArray(oldOrder.orderers) && oldOrder.orderers.length === 2)
+
   console.log('\nRESULT: ' + pass + ' passed, ' + failCount + ' failed')
   if (failCount) process.exit(1)
 })()

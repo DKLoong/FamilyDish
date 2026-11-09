@@ -24,6 +24,11 @@
         <text class="chip" wx:if="{{dish.time}}">{{dish.time}} 分钟</text>
       </view>
       <view class="desc" wx:if="{{dish.description}}">{{dish.description}}</view>
+
+      <view class="admin-row" wx:if="{{canManage}}">
+        <view class="admin-btn" bindtap="editDish">编辑</view>
+        <view class="admin-btn danger" bindtap="archiveDish">归档</view>
+      </view>
     </view>
 
     <view class="card">

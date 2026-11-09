@@ -108,6 +108,20 @@
   font-weight: 400;
 }
 
+.toolbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.add-btn {
+  font-size: 13px;
+  color: #FFFFFF;
+  background: #C9663B;
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-right: 8px;
+}
+
 .random-btn {
   font-size: 13px;
   color: #C9663B;

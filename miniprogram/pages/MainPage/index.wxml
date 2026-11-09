@@ -32,7 +32,10 @@
 
   <view class="toolbar">
     <view class="toolbar-title">菜品<text class="toolbar-count">{{visible.length}}</text></view>
-    <view class="random-btn" bindtap="randomPick">随机一下</view>
+    <view class="toolbar-right">
+      <view class="add-btn" wx:if="{{canManage}}" bindtap="createDish">+ 新增</view>
+      <view class="random-btn" bindtap="randomPick">随机一下</view>
+    </view>
   </view>
 
   <view class="skeleton" wx:if="{{loading}}">

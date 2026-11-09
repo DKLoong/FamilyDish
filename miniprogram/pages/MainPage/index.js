@@ -174,6 +174,10 @@ Page({
     }
   },
 
+  createDish() {
+    wx.navigateTo({ url: '/pages/DishAdd/index' })
+  },
+
   goMine() {
     wx.navigateTo({ url: '/pages/Settings/index' })
   },

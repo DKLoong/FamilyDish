@@ -1,262 +1,274 @@
-/* 添加菜品页样式 */
-
-.container {
-  padding-bottom: 160rpx;
-}
-
-/* 页面头部 */
-.page-header {
-  padding: 40rpx 30rpx;
-  background: linear-gradient(135deg, #6FCF97 0%, #B8E6C1 100%);
-}
-
-.page-title {
-  display: block;
-  font-size: 40rpx;
-  font-weight: 600;
-  color: white;
-  margin-bottom: 8rpx;
-}
-
-.page-subtitle {
-  font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-/* 表单区域 */
-.form-section {
-  padding: 30rpx 24rpx;
-}
-
-/* 图片上传 */
-.upload-card {
-  position: relative;
-  background: white;
-  border-radius: 24rpx;
-  overflow: hidden;
-  box-shadow: 0 4rpx 20rpx rgba(124, 179, 66, 0.1);
-  margin-bottom: 30rpx;
-  /* 占位状态固定高度，避免框跳动 */
-  height: 400rpx;
-}
-
-/* 有图片时让卡片按图片实际高度撑开（preview-image 用 widthFix 等比缩放） */
-.upload-card.has-image {
-  height: auto;
-}
-
-/* 清空图片按钮（叠在预览图右上角） */
-.clear-image-btn {
-  position: absolute;
-  top: 20rpx;
-  right: 20rpx;
-  width: 56rpx;
-  height: 56rpx;
-  background: rgba(0, 0, 0, 0.55);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-}
-
-.clear-image-btn text {
-  color: white;
-  font-size: 40rpx;
-  line-height: 1;
-  font-weight: 300;
-}
-
-.upload-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24rpx 40rpx;
-  background: #FAFAFA;
-  border: 4rpx dashed #E8F5E9;
+.page {
+  min-height: 100vh;
+  background: #FAF5EE;
+  padding: 12px 16px 0;
   box-sizing: border-box;
 }
 
-.upload-icon {
-  font-size: 60rpx;
-  line-height: 1;
-  margin-bottom: 10rpx;
+.card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
 }
 
-.upload-text {
-  font-size: 28rpx;
-  color: #666;
-  margin-bottom: 4rpx;
-}
-
-.upload-hint {
-  font-size: 22rpx;
-  color: #999;
-}
-
-.preview-image {
-  width: 100%;
-  display: block;
-}
-
-/* 输入卡片 */
-.input-card {
-  background: white;
-  border-radius: 24rpx;
-  padding: 30rpx;
-  box-shadow: 0 4rpx 20rpx rgba(124, 179, 66, 0.1);
-  margin-bottom: 30rpx;
-}
-
-.input-label {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20rpx;
-}
-
-.label-icon {
-  font-size: 36rpx;
-  margin-right: 12rpx;
-}
-
-.label-text {
-  font-size: 30rpx;
+.card-title {
+  font-size: 15px;
   font-weight: 500;
-  color: #333;
-}
-
-.label-optional {
-  font-size: 24rpx;
-  color: #999;
-  font-weight: normal;
-  margin-left: 8rpx;
-}
-
-.input-field {
-  width: 100%;
-  font-size: 32rpx;
-  color: #333;
-  padding: 20rpx 0;
-  border-bottom: 2rpx solid #E8F5E9;
-}
-
-.input-placeholder {
-  color: #CCC;
-}
-
-.input-counter {
-  display: block;
-  text-align: right;
-  font-size: 24rpx;
-  color: #999;
-  margin-top: 12rpx;
-}
-
-/* 子字段（食材/做法/时长+难度），用淡色分割线区隔 */
-.recipe-subfield {
-  padding-top: 24rpx;
-  margin-top: 24rpx;
-  border-top: 2rpx solid #F0F7EE;
-}
-
-.recipe-subfield:first-of-type {
-  padding-top: 0;
-  margin-top: 0;
-  border-top: none;
-}
-
-.subfield-label {
+  color: #3B2B23;
   display: flex;
-  align-items: center;
-  margin-bottom: 16rpx;
+  align-items: baseline;
+  justify-content: space-between;
 }
 
-.subfield-icon {
-  font-size: 30rpx;
-  margin-right: 10rpx;
+.sub {
+  font-size: 12px;
+  color: #7B685C;
+  font-weight: 400;
 }
 
-.subfield-text {
-  font-size: 28rpx;
-  color: #333;
-  font-weight: 500;
+.field {
+  margin-bottom: 14px;
 }
 
-.subfield-hint {
-  margin-left: 10rpx;
-  font-size: 22rpx;
-  color: #999;
+.field.half {
+  width: 48%;
 }
 
-.recipe-inline-row {
-  display: flex;
-  gap: 32rpx;
+.field.last {
+  margin-bottom: 0;
 }
 
-.recipe-inline-field {
-  flex: 1;
-}
-
-/* 菜谱 textarea */
-.recipe-textarea {
-  width: 100%;
-  font-size: 30rpx;
-  color: #333;
-  line-height: 1.6;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* 分类选择器 */
-.picker-value {
+.row-2 {
   display: flex;
   justify-content: space-between;
+}
+
+.label {
+  font-size: 13px;
+  color: #7B685C;
+  margin-bottom: 8px;
+}
+
+.input {
+  height: 44px;
+  background: #FAF5EE;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 15px;
+  color: #3B2B23;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.input.textarea {
+  height: auto;
+  min-height: 80px;
+  padding: 12px;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.input.picker {
+  line-height: 44px;
+}
+
+.chips {
+  margin-top: 10px;
+  white-space: nowrap;
+}
+
+.chip {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-right: 8px;
+  border-radius: 999px;
+  background: #FAF5EE;
+  border: 1px solid #E7D9CB;
+  font-size: 12px;
+  color: #7A4E2D;
+}
+
+.chip.active {
+  background: #C9663B;
+  border-color: #C9663B;
+  color: #FFFFFF;
+}
+
+.ing-row {
+  display: flex;
   align-items: center;
-  padding: 20rpx 0;
-  font-size: 32rpx;
-  color: #333;
-  border-bottom: 2rpx solid #E8F5E9;
+  margin-top: 10px;
 }
 
-.picker-arrow {
-  font-size: 36rpx;
-  color: #CCC;
+.ing-name,
+.ing-qty,
+.ing-unit {
+  height: 40px;
+  background: #FAF5EE;
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 14px;
+  color: #3B2B23;
+  box-sizing: border-box;
 }
 
-/* 底部按钮 */
+.ing-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.ing-qty {
+  width: 72px;
+  margin-left: 8px;
+}
+
+.ing-unit {
+  width: 64px;
+  margin-left: 8px;
+}
+
+.del {
+  width: 28px;
+  text-align: center;
+  font-size: 20px;
+  color: #C0AE9C;
+  flex: 0 0 auto;
+}
+
+.add-row {
+  margin-top: 14px;
+  padding: 10px 0;
+  text-align: center;
+  border: 1px dashed #E7D9CB;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #C9663B;
+}
+
+.step-row {
+  display: flex;
+  margin-top: 14px;
+}
+
+.step-no {
+  width: 22px;
+  height: 22px;
+  line-height: 22px;
+  text-align: center;
+  border-radius: 50%;
+  background: #F4E6D7;
+  color: #7A4E2D;
+  font-size: 12px;
+  flex: 0 0 auto;
+  margin-right: 10px;
+}
+
+.step-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.step-text {
+  width: 100%;
+  min-height: 44px;
+  background: #FAF5EE;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #3B2B23;
+  line-height: 1.6;
+  box-sizing: border-box;
+}
+
+.step-time {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.step-min {
+  width: 72px;
+  height: 36px;
+  background: #FAF5EE;
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 14px;
+  color: #3B2B23;
+  box-sizing: border-box;
+}
+
+.step-min-label {
+  flex: 1;
+  margin-left: 8px;
+  font-size: 12px;
+  color: #9A8A7C;
+}
+
+.bottom-space {
+  height: 96px;
+}
+
 .footer {
   position: fixed;
-  bottom: 0;
   left: 0;
   right: 0;
-  display: flex;
-  padding: 20rpx 24rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: white;
-  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
+  bottom: 0;
+  background: #FFFFFF;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  box-shadow: 0 -1px 0 rgba(231, 217, 203, 0.8);
 }
 
-.btn-reset {
-  flex: 1;
-  text-align: center;
-  padding: 28rpx;
-  font-size: 30rpx;
-  color: #666;
-  background: #F5F5F5;
-  border-radius: 50rpx;
-  margin-right: 20rpx;
-}
-
-.btn-save {
-  flex: 2;
-  text-align: center;
-  padding: 28rpx;
-  font-size: 30rpx;
-  color: white;
-  background: linear-gradient(135deg, #6FCF97 0%, #5AC476 100%);
-  border-radius: 50rpx;
+.cta {
+  width: 100%;
+  height: 44px;
+  line-height: 44px;
+  border-radius: 12px;
+  background: #C9663B;
+  color: #FFFFFF;
+  font-size: 15px;
   font-weight: 500;
+  padding: 0;
+}
+
+.cta::after {
+  border: none;
+}
+
+.skeleton {
+  padding: 4px 0;
+}
+
+.sk-line {
+  height: 20px;
+  width: 40%;
+  border-radius: 6px;
+  background: #F1E8DC;
+  margin-bottom: 16px;
+}
+
+.sk-card {
+  height: 180px;
+  border-radius: 12px;
+  background: #F1E8DC;
+}
+
+.error-box {
+  margin-top: 80px;
+  text-align: center;
+}
+
+.error-text {
+  font-size: 14px;
+  color: #7B685C;
+}
+
+.retry-btn {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  background: #F4E6D7;
+  color: #7A4E2D;
+  font-size: 14px;
 }

@@ -1,273 +1,283 @@
-const app = getApp()
-const {
-  DIFFICULTY_OPTIONS,
-  COOK_TIME_OPTIONS,
-  DEFAULT_COOK_TIME_INDEX,
-  matchCookTimeIndex,
-  estimateHeight,
-} = require('../../utils/recipe.js')
+// 菜品新增 / 编辑统一表单。带 id 为编辑，不带为新增。
+// 前端只做「够用的即时提示」，最终校验以后端 validators 为准。
+const api = require('../../utils/api.js')
+
+const DIFFICULTIES = ['简单', '中等', '较难']
+const PRESET_CATEGORIES = ['家常菜', '荤菜', '素菜', '汤品', '主食', '凉菜']
+
+function newKey() {
+  return 'i' + Date.now() + Math.floor(Math.random() * 1000)
+}
 
 Page({
   data: {
-    _id: '',
+    id: '',
+    loading: true,
+    loadError: '',
+    submitting: false,
+
+    difficulties: DIFFICULTIES,
+    categories: PRESET_CATEGORIES,
     name: '',
-    description: '',
-    imageUrl: '',
-    tempFilePath: '',
-    isEdit: false,
-    categories: [],
-    categoryIndex: 0,
-    saving: false,
-
-    // 菜谱字段（可选填）
-    ingredients: '',
-    steps: '',
-    cookTime: COOK_TIME_OPTIONS[DEFAULT_COOK_TIME_INDEX].label,
-    cookTimeOptions: COOK_TIME_OPTIONS,
-    cookTimeIndex: DEFAULT_COOK_TIME_INDEX,
-    difficulty: '简单',
-    difficultyOptions: DIFFICULTY_OPTIONS,
+    category: '',
     difficultyIndex: 0,
-    ingredientsHeight: 80,
-    stepsHeight: 80,
+    time: '',
+    description: '',
+    tips: '',
+    ingredients: [],
+    steps: []
   },
 
-  async onLoad(options) {
-    await app.loadCategories()
-    this.setData({ categories: app.globalData.categories })
-    if (options.id) {
-      this.setData({ _id: options.id, isEdit: true })
+  onLoad(options) {
+    const id = (options && options.id) || ''
+    this.setData({ id: id })
+
+    if (id) {
       wx.setNavigationBarTitle({ title: '编辑菜品' })
-      // 编辑模式直接在 onLoad 里把字段回填，避免 onShow 早于 onLoad 完成的竞态
-      await this.loadDish()
-    }
-  },
-
-  // 加载菜品信息（编辑模式）
-  async loadDish() {
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'getCoupleData',
-        data: {
-          collection: app.globalData.collectionDishList,
-          docId: this.data._id
-        }
-      })
-
-      if (!res.result?.success) {
-        throw new Error(res.result?.message || '加载失败')
-      }
-
-      const dish = res.result.data
-      const categoryIndex = this.data.categories.findIndex(c => c._id === dish.category) || 0
-      const difficulty = dish.difficulty && DIFFICULTY_OPTIONS.includes(dish.difficulty)
-        ? dish.difficulty
-        : '简单'
-      const cookTimeIndex = matchCookTimeIndex(dish.cookTime)
+      this.loadDish(id)
+    } else {
+      wx.setNavigationBarTitle({ title: '新增菜品' })
       this.setData({
-        name: dish.name,
-        description: dish.description || '',
-        imageUrl: dish.imageUrl || '',
-        categoryIndex: categoryIndex >= 0 ? categoryIndex : 0,
-        ingredients: dish.ingredients || '',
-        steps: dish.steps || '',
-        cookTime: COOK_TIME_OPTIONS[cookTimeIndex].label,
-        cookTimeIndex,
-        difficulty,
-        difficultyIndex: DIFFICULTY_OPTIONS.indexOf(difficulty),
-        ingredientsHeight: estimateHeight(dish.ingredients),
-        stepsHeight: estimateHeight(dish.steps),
+        loading: false,
+        ingredients: [this.blankIngredient()],
+        steps: [this.blankStep()]
       })
-    } catch (e) {
-      console.error('加载菜品失败', e)
-      wx.showToast({ title: '加载失败', icon: 'none' })
     }
+    this.loadCategories()
   },
 
-  // 输入菜品名称
-  onNameInput(e) {
-    let value = e.detail.value
-    if (value.length > 20) value = value.slice(0, 20)
-    this.setData({ name: value })
-    return value
+  blankIngredient() {
+    return { key: newKey(), name: '', quantity: '', unit: '', note: '' }
   },
 
-  // 输入菜品描述
-  onDescInput(e) {
-    let value = e.detail.value
-    if (value.length > 6) value = value.slice(0, 6)
-    this.setData({ description: value })
-    return value
+  blankStep() {
+    return { id: newKey(), text: '', minutes: '' }
   },
 
-  // 选择分类
-  onCategoryChange(e) {
-    this.setData({ categoryIndex: e.detail.value })
-  },
-
-  // 菜谱字段输入
-  onIngredientsInput(e) {
-    const v = e.detail.value
-    this.setData({ ingredients: v, ingredientsHeight: estimateHeight(v) })
-  },
-  onStepsInput(e) {
-    const v = e.detail.value
-    this.setData({ steps: v, stepsHeight: estimateHeight(v) })
-  },
-  onDifficultyChange(e) {
-    const idx = Number(e.detail.value)
-    this.setData({ difficultyIndex: idx, difficulty: DIFFICULTY_OPTIONS[idx] })
-  },
-  onCookTimeChange(e) {
-    const idx = Number(e.detail.value)
-    this.setData({ cookTimeIndex: idx, cookTime: COOK_TIME_OPTIONS[idx].label })
-  },
-
-  // 清空已选的图片
-  clearImage() {
-    this.setData({ imageUrl: '', tempFilePath: '' })
-  },
-
-  // 选择图片
-  chooseImage() {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      success: (res) => {
-        const tempFilePath = res.tempFiles[0].tempFilePath
-        this.setData({
-          tempFilePath,
-          imageUrl: tempFilePath
-        })
-      }
-    })
-  },
-
-  // 上传图片到云存储
-  async uploadImage() {
-    if (!this.data.tempFilePath) return ''
-
-    const cloudPath = `dishes/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
-
+  // 分类候选：内置常用 + 已有菜品里出现过的
+  async loadCategories() {
     try {
-      const res = await wx.cloud.uploadFile({
-        cloudPath,
-        filePath: this.data.tempFilePath
+      const res = await api.list('DishList', { limit: 100 })
+      const merged = PRESET_CATEGORIES.slice()
+      ;(res.items || []).forEach(function (dish) {
+        if (dish.category && merged.indexOf(dish.category) < 0) merged.push(dish.category)
       })
-      return res.fileID
-    } catch (e) {
-      console.error('上传图片失败', e)
-      throw new Error('图片上传失败')
+      this.setData({ categories: merged })
+    } catch (err) {
+      console.error('[DishAdd] load categories failed', err)
     }
   },
 
-  // 保存菜品
-  async saveDish() {
-    if (!app.isBound()) {
-      wx.showToast({ title: '请先绑定伴侣', icon: 'none' })
-      return
-    }
-
-    const { name, saving, isEdit, _id } = this.data
-
-    if (saving) return
-
-    if (!name.trim()) {
-      wx.showToast({ title: '请输入菜品名称', icon: 'none' })
-      return
-    }
-
-    this.setData({ saving: true })
-    wx.showLoading({ title: '保存中...' })
-
+  async loadDish(id) {
     try {
-      let imageUrl = this.data.imageUrl
-
-      // 如果有新选择的图片，上传新图片
-      if (this.data.tempFilePath) {
-        imageUrl = await this.uploadImage()
-      }
-
-      const db = await app.database()
-
-      const category = this.data.categories[this.data.categoryIndex]._id
-
-      // 菜谱字段：有食材或步骤就视为填了；否则各字段写空，避免默认值污染
-      const hasRecipe = !!(this.data.ingredients.trim() || this.data.steps.trim())
-      const baseData = {
-        name: name.trim(),
-        description: this.data.description.trim(),
-        imageUrl,
-        category,
-        ingredients: hasRecipe ? this.data.ingredients.trim() : '',
-        steps: hasRecipe ? this.data.steps.trim() : '',
-        cookTime: hasRecipe ? this.data.cookTime : '',
-        difficulty: hasRecipe ? this.data.difficulty : '',
-      }
-
-      if (isEdit) {
-        // 编辑模式：更新现有记录
-        const res = await wx.cloud.callFunction({
-          name: 'updateCoupleData',
-          data: {
-            collection: app.globalData.collectionDishList,
-            docId: _id,
-            action: 'update',
-            data: { ...baseData, updateTime: new Date() }
-          }
-        })
-
-        wx.hideLoading()
-
-        if (!res.result?.success) {
-          wx.showToast({ title: res.result?.message || '修改失败', icon: 'none' })
-          return
+      const dish = await api.get('DishList', id)
+      const ingredients = (dish.ingredients || []).map(function (item) {
+        return {
+          key: item.key || newKey(),
+          name: item.name || '',
+          quantity: typeof item.quantity === 'number' ? String(item.quantity) : '',
+          unit: item.unit || '',
+          note: item.note && item.note !== '适量' ? item.note : ''
         }
+      })
+      const steps = (dish.steps || []).map(function (item) {
+        return {
+          id: newKey(),
+          text: item.text || '',
+          minutes: typeof item.minutes === 'number' ? String(item.minutes) : ''
+        }
+      })
 
-        wx.showToast({ title: '修改成功', icon: 'success' })
-      } else {
-        // 新增模式（带上 coupleId）
-        const coupleId = app.globalData.currentUser?.coupleId || ''
-        await db.collection(app.globalData.collectionDishList).add({
-          data: {
-            ...baseData,
-            coupleId,
-            createTime: db.serverDate(),
-          }
-        })
-        wx.hideLoading()
-        wx.showToast({ title: '添加成功', icon: 'success' })
-      }
-
-      setTimeout(() => {
-        wx.navigateBack()
-      }, 1500)
-
-    } catch (e) {
-      console.error('保存失败', e)
-      wx.hideLoading()
-      wx.showToast({ title: '保存失败', icon: 'none' })
-      this.setData({ saving: false })
+      this.setData({
+        loading: false,
+        name: dish.name || '',
+        category: dish.category || '',
+        difficultyIndex: Math.max(0, DIFFICULTIES.indexOf(dish.difficulty)),
+        time: dish.time ? String(dish.time) : '',
+        description: dish.description || '',
+        tips: dish.tips || '',
+        ingredients: ingredients.length ? ingredients : [this.blankIngredient()],
+        steps: steps.length ? steps : [this.blankStep()]
+      })
+    } catch (err) {
+      console.error('[DishAdd] load dish failed', err)
+      this.setData({ loading: false, loadError: err.message || '加载失败' })
     }
   },
 
-  // 重置表单
-  resetForm() {
-    this.setData({
-      name: '',
-      description: '',
-      imageUrl: '',
-      tempFilePath: '',
-      categoryIndex: 0,
-      ingredients: '',
-      steps: '',
-      cookTime: COOK_TIME_OPTIONS[DEFAULT_COOK_TIME_INDEX].label,
-      cookTimeIndex: DEFAULT_COOK_TIME_INDEX,
-      difficulty: '简单',
-      difficultyIndex: 0,
-      ingredientsHeight: 80,
-      stepsHeight: 80,
-    })
+  onFieldInput(e) {
+    const field = e.currentTarget.dataset.field
+    if (!field) return
+    const patch = {}
+    patch[field] = e.detail.value
+    this.setData(patch)
   },
+
+  pickCategory(e) {
+    this.setData({ category: e.currentTarget.dataset.cat })
+  },
+
+  onDifficultyChange(e) {
+    this.setData({ difficultyIndex: Number(e.detail.value) })
+  },
+
+  onIngredientInput(e) {
+    const index = Number(e.currentTarget.dataset.index)
+    const field = e.currentTarget.dataset.field
+    const list = this.data.ingredients.slice()
+    if (!list[index] || !field) return
+    list[index][field] = e.detail.value
+    this.setData({ ingredients: list })
+  },
+
+  addIngredient() {
+    if (this.data.ingredients.length >= 60) {
+      wx.showToast({ title: '食材最多 60 项', icon: 'none' })
+      return
+    }
+    this.setData({ ingredients: this.data.ingredients.concat([this.blankIngredient()]) })
+  },
+
+  removeIngredient(e) {
+    const index = Number(e.currentTarget.dataset.index)
+    const list = this.data.ingredients.slice()
+    if (list.length <= 1) {
+      this.setData({ ingredients: [this.blankIngredient()] })
+      return
+    }
+    list.splice(index, 1)
+    this.setData({ ingredients: list })
+  },
+
+  onStepInput(e) {
+    const index = Number(e.currentTarget.dataset.index)
+    const field = e.currentTarget.dataset.field
+    const list = this.data.steps.slice()
+    if (!list[index] || !field) return
+    list[index][field] = e.detail.value
+    this.setData({ steps: list })
+  },
+
+  addStep() {
+    if (this.data.steps.length >= 30) {
+      wx.showToast({ title: '步骤最多 30 条', icon: 'none' })
+      return
+    }
+    this.setData({ steps: this.data.steps.concat([this.blankStep()]) })
+  },
+
+  removeStep(e) {
+    const index = Number(e.currentTarget.dataset.index)
+    const list = this.data.steps.slice()
+    if (list.length <= 1) {
+      this.setData({ steps: [this.blankStep()] })
+      return
+    }
+    list.splice(index, 1)
+    this.setData({ steps: list })
+  },
+
+  buildIngredients() {
+    const result = []
+    for (let i = 0; i < this.data.ingredients.length; i++) {
+      const row = this.data.ingredients[i]
+      const name = String(row.name || '').trim()
+      if (!name) continue
+
+      const raw = String(row.quantity === undefined || row.quantity === null ? '' : row.quantity).trim()
+      let quantity = null
+      if (raw !== '') {
+        const num = Number(raw)
+        if (!Number.isFinite(num) || num < 0) {
+          wx.showToast({ title: '食材「' + name + '」的用量需为非负数字', icon: 'none' })
+          return null
+        }
+        quantity = num
+      }
+
+      result.push({
+        key: row.key || newKey(),
+        name: name,
+        quantity: quantity,
+        unit: String(row.unit || '').trim(),
+        note: String(row.note || '').trim()
+      })
+    }
+    return result
+  },
+
+  buildSteps() {
+    const result = []
+    for (let i = 0; i < this.data.steps.length; i++) {
+      const row = this.data.steps[i]
+      const text = String(row.text || '').trim()
+      if (!text) continue
+
+      let minutes = null
+      const raw = String(row.minutes === undefined || row.minutes === null ? '' : row.minutes).trim()
+      if (raw !== '') {
+        const num = Number(raw)
+        if (!Number.isFinite(num) || num < 0) {
+          wx.showToast({ title: '第 ' + (i + 1) + ' 步的时长需为非负数字', icon: 'none' })
+          return null
+        }
+        minutes = Math.round(num)
+      }
+
+      result.push({ text: text, minutes: minutes, image: '' })
+    }
+    return result
+  },
+
+  async save() {
+    if (this.data.submitting) return
+
+    const name = String(this.data.name || '').trim()
+    if (!name) return wx.showToast({ title: '请填写菜名', icon: 'none' })
+
+    const ingredients = this.buildIngredients()
+    if (!ingredients) return
+    if (ingredients.length === 0) return wx.showToast({ title: '至少填写一项食材', icon: 'none' })
+
+    const steps = this.buildSteps()
+    if (!steps) return
+    if (steps.length === 0) return wx.showToast({ title: '至少填写一个步骤', icon: 'none' })
+
+    const time = Number(this.data.time)
+    if (!Number.isFinite(time) || time <= 0) {
+      return wx.showToast({ title: '请填写总耗时（分钟）', icon: 'none' })
+    }
+
+    const payload = {
+      name: name,
+      category: String(this.data.category || '').trim(),
+      difficulty: DIFFICULTIES[this.data.difficultyIndex] || '简单',
+      time: Math.round(time),
+      description: String(this.data.description || '').trim(),
+      tips: String(this.data.tips || '').trim(),
+      ingredients: ingredients,
+      steps: steps
+    }
+
+    this.setData({ submitting: true })
+    const isEdit = !!this.data.id
+    const dishId = this.data.id
+    try {
+      await api.withLoading('保存中', function () {
+        return isEdit
+          ? api.update('DishList', dishId, payload)
+          : api.add('DishList', payload)
+      })
+      wx.showToast({ title: '已保存', icon: 'success' })
+      setTimeout(function () { wx.navigateBack() }, 600)
+    } catch (err) {
+      api.toastError(err)
+    } finally {
+      this.setData({ submitting: false })
+    }
+  },
+
+  retry() {
+    this.loadDish(this.data.id)
+  }
 })

@@ -17,6 +17,7 @@ Page({
   data: {
     loading: true,
     loadError: '',
+    canManage: false,
     dishId: '',
     dish: null,
     initial: '',
@@ -32,12 +33,14 @@ Page({
       this.setData({ loading: false, loadError: '缺少菜品参数' })
       return
     }
-    this.setData({ dishId: dishId })
+    this.setData({ dishId: dishId, canManage: app.isAdmin() })
     this.load()
   },
 
   onShow() {
     this.resumeTimer()
+    // 从编辑页返回时重新拉取，保证内容是最新的
+    if (this._loaded) this.load()
   },
 
   onHide() {
@@ -87,6 +90,7 @@ Page({
       console.error('[DishDetail] load failed', err)
       this.setData({ loading: false, loadError: err.message || '加载失败' })
     }
+    this._loaded = true
   },
 
   // 「已准备」按 openid + 菜品 + 版本存储，菜品内容更新后旧勾选自动失效
@@ -245,6 +249,32 @@ Page({
     const minutes = Math.floor(total / 60)
     const seconds = total % 60
     return minutes + ':' + (seconds < 10 ? '0' + seconds : seconds)
+  },
+
+  editDish() {
+    wx.navigateTo({ url: '/pages/DishAdd/index?id=' + this.data.dishId })
+  },
+
+  archiveDish() {
+    const that = this
+    wx.showModal({
+      title: '归档菜品',
+      content: '归档后不再出现在列表、随机和搜索结果中，历史点菜记录不受影响。',
+      confirmText: '归档',
+      confirmColor: '#C9663B',
+      success: async function (res) {
+        if (!res.confirm) return
+        try {
+          await api.withLoading('归档中', function () {
+            return api.archive(that.data.dishId)
+          })
+          wx.showToast({ title: '已归档', icon: 'success' })
+          setTimeout(function () { wx.navigateBack() }, 600)
+        } catch (err) {
+          api.toastError(err)
+        }
+      }
+    })
   },
 
   orderDish() {

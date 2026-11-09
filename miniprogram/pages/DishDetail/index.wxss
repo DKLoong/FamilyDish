@@ -171,6 +171,26 @@
   color: #FFFFFF;
 }
 
+.admin-row {
+  margin-top: 14px;
+  display: flex;
+}
+
+.admin-btn {
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: #F4E6D7;
+  color: #7A4E2D;
+  font-size: 13px;
+  margin-right: 10px;
+}
+
+.admin-btn.danger {
+  color: #C0392B;
+  background: #FFFFFF;
+  border: 1px solid #E7D9CB;
+}
+
 .tips {
   margin-top: 10px;
   font-size: 13px;

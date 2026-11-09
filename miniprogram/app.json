@@ -1,13 +1,9 @@
 {
   "pages": [
     "pages/MainPage/index",
-    "pages/Dishes/index",
     "pages/DishAdd/index",
     "pages/DishDetail/index",
-    "pages/RecipeEdit/index",
-    "pages/Order/index",
     "pages/OrderHistory/index",
-    "pages/OrderDetail/index",
     "pages/Settings/index",
     "pages/Bind/index",
     "pages/CategoryManage/index",
@@ -27,23 +23,23 @@
     "borderStyle": "white",
     "list": [{
       "pagePath": "pages/MainPage/index",
-      "iconPath": "images/TabBar/HomeIconGrey.png",
-      "selectedIconPath": "images/TabBar/HomeIconColor.png",
+      "iconPath": "images/TabBar/tab-home.png",
+      "selectedIconPath": "images/TabBar/tab-home-active.png",
       "text": "首页"
     }, {
       "pagePath": "pages/OrderHistory/index",
-      "iconPath": "images/TabBar/MissionIconGrey.png",
-      "selectedIconPath": "images/TabBar/MissionIconColor.png",
+      "iconPath": "images/TabBar/tab-records.png",
+      "selectedIconPath": "images/TabBar/tab-records-active.png",
       "text": "记录"
     }, {
       "pagePath": "pages/Shopping/index",
-      "iconPath": "images/TabBar/MarketIconGrey.png",
-      "selectedIconPath": "images/TabBar/MarketIconColor.png",
+      "iconPath": "images/TabBar/tab-shopping.png",
+      "selectedIconPath": "images/TabBar/tab-shopping-active.png",
       "text": "购物"
     }, {
       "pagePath": "pages/Settings/index",
-      "iconPath": "images/TabBar/AccountIconGrey.png",
-      "selectedIconPath": "images/TabBar/AccountIconColor.png",
+      "iconPath": "images/TabBar/tab-mine.png",
+      "selectedIconPath": "images/TabBar/tab-mine-active.png",
       "text": "我的"
     }]
   },

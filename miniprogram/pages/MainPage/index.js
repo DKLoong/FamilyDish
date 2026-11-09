@@ -153,9 +153,9 @@ Page({
     this.openDishById(e.currentTarget.dataset.id)
   },
 
-  openDishById() {
-    // 菜谱详情页在下一步接入，届时替换为 navigateTo
-    wx.showToast({ title: '菜谱详情即将接入', icon: 'none' })
+  openDishById(id) {
+    if (!id) return
+    wx.navigateTo({ url: '/pages/DishDetail/index?id=' + id })
   },
 
   async seedDishes() {

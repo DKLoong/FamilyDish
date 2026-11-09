@@ -1,4 +1,5 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "帕恰狗的小厨房"
+  "navigationBarTitleText": "菜谱",
+  "backgroundColor": "#FAF5EE"
 }

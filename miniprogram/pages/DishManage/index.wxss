@@ -84,20 +84,30 @@
   white-space: nowrap;
 }
 
+/* 行内操作按钮统一取 design-spec 的 btn-small 规格（32pt / 圆角 9 / 13pt），
+   底色区分语义：编辑为次按钮暖底，归档为危险，恢复为完成（与记录页一致）。 */
 .row-op {
   flex: 0 0 auto;
   margin-left: 6px;
-  padding: 7px 9px;
-  border-radius: 8px;
-  font-size: 12px;
-  color: #C9663B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  font-size: 13px;
+  background: #F4E6D7;
+  color: #7A4E2D;
 }
 
 .row-op.danger {
-  color: #B4453A;
+  background: #F6E4DF;
+  color: #C94F3B;
 }
 
 .row-op.restore {
+  background: #E9EFE2;
   color: #708B57;
 }
 

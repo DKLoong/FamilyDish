@@ -1,73 +1,113 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+本文件为 Claude Code 及其他 AI 编码工具提供项目上下文。它不是产品需求：规则以《家庭点菜小程序改造需求文稿.md》和《家庭点菜小程序实施方案.md》为准。
 
-## 项目概述
+## 项目定位
 
-PairBite（帕恰狗的小厨房）— 情侣共享菜品管理微信小程序。基于微信云开发（云函数 + 云数据库 + 云存储），无第三方后端依赖。
+**FamilyDish · 家庭点菜小程序**。由上游 PairBite（情侣小厨房）改造而来，面向一个家庭内的多名成员共享菜品库、点菜记录与购物清单。
+
+- 技术栈：微信原生小程序（WXML + WXSS + JS）+ 微信云开发（云函数、云数据库、云存储），无第三方后端。
+- 项目名 `FamilyDish`；分支 `family-v1`；上游基线提交 `99623ac`。
+- 当前阶段：**M0 之前**。需求、UI 与实施规划已定稿，**业务代码仍是上游 PairBite 基线，尚未实施改造**。
+
+> 下面「目标架构」描述的是改造后的状态，不是当前代码的状态。读到 `coupleId`、`sendNotify`、`bindPartner`、绿色主题等旧实现时，不要把它当成需要保留的设计。
 
 ## 开发环境
 
-使用**微信开发者工具**打开项目根目录。无构建命令、无测试套件、无 CI。
+- 用**微信开发者工具**打开仓库根目录（含 `project.config.json` 的一层），不要选 `miniprogram/` 子目录：`miniprogramRoot` 与 `cloudfunctionRoot` 都相对根目录解析。
+- AppID 在 `project.config.json`；云环境 ID 在 `miniprogram/envList.js`，`app.js` 的 `wx.cloud.init` 读 `envList[0].envId`。当前为免费基础版。
+- 前端 npm 依赖（仅 weui-miniprogram）已预构建在 `miniprogram/miniprogram_npm/`，一般无需重装。若需重建：在 `miniprogram/` 下 `npm install`，再用开发者工具「工具 → 构建 npm」。
+- 云函数部署：右键云函数目录 →「上传并部署：云端安装依赖」。云函数依赖 `wx-server-sdk ^2.6.3`。
+- 无构建命令、无测试套件、无 CI。
 
-- 前端 npm 依赖（仅 weui-miniprogram）已预构建在 `miniprogram/miniprogram_npm/`，一般无需重新安装
-- 若需重新构建：在 `miniprogram/` 下 `npm install`，然后开发者工具「工具 → 构建 npm」
-- 云函数部署：右键云函数文件夹 →「上传并部署：云端安装依赖」（云端自动 npm install）
+## 目标架构
 
-## 架构
+### 读写通道（最高优先级）
 
-### 前后端分层
+前端不调用 `wx.cloud.database()`。列表读取、详情读取与全部写操作都通过 `wx.cloud.callFunction` 走 `familyApi`。
 
-```
-miniprogram/          前端 — 微信原生小程序（WXML + WXSS + JS）
-cloudfunctions/       后端 — 9 个独立云函数，各自 package.json，统一依赖 wx-server-sdk
-```
+7 个集合 `User`、`Family`、`UserFamily`、`DishList`、`Category`、`OrderList`、`ShoppingItem` 的数据库权限**统一设为「仅管理端可读写」**，不保留客户端直连旁路。云存储同样保持「仅管理端可读写」，图片经 `getFileURL` 转临时链接展示。
 
-### 数据隔离模型
+基线里 `pages/Order/index.js` 用 `app.database().add()` 前端直写 `OrderList`、各页用 `app.database()` 直连读取，这两类入口都要移除。代价是每个列表页多一次云函数调用，收益是权限判断只有一处、无客户端绕过路径。
 
-核心概念是 `coupleId`（两个 openid 排序拼接）。绑定后所有业务数据（菜品、订单、分类）都挂在 coupleId 下，实现情侣间共享、不同情侣间隔离。
+### 数据隔离与鉴权
 
-### 云数据库集合
+`UserFamily` 是权威成员关系。云函数用 `cloud.getWXContext()` 取 `openid` → 查 `UserFamily` 得有效 `familyId` 与 `role`（`owner` / `admin` / `member`）→ 校验 `Family.status === 'active'` → 按动作查权限表。
 
-| 集合 | _id | 隔离键 | 用途 |
-|------|-----|--------|------|
-| User | openid | — | 用户信息、绑定关系、邀请码 |
-| DishList | auto | coupleId | 菜品库 |
-| OrderList | auto | coupleId | 点菜记录 |
-| Category | auto | coupleId | 自定义分类（首次绑定自动初始化默认分类） |
+`familyId`、`createdBy`、点菜人、角色、时间戳、状态变更一律由服务端写入；前端传入的这些字段全部忽略。`Family.memberOpenids` 仅用于展示，不得作为鉴权依据。首版一个 `openid` 最多一条 `status = 'active'` 的 `UserFamily`。
 
-### 云函数职责
+`openid` 由微信运行时注入，前端直连与云函数都伪造不了。收口的目的不是防伪造身份，而是让角色、状态机、归属键、事务与字段白名单只在服务端执行。
 
-- `getCoupleData` / `updateCoupleData` — 通用 CRUD，前端传 collection + action，云函数校验 coupleId 权限后执行
-- `createUser` — 注册/登录合一，幂等，自动生成 6 位邀请码
-- `bindPartner` / `unbindPartner` — 双向绑定/解绑
-- `manageCategory` — 分类增删改查 + 首次初始化默认分类 + 旧数据迁移
-- `sendNotify` — 通过微信订阅消息向伴侣推送通知
-- `getOpenId` — 获取用户 OpenID
+### 集合
 
-### 前端关键机制
+| 集合 | 用途 | 写入方式 |
+| --- | --- | --- |
+| `User` | 用户身份存根，`_id = openid` | `ensureUser` |
+| `Family` | 家庭主体、状态、人数上限、邀请码 | 领域动作 |
+| `UserFamily` | 权威成员关系、角色、家庭内昵称 | 领域动作 |
+| `DishList` | 菜品与菜谱（含 `archived`、`version`） | 白名单 CRUD |
+| `Category` | 菜品分类 | 白名单 CRUD |
+| `OrderList` | 点菜记录与菜品快照、状态机 | 仅领域动作 |
+| `ShoppingItem` | 购物来源记录（按 `orderId` 独立存放） | 白名单 CRUD + 领域动作 |
 
-- **全局绑定拦截器**（`app.js` 顶部）：重写 `Page()` 函数，在 `onShow` 中自动校验绑定状态。白名单页面：MainPage、Settings、Bind
-- **bind-guard 组件**：全局注册的非阻断式顶部提醒条，检测未完善资料或未绑定状态
-- **全局状态**：`app.globalData` 管理用户信息、伴侣信息、分类缓存。页面通过 `app.loadUserInfo()` / `app.loadCategories()` 获取（带缓存和 Promise 去重）
-- **数据交互模式**：页面直接调 `wx.cloud.callFunction` 或通过 `app.database()` 直接读写云数据库（OrderList 的写入在前端完成）
+索引见《实施方案》4.3。购物清单**按来源独立存储、页面合并显示**；取消点菜只删除该 `orderId` 的来源记录。
 
-### 配置文件
+### 云函数
 
-- `miniprogram/envList.js` — 云环境 ID
-- `project.config.json` — 小程序 AppID
-- `app.js` 中 `notifyTmplIds` — 订阅消息模板 ID
+| 云函数 | 职责 |
+| --- | --- |
+| `familyApi` | 统一入口。白名单 CRUD + 领域动作 + 鉴权 + 事务 + 幂等 |
+| `ensureUser` | 首次进入创建 `User`，返回家庭上下文 |
+| `getFileURL` | `cloud://` → 临时链接（原样保留） |
 
-### 主题色
+改造完成后停用：`getCoupleData`、`updateCoupleData`、`manageCategory`、`bindPartner`、`unbindPartner`、`updateKitchenName`、`sendNotify`、`getOpenId`、`createUser`。停用不是删除目录，而是确保没有可调用的残留入口。
 
-绿色主题（帕恰狗），CSS 变量定义在 `app.wxss`，主色 `--primary-color: #6FCF97`。
+统一响应格式 `{ success, code, message, data }`。白名单 CRUD 与领域动作的清单见《实施方案》5.1 / 5.2。
 
-### TabBar 四个入口
+### 前端页面
 
-首页（MainPage）→ 点菜（Order）→ 菜品库（Dishes）→ 历史（OrderHistory）
+底部 4 个入口：**首页 / 记录 / 购物 / 我的**。首页即菜品库入口；菜谱详情页内用底部弹层完成点菜确认；「我的」承载家庭与成员管理。页面改造映射见《实施方案》第 7 节。
 
-## 注意事项
+### 设计规范
 
-- 云函数使用 `cloud.DYNAMIC_CURRENT_ENV` 自动匹配环境，不要硬编码环境 ID
-- 云数据库单次查询上限 100 条（微信平台限制），分页需用 skip + limit
-- `sendNotify` 中的模板 ID 和 `app.js` 中的 `notifyTmplIds` 是两个不同的值（云端 vs 前端授权用），需各自配置
+暖木厨房风格：页面背景 `#FAF5EE`、卡片 `#FFFFFF`、主色 `#C9663B`、正文 `#3B2B23`、边框 `#E7D9CB`、辅助绿 `#708B57`。基线 `app.wxss` 的绿色主题 `--primary-color: #6FCF97` 需整体替换。尺寸、圆角、状态与 1pt = 2rpx 换算见 `../family-menu-ui-prototype/design-spec.html`。
+
+### 分享告知（替代订阅通知）
+
+**首版不做订阅消息**。`sendNotify` 停用；订阅模板、字段 DATA ID、额度账本、`notifySummary`、「我的」页订阅开关全部作废。
+
+记录页放置 56px 圆形 `<button open-type="share">`（纯图标，居中固定在导航栏上方 16px）；页面必须定义 `onShareAppMessage`，同步返回固定 `title` 与固定 `path`（指向记录页、**不带任何查询参数**），不传 `imageUrl`。分享为纯前端能力，不调云函数、不写数据库、不进点菜事务。点菜成功轻提示「已点菜，可分享给家人」。长截屏分享不做，也不列二期。
+
+## 禁止项
+
+1. 禁止沿用 `coupleId`、`partnerId`、`bindStatus`、`kitchenName` 等双人模型字段。
+2. 禁止前端用 `wx.cloud.database()` 或 `app.database()` 直连任何集合，读或写都不行。
+3. 禁止云函数接收任意 `collection` 或任意 `data` 而不做集合白名单与字段裁剪。
+4. 禁止物理删除点菜历史记录；菜品「删除」一律改为 `archived = true`。`OrderList` 的 `add` / `update` / `remove` 对前端关闭，只允许领域动作写入。
+5. 禁止把模板 ID、密钥、环境凭据写进前端或业务代码硬编码。
+6. 禁止用 `Family.memberOpenids` 做鉴权。
+7. 禁止用 `setInterval` 作为计时器的真实计时依据；用结束时间戳 `endAt`，`onShow` 重算。
+
+## 平台约束（沿用上游，仍然有效）
+
+- 云函数使用 `cloud.DYNAMIC_CURRENT_ENV` 自动匹配环境，不硬编码环境 ID。
+- 云数据库单次查询上限 100 条，分页用 `skip + limit`。
+- 免费基础版云存储不能设为「所有用户可读」，成员互看图片依赖 `getFileURL` 临时链接（约 2 小时有效，前端缓存 1.5 小时）。
+- 事务由云函数侧提供；`wx-server-sdk ^2.6.3` 是否支持事务内批量 `add` 需实测，预留「预留 `_id` + 逐条写」方案。
+
+## 文档索引（相对本仓库）
+
+| 文档 | 内容 |
+| --- | --- |
+| `../家庭点菜小程序改造需求文稿.md` | 产品规则、角色权限、36 项验收用例 |
+| `../家庭点菜小程序实施方案.md` | 架构、数据模型、云函数契约、M0–M7 里程碑 |
+| `../family-menu-ui-prototype/design-spec.html` | UI 设计令牌与 6 张标注稿 |
+| `../family-menu-ui-prototype/index.html` | 可点击 HTML 原型 |
+| `../家庭点菜小程序实施总览.html` | 架构图与风险总览 |
+| `../家庭点菜小程序M0环境开通指引.html` | 项目导入、云环境、体验成员操作指引 |
+
+## 许可证
+
+上游项目：PairBite，作者 **630999Steven**（<https://github.com/630999Steven/PairBite>），许可证 **CC BY-NC-SA 4.0**。
+
+不得删除 `LICENSE`。须保留原作者署名、非商业用途限制与相同方式共享条款；改造说明写入 `NOTICE.md`。本项目用途已确认符合该许可证。

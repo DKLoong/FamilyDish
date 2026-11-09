@@ -86,7 +86,7 @@ Page({
       time: dish.time || 0,
       difficulty: dish.difficulty || '',
       ingredientCount: ingredients.length,
-      // 首版按食材搜索，不匹配菜名
+      // 搜索用：菜名与食材名拼接，菜名单独命中时排在前面
       ingredientNames: ingredients.map(function (item) { return item.name }).join(' '),
       initial: String(dish.name || '?').slice(0, 1)
     }
@@ -95,12 +95,23 @@ Page({
   applyFilter() {
     const keyword = (this.data.keyword || '').trim()
     const category = this.data.activeCategory
-    const visible = this.data.dishes.filter(function (dish) {
-      if (category !== ALL && dish.category !== category) return false
-      if (keyword && dish.ingredientNames.indexOf(keyword) < 0) return false
-      return true
+    const ranked = []
+
+    this.data.dishes.forEach(function (dish) {
+      if (category !== ALL && dish.category !== category) return
+      if (!keyword) {
+        ranked.push({ dish: dish, rank: 0 })
+        return
+      }
+      const inName = dish.name.indexOf(keyword) >= 0
+      const inIngredients = dish.ingredientNames.indexOf(keyword) >= 0
+      if (!inName && !inIngredients) return
+      // 菜名命中的排在仅食材命中的之前，其余保持原有顺序
+      ranked.push({ dish: dish, rank: inName ? 2 : 1 })
     })
-    this.setData({ visible: visible })
+
+    if (keyword) ranked.sort(function (a, b) { return b.rank - a.rank })
+    this.setData({ visible: ranked.map(function (item) { return item.dish }) })
   },
 
   onSearchInput(e) {

@@ -21,30 +21,32 @@
     "selectedColor": "#C9663B",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
-    "list": [{
-      "pagePath": "pages/MainPage/index",
-      "iconPath": "images/TabBar/tab-home.png",
-      "selectedIconPath": "images/TabBar/tab-home-active.png",
-      "text": "首页"
-    }, {
-      "pagePath": "pages/OrderHistory/index",
-      "iconPath": "images/TabBar/tab-records.png",
-      "selectedIconPath": "images/TabBar/tab-records-active.png",
-      "text": "记录"
-    }, {
-      "pagePath": "pages/Shopping/index",
-      "iconPath": "images/TabBar/tab-shopping.png",
-      "selectedIconPath": "images/TabBar/tab-shopping-active.png",
-      "text": "购物"
-    }, {
-      "pagePath": "pages/Settings/index",
-      "iconPath": "images/TabBar/tab-mine.png",
-      "selectedIconPath": "images/TabBar/tab-mine-active.png",
-      "text": "我的"
-    }]
-  },
-  "usingComponents": {
-    "bind-guard": "/components/bind-guard/index"
+    "list": [
+      {
+        "pagePath": "pages/MainPage/index",
+        "iconPath": "images/TabBar/tab-home.png",
+        "selectedIconPath": "images/TabBar/tab-home-active.png",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/OrderHistory/index",
+        "iconPath": "images/TabBar/tab-records.png",
+        "selectedIconPath": "images/TabBar/tab-records-active.png",
+        "text": "记录"
+      },
+      {
+        "pagePath": "pages/Shopping/index",
+        "iconPath": "images/TabBar/tab-shopping.png",
+        "selectedIconPath": "images/TabBar/tab-shopping-active.png",
+        "text": "购物"
+      },
+      {
+        "pagePath": "pages/Settings/index",
+        "iconPath": "images/TabBar/tab-mine.png",
+        "selectedIconPath": "images/TabBar/tab-mine-active.png",
+        "text": "我的"
+      }
+    ]
   },
   "lazyCodeLoading": "requiredComponents",
   "cloud": true,

@@ -91,6 +91,13 @@ function futureDate() {
 
 function seed() {
   return {
+    User: [
+      { _id: 'u1', createTime: new Date() },
+      { _id: 'u2', createTime: new Date() },
+      { _id: 'u3', createTime: new Date() },
+      // u9 是尚未加入家庭的新用户，用于邀请码限流测试
+      { _id: 'u9', createTime: new Date() }
+    ],
     Family: [{
       _id: 'f1',
       name: '林家',
@@ -213,6 +220,44 @@ function assert(label, condition, detail) {
   assert('小写邀请码可加入', rejoin.role === 'member' && rejoin.familyId === 'f1')
   assert('复用同一条记录', db._store.UserFamily.filter(u => u.openid === 'u3').length === 1)
   assert('状态恢复为 active', u3.status === 'active' && u3.nickname === '孩子')
+
+  console.log('9. 邀请码错误尝试限流')
+  db = createMockDb(seed())
+  const newbie = ctxOf(db, 'u9')
+  for (let i = 0; i < 5; i++) {
+    await expectCode('第 ' + (i + 1) + ' 次错误码', () => ACTIONS.joinFamily.run(db, newbie, {
+      inviteCode: 'ZZZZZZ', nickname: '新人'
+    }), 'INVITE_INVALID')
+  }
+  await expectCode('第 6 次被限流', () => ACTIONS.joinFamily.run(db, newbie, {
+    inviteCode: 'ABC234', nickname: '新人'
+  }), 'TOO_MANY_ATTEMPTS')
+
+  const guard = db._store.User.find(u => u._id === 'u9')
+  guard.inviteFailAt = new Date(Date.now() - 11 * 60 * 1000)
+  await expectCode('窗口过期后恢复尝试', () => ACTIONS.joinFamily.run(db, newbie, {
+    inviteCode: 'ZZZZZZ', nickname: '新人'
+  }), 'INVITE_INVALID')
+
+  console.log('10. 成功加入后清空失败计数')
+  db = createMockDb(seed())
+  const newbie2 = ctxOf(db, 'u9')
+  await expectCode('先失败一次', () => ACTIONS.joinFamily.run(db, newbie2, {
+    inviteCode: 'ZZZZZZ', nickname: '新人'
+  }), 'INVITE_INVALID')
+  assert('失败计数已写入', db._store.User.find(u => u._id === 'u9').inviteFailCount === 1)
+  const joinedOk = await ACTIONS.joinFamily.run(db, newbie2, { inviteCode: 'abc234', nickname: '新人' })
+  assert('正确码可加入', joinedOk.familyName === '林家' && joinedOk.role === 'member')
+  assert('成功后失败计数清零', db._store.User.find(u => u._id === 'u9').inviteFailCount === 0)
+
+  console.log('11. 已加入提示带家庭名')
+  db = createMockDb(seed())
+  try {
+    await ACTIONS.createFamily.run(db, ctxOf(db, 'u1'), { familyName: '另一个家', nickname: '妈妈' })
+    assert('已加入时创建家庭应失败', false)
+  } catch (e) {
+    assert('提示包含当前家庭名', /林家/.test(e.message), e.message)
+  }
 
   console.log('\nRESULT: ' + pass + ' passed, ' + failCount + ' failed')
   if (failCount) process.exit(1)

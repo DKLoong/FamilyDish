@@ -8,12 +8,74 @@ const { ApiError, E } = require('../errors')
 
 const ACTIVE = MEMBERSHIP_STATUS.ACTIVE
 
+// 邀请码错误尝试限流：同一 openid 在窗口内失败达到上限后暂时拒绝。
+// 目的不是防机器撞库，而是防家庭成员或拿到卡片的人反复试码。
+const INVITE_FAIL_WINDOW_MS = 10 * 60 * 1000
+const INVITE_FAIL_MAX = 5
+
 function assertText(value, min, max, label) {
   const text = typeof value === 'string' ? value.trim() : ''
   if (text.length < min || text.length > max) {
     throw new ApiError(E.INVALID_PAYLOAD, label + '需为 ' + min + '–' + max + ' 个字符')
   }
   return text
+}
+
+// 已加入家庭时的统一提示，带上家庭名让用户知道自己在哪个家庭
+function alreadyInFamilyError(ctx) {
+  const name = ctx && ctx.family && ctx.family.name ? String(ctx.family.name) : ''
+  return new ApiError(
+    E.ALREADY_IN_FAMILY,
+    name ? '你已加入家庭「' + name + '」' : '你已在一个家庭中'
+  )
+}
+
+async function readGuardUser(db, openid) {
+  try {
+    const res = await db.collection(COL.USER).doc(openid).get()
+    return res && res.data ? res.data : null
+  } catch (err) {
+    if (!isNotFound(err)) {
+      console.error('[familyApi] read user guard failed', { openid: openid, err: err })
+    }
+    return null
+  }
+}
+
+async function assertNotThrottled(db, openid, now) {
+  const user = await readGuardUser(db, openid)
+  if (!user || !user.inviteFailCount || !user.inviteFailAt) return
+  const lastAt = new Date(user.inviteFailAt).getTime()
+  if (!lastAt || now.getTime() - lastAt > INVITE_FAIL_WINDOW_MS) return
+  if (user.inviteFailCount >= INVITE_FAIL_MAX) {
+    throw new ApiError(E.TOO_MANY_ATTEMPTS, '尝试次数过多，请 10 分钟后再试')
+  }
+}
+
+// 记录失败次数。User 文档不存在时降级为不记录，不因为限流影响主流程的正确性
+async function recordInviteFail(db, openid, now) {
+  const user = await readGuardUser(db, openid)
+  if (!user) return
+  const lastAt = user.inviteFailAt ? new Date(user.inviteFailAt).getTime() : 0
+  const expired = !lastAt || now.getTime() - lastAt > INVITE_FAIL_WINDOW_MS
+  const nextCount = expired ? 1 : (user.inviteFailCount || 0) + 1
+  try {
+    await db.collection(COL.USER).doc(openid).update({
+      data: { inviteFailCount: nextCount, inviteFailAt: now }
+    })
+  } catch (err) {
+    console.error('[familyApi] record invite fail failed', { openid: openid, err: err })
+  }
+}
+
+async function clearInviteFail(db, openid, now) {
+  try {
+    await db.collection(COL.USER).doc(openid).update({
+      data: { inviteFailCount: 0, inviteFailAt: null, updateTime: now }
+    })
+  } catch (err) {
+    console.error('[familyApi] clear invite fail failed', { openid: openid, err: err })
+  }
 }
 
 function isNotFound(err) {
@@ -90,7 +152,7 @@ async function pullMemberOpenid(db, familyId, openid) {
 
 async function createFamily(db, ctx, payload) {
   if (ctx.membership && ctx.membership.status === ACTIVE) {
-    throw new ApiError(E.ALREADY_IN_FAMILY, '你已在一个家庭中')
+    throw alreadyInFamilyError(ctx)
   }
 
   const name = assertText(payload.familyName, LIMITS.FAMILY_NAME_MIN, LIMITS.FAMILY_NAME_MAX, '家庭名称')
@@ -145,11 +207,16 @@ async function createFamily(db, ctx, payload) {
 // 人数校验为「先查后写」，并发下存在极小越界窗口，M2 出口前用计数字段收紧
 async function joinFamily(db, ctx, payload) {
   if (ctx.membership && ctx.membership.status === ACTIVE) {
-    throw new ApiError(E.ALREADY_IN_FAMILY, '你已在一个家庭中')
+    throw alreadyInFamilyError(ctx)
   }
+
+  const now = new Date()
+  // 先看是否已被限流，避免在窗口内继续消耗尝试次数
+  await assertNotThrottled(db, ctx.openid, now)
 
   const rawCode = typeof payload.inviteCode === 'string' ? payload.inviteCode.trim().toUpperCase() : ''
   if (rawCode.length !== LIMITS.INVITE_LEN) {
+    await recordInviteFail(db, ctx.openid, now)
     throw new ApiError(E.INVITE_INVALID, '邀请码应为 ' + LIMITS.INVITE_LEN + ' 位字母或数字')
   }
   const nickname = assertText(payload.nickname, LIMITS.NICKNAME_MIN, LIMITS.NICKNAME_MAX, '家庭内昵称')
@@ -159,11 +226,15 @@ async function joinFamily(db, ctx, payload) {
     .limit(1)
     .get()
   const family = found.data && found.data[0]
-  if (!family) throw new ApiError(E.INVITE_INVALID, '邀请码无效或家庭已解散')
+  if (!family) {
+    await recordInviteFail(db, ctx.openid, now)
+    throw new ApiError(E.INVITE_INVALID, '邀请码无效或家庭已解散')
+  }
 
   const expiresAt = family.invite && family.invite.expiresAt
   const expireTime = expiresAt ? new Date(expiresAt).getTime() : 0
   if (!expireTime || expireTime < Date.now()) {
+    await recordInviteFail(db, ctx.openid, now)
     throw new ApiError(E.INVITE_EXPIRED, '邀请码已过期，请联系家庭管理员重新生成')
   }
 
@@ -172,10 +243,10 @@ async function joinFamily(db, ctx, payload) {
     .where({ familyId: family._id, status: ACTIVE })
     .count()
   if (activeRes.total >= maxMembers) {
+    // 满员不是猜码行为，不计入失败次数
     throw new ApiError(E.FAMILY_FULL, '家庭人数已达上限，请联系家庭管理员调整')
   }
 
-  const now = new Date()
   try {
     await upsertMembership(db, ctx.openid, {
       familyId: family._id,
@@ -198,6 +269,9 @@ async function joinFamily(db, ctx, payload) {
   } catch (err) {
     console.error('[familyApi] joinFamily memberOpenids sync failed', { familyId: family._id, err: err })
   }
+
+  // 加入成功，清空该用户的失败计数
+  await clearInviteFail(db, ctx.openid, now)
 
   return {
     familyId: family._id,

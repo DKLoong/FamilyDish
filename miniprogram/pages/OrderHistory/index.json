@@ -1,6 +1,5 @@
 {
-  "usingComponents": {
-    "mp-slideview": "../../miniprogram_npm/weui-miniprogram/slideview/slideview"
-  },
-  "navigationBarTitleText": "帕恰狗的小厨房"
+  "usingComponents": {},
+  "navigationBarTitleText": "记录",
+  "backgroundColor": "#FAF5EE"
 }

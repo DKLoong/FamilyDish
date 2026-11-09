@@ -1,0 +1,42 @@
+.page {
+  min-height: 100vh;
+  background: #FAF5EE;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 20px 16px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #3B2B23;
+}
+
+.desc {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #7B685C;
+  line-height: 1.6;
+}
+
+.tag {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #F4E6D7;
+  color: #7A4E2D;
+  font-size: 12px;
+}
+
+.ghost {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: #C9663B;
+}

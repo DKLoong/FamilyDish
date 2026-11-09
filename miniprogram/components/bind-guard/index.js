@@ -21,7 +21,8 @@ Component({
       wx.navigateTo({ url: '/pages/Bind/index' })
     },
     goToSetProfile() {
-      wx.navigateTo({ url: '/pages/Settings/index?editProfile=true' })
+      // Settings 已改为 tabBar 页，navigateTo 会失败
+      wx.switchTab({ url: '/pages/Settings/index' })
     }
   }
 })

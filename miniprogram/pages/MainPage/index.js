@@ -179,7 +179,8 @@ Page({
   },
 
   goMine() {
-    wx.navigateTo({ url: '/pages/Settings/index' })
+    // Settings 是 tabBar 页，只能用 switchTab
+    wx.switchTab({ url: '/pages/Settings/index' })
   },
 
   retry() {

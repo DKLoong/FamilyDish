@@ -1,5 +1,6 @@
 {
   "usingComponents": {},
   "navigationBarTitleText": "记录",
+  "enablePullDownRefresh": true,
   "backgroundColor": "#FAF5EE"
 }

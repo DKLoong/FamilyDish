@@ -1,9 +1,81 @@
 <view class="page">
-  <view class="card">
-    <view class="title">点菜记录</view>
-    <view class="desc">点过的菜会出现在这里，可以标记完成、取消，也能分享给家人。</view>
-    <view class="tag">下一步接入</view>
+  <view class="filters">
+    <view
+      class="filter {{activeFilter === item.key ? 'active' : ''}}"
+      wx:for="{{filters}}"
+      wx:key="key"
+      data-key="{{item.key}}"
+      bindtap="switchFilter"
+    >{{item.label}}</view>
   </view>
 
-  <view class="ghost" bindtap="goHome">去首页看看菜品</view>
+  <view class="skeleton" wx:if="{{loading}}">
+    <view class="sk-card"></view>
+    <view class="sk-card"></view>
+  </view>
+
+  <view class="error-box" wx:elif="{{loadError}}">
+    <view class="error-text">{{loadError}}</view>
+    <view class="retry-btn" bindtap="retry">重新加载</view>
+  </view>
+
+  <view class="empty" wx:elif="{{orders.length === 0}}">
+    <view class="empty-title">这里还没有记录</view>
+    <view class="empty-hint">去首页挑一道菜，点一下「我要点这道菜」</view>
+  </view>
+
+  <view class="list" wx:else>
+    <view class="order-card" wx:for="{{orders}}" wx:key="id" data-id="{{item.id}}" bindtap="openSnapshot">
+      <view class="order-top">
+        <view class="order-name">{{item.dishName}}</view>
+        <view class="status {{item.statusClass}}">{{item.statusLabel}}</view>
+      </view>
+
+      <view class="order-meta" wx:if="{{item.metaText}}">{{item.metaText}}</view>
+      <view class="order-remark" wx:if="{{item.remark}}">{{item.remark}}</view>
+
+      <view class="order-bottom">
+        <view class="order-time">{{item.createdText}}</view>
+        <view class="order-ops" wx:if="{{item.canOperate}}">
+          <view class="op" data-id="{{item.id}}" catchtap="complete">完成</view>
+          <view class="op danger" data-id="{{item.id}}" data-count="{{item.shoppingCount}}" catchtap="cancel">取消</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="share-space"></view>
+
+  <button class="share-fab" open-type="share" aria-label="分享给家人">
+    <text class="share-glyph">↗</text>
+  </button>
+
+  <view class="mask" wx:if="{{showSnapshot}}" bindtap="closeSnapshot">
+    <view class="snapshot" catchtap="noop">
+      <view class="snapshot-title">{{detail.dishName}}</view>
+      <view class="snapshot-meta">{{detail.statusLabel}} · {{detail.createdText}}</view>
+
+      <scroll-view class="snapshot-body" scroll-y>
+        <view class="snapshot-section">
+          <view class="snapshot-label">食材</view>
+          <view class="snapshot-row" wx:for="{{detail.ingredients}}" wx:key="key">
+            <text class="snapshot-name">{{item.name}}</text>
+            <text class="snapshot-amount">{{item.amount}}</text>
+          </view>
+        </view>
+
+        <view class="snapshot-section">
+          <view class="snapshot-label">步骤</view>
+          <view class="snapshot-step" wx:for="{{detail.steps}}" wx:key="no">{{item.no}}. {{item.text}}</view>
+        </view>
+
+        <view class="snapshot-section" wx:if="{{detail.remark}}">
+          <view class="snapshot-label">备注</view>
+          <view class="snapshot-step">{{detail.remark}}</view>
+        </view>
+      </scroll-view>
+
+      <button class="close-btn" bindtap="closeSnapshot">关闭</button>
+    </view>
+  </view>
 </view>

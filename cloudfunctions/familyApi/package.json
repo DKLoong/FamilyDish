@@ -1,0 +1,9 @@
+{
+  "name": "familyApi",
+  "version": "1.0.0",
+  "description": "FamilyDish 统一读写入口：鉴权、集合与字段白名单、白名单 CRUD、领域动作",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

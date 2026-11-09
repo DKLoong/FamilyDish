@@ -21,17 +21,19 @@ function readIngredient(item) {
   }
 }
 
-// 未购：名称与单位都相同、且都有数值，才合并成一行。
+// 未购：名称与单位相同即可合并，但按「有数值 / 无数值」分成两组——
+// 都有数值则求和；都没有数值则共用备注（如三份「盐 适量」显示为一行）。
+// 混合情况不合并，因为「500 g」和「适量」无法可靠相加。
 // 已购：同一次勾选（purchaseGroupId）合并，让「排骨 800g = 两单来源」仍显示为一行。
-// 其余情况各占一行，遵循「无法可靠相加就不合并」的原则。
 function groupKeyOf(item) {
   const ing = readIngredient(item)
   if (item.purchased) {
     const base = item.purchaseGroupId || ('solo|' + item._id)
     return 'bought|' + base + '|' + ing.name + '|' + ing.unit
   }
-  if (ing.quantity === null) return 'single|' + item._id
-  return 'pending|' + ing.name + '|' + ing.unit
+  // 名称为空的脏数据各自成行，避免把所有空名项目并成一组
+  if (!ing.name) return 'single|' + item._id
+  return 'pending|' + ing.name + '|' + ing.unit + '|' + (ing.quantity === null ? 'text' : 'num')
 }
 
 function decorate(group, viewer) {
@@ -55,14 +57,17 @@ function decorate(group, viewer) {
   if (sourceCount > 1) sourceLabel = sourceCount + ' 个来源'
   else if (!group.purchased && group.items[0] && group.items[0].sourceType === 'manual') sourceLabel = '手工添加'
 
+  // 无数量时用备注表达用量。合并组的备注可能不同（适量 / 少许），去重后并列。
+  const noteText = group.notes.length > 0 ? group.notes.join('、') : (group.note || '适量')
+
   return {
     key: group.key,
     name: group.name,
     unit: group.unit,
     quantityText: group.quantity === null
-      ? (group.note || '适量')
+      ? noteText
       : (group.unit ? group.quantity + ' ' + group.unit : String(group.quantity)),
-    note: group.note,
+    note: noteText,
     purchased: group.purchased,
     sourceCount: sourceCount,
     sourceLabel: sourceLabel,
@@ -83,7 +88,7 @@ function groupItems(items, viewer) {
     const key = groupKeyOf(item)
     let group = map[key]
     if (!group) {
-      group = { key: key, name: '', unit: '', quantity: null, note: '', purchased: !!item.purchased, items: [] }
+      group = { key: key, name: '', unit: '', quantity: null, note: '', notes: [], purchased: !!item.purchased, items: [] }
       map[key] = group
       order.push(key)
     }
@@ -92,6 +97,7 @@ function groupItems(items, viewer) {
     if (!group.unit && ing.unit) group.unit = ing.unit
     if (ing.quantity !== null) group.quantity = round2((group.quantity || 0) + ing.quantity)
     if (!group.note && ing.note) group.note = ing.note
+    if (ing.note && group.notes.indexOf(ing.note) < 0) group.notes.push(ing.note)
     group.items.push(item)
   }
 

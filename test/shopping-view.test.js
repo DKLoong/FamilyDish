@@ -44,18 +44,40 @@ assert('标记多个来源', ribs.sourceLabel === '2 个来源' && ribs.sourceCo
 assert('不同单位分开', result.pendingGroups[1].quantityText === '1 kg', result.pendingGroups[1].quantityText)
 assert('计数按来源条数统计', result.pendingCount === 4, 'pendingCount=' + result.pendingCount)
 
-console.log('2. 无数量不参与合并')
+console.log('2. 无数量项目也合并')
 result = view.buildView([
   item('a', '盐', null, ''),
   item('b', '盐', null, ''),
   item('c', '盐', 5, 'g')
 ], member)
-assert('两条「适量」各自成行', result.pendingGroups.length === 3, 'groups=' + result.pendingGroups.length)
-assert('展示为适量', result.pendingGroups[0].quantityText === '适量')
-assert('有数量的单独一行', result.pendingGroups[2].quantityText === '5 g')
+assert('两条「适量」合并为一行', result.pendingGroups.length === 2, 'groups=' + result.pendingGroups.length)
+const saltGroup = result.pendingGroups.find(function (g) { return g.name === '盐' && g.quantityText === '适量' })
+assert('合并后显示备注', !!saltGroup && saltGroup.sourceCount === 2)
+assert('有数值的单独成行', result.pendingGroups.some(function (g) { return g.quantityText === '5 g' }))
+assert('计数仍按来源条数', result.pendingCount === 3, 'pendingCount=' + result.pendingCount)
+
+result = view.buildView([
+  item('a', '盐', null, '', { ingredient: { name: '盐', quantity: null, unit: '', note: '适量' } }),
+  item('b', '盐', null, '', { ingredient: { name: '盐', quantity: null, unit: '', note: '少许' } })
+], member)
+assert('备注不同时并列展示', result.pendingGroups.length === 1 && result.pendingGroups[0].quantityText === '适量、少许', result.pendingGroups[0].quantityText)
+
+result = view.buildView([
+  item('a', '盐', null, '', { ingredient: { name: '盐', quantity: null, unit: '', note: '适量' } }),
+  item('b', '盐', null, '', { ingredient: { name: '盐', quantity: null, unit: '', note: '适量' } })
+], member)
+assert('备注相同时不重复', result.pendingGroups[0].quantityText === '适量', result.pendingGroups[0].quantityText)
+
+result = view.buildView([
+  item('a', '盐', 500, 'g'),
+  item('b', '盐', null, 'g')
+], member)
+assert('有数值与无数值混用时不合并', result.pendingGroups.length === 2, 'groups=' + result.pendingGroups.length)
 
 result = view.buildView([item('a', '盐', null, '', { ingredient: { name: '盐', quantity: null, unit: '', note: '少许' } })], member)
 assert('无数量但有备注时显示备注', result.pendingGroups[0].quantityText === '少许')
+result = view.buildView([item('a', '盐', null, '')], member)
+assert('无数量也无备注时显示默认值', result.pendingGroups[0].quantityText === '适量')
 
 console.log('3. 已购按购买批次合并')
 result = view.buildView([

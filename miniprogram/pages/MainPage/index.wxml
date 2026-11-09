@@ -15,7 +15,7 @@
   <input
     class="search-input"
     value="{{keyword}}"
-    placeholder="搜索食材，如「鸡」"
+    placeholder="搜索菜名或食材，如「红烧」"
     confirm-type="search"
     bindinput="onSearchInput"
   />

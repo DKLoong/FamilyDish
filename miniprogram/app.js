@@ -1,5 +1,5 @@
 // 全局家庭守卫：白名单之外的页面，未加入家庭时统一导流到 Bind。
-// 与上游 bind-guard 的区别是「真的拦截」，不只是 setData。
+// 守卫在 Page 构造时注入，pages 名单外的页面一律拦截，不依赖各页面自觉。
 const _originalPage = Page
 const PAGE_WHITELIST = ['pages/Bind/index']
 

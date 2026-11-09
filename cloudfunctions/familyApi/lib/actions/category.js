@@ -186,12 +186,60 @@ async function reorderCategories(db, ctx, payload) {
   return { updated: sort }
 }
 
+// 删除分类。若还有菜品在用，必须二次确认，并把这些菜品的分类清空——
+// 否则下次进入分类页时 syncCategories 会把刚删掉的分类又补回来。
+async function deleteCategory(db, ctx, payload) {
+  const id = typeof payload.id === 'string' ? payload.id.trim() : ''
+  if (!id) throw new ApiError(E.INVALID_PAYLOAD, '缺少分类')
+
+  const current = await readOwnedCategory(db, id, ctx.familyId)
+  const oldName = current.name
+
+  const usedRes = await db.collection(COL.DISH)
+    .where({ familyId: ctx.familyId, category: oldName })
+    .count()
+  const usedCount = usedRes.total || 0
+
+  if (usedCount > 0 && payload.confirm !== true) {
+    throw new ApiError(
+      E.CONFIRM_REQUIRED,
+      '有 ' + usedCount + ' 道菜使用该分类，删除后这些菜会变为未分类'
+    )
+  }
+
+  const now = new Date()
+  let clearedDishes = 0
+  if (usedCount > 0) {
+    const dishes = await db.collection(COL.DISH)
+      .where({ familyId: ctx.familyId, category: oldName })
+      .limit(LIMITS.PAGE_SIZE_MAX)
+      .get()
+    for (const dish of dishes.data || []) {
+      try {
+        const res = await db.collection(COL.DISH)
+          .where({ _id: dish._id, familyId: ctx.familyId })
+          .update({ data: { category: '', updateTime: now } })
+        if (res.stats && res.stats.updated === 1) clearedDishes++
+      } catch (err) {
+        console.error('[familyApi] clear dish category failed', { dishId: dish._id, err: err })
+      }
+    }
+  }
+
+  await db.collection(COL.CATEGORY)
+    .where({ _id: id, familyId: ctx.familyId })
+    .remove()
+
+  return { id: id, name: oldName, clearedDishes: clearedDishes }
+}
+
 const manager = { auth: { roles: [ROLE.OWNER, ROLE.ADMIN] } }
 
 const ACTIONS = {
   syncCategories: { auth: manager.auth, run: syncCategories },
   saveCategory: { auth: manager.auth, run: saveCategory },
-  reorderCategories: { auth: manager.auth, run: reorderCategories }
+  reorderCategories: { auth: manager.auth, run: reorderCategories },
+  deleteCategory: { auth: manager.auth, run: deleteCategory }
 }
 
 module.exports = { ACTIONS: ACTIONS }

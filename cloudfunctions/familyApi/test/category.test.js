@@ -69,6 +69,14 @@ function createMockDb(seed) {
         const targets = rows.filter(r => match(r, st.query))
         targets.forEach(r => Object.assign(r, data))
         return { stats: { updated: targets.length } }
+      },
+      async remove() {
+        const targets = rows.filter(r => match(r, st.query))
+        targets.forEach(function (t) {
+          const i = rows.indexOf(t)
+          if (i >= 0) rows.splice(i, 1)
+        })
+        return { stats: { removed: targets.length } }
       }
     }
     return api
@@ -184,6 +192,26 @@ function assert(label, condition, detail) {
   assert('顺序与传入一致', after.join(',') === reversed.join(','), after.join(','))
 
   await expectCode('空数组', () => ACTIONS.reorderCategories.run(db, owner, { ids: [] }), 'INVALID_PAYLOAD')
+
+  console.log('6. 删除分类')
+  db = createMockDb(seed())
+  await ACTIONS.syncCategories.run(db, owner)
+  const emptyCat = await ACTIONS.saveCategory.run(db, owner, { name: '临时' })
+  const delEmpty = await ACTIONS.deleteCategory.run(db, owner, { id: emptyCat.id })
+  assert('无菜品使用直接删除', delEmpty.clearedDishes === 0)
+  assert('分类已移除', !db._store.Category.find(c => c.name === '临时'))
+
+  const meatCat = db._store.Category.find(c => c.name === '荤菜')
+  await expectCode('有菜品使用需要确认', () => ACTIONS.deleteCategory.run(db, owner, { id: meatCat._id }), 'CONFIRM_REQUIRED')
+  assert('未确认时不删除', !!db._store.Category.find(c => c._id === meatCat._id))
+
+  const forced = await ACTIONS.deleteCategory.run(db, owner, { id: meatCat._id, confirm: true })
+  assert('确认后删除分类', !db._store.Category.find(c => c._id === meatCat._id))
+  assert('清空使用该分类的菜品', forced.clearedDishes === 2, 'cleared=' + forced.clearedDishes)
+  assert('菜品变为未分类', db._store.DishList.filter(d => d.familyId === 'f1' && d.category === '').length === 2)
+
+  const resync = await ACTIONS.syncCategories.run(db, owner)
+  assert('删除后同步不会补回', resync.created === 0 && !db._store.Category.find(c => c.name === '荤菜'))
 
   console.log('\nRESULT: ' + pass + ' passed, ' + failCount + ' failed')
   if (failCount) process.exit(1)

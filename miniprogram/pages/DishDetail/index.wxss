@@ -186,9 +186,15 @@
   display: flex;
 }
 
+/* 与菜品管理页同一套 btn-small 规格：32pt 高、圆角 9、13pt 字。 */
 .admin-btn {
-  padding: 6px 16px;
-  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  border-radius: 9px;
   background: #F4E6D7;
   color: #7A4E2D;
   font-size: 13px;
@@ -196,9 +202,10 @@
 }
 
 .admin-btn.danger {
-  color: #C0392B;
-  background: #FFFFFF;
-  border: 1px solid #E7D9CB;
+  background: #F6E4DF;
+  color: #C94F3B;
+  border: none;
+  margin-right: 0;
 }
 
 .tips {

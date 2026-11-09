@@ -118,10 +118,12 @@
   color: #7A4E2D;
 }
 
+/* 危险区按钮按 design-spec 的 btn-danger：实心 #C94F3B 配白字。
+   尺寸沿用 .btn 的 44 高与 12 圆角，与同组按钮保持一致。 */
 .btn.danger {
-  background: #FFFFFF;
-  color: #C0392B;
-  border: 1px solid #E7D9CB;
+  background: #C94F3B;
+  color: #FFFFFF;
+  border: none;
 }
 
 .member {
@@ -136,9 +138,19 @@
   border-bottom: none;
 }
 
+/* 昵称最长 20 字，操作按钮改为块状后占宽增加，
+   必须让主区可收缩，否则会把按钮挤出可视区。 */
+.member-main {
+  flex: 1;
+  min-width: 0;
+}
+
 .member-name {
   font-size: 15px;
   color: #3B2B23;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .me {
@@ -157,14 +169,26 @@
   align-items: center;
 }
 
+/* 成员行操作与菜品管理、记录页同一套 btn-small 规格：
+   改角色为次按钮暖底，移除为危险配色。 */
 .op {
+  flex: 0 0 auto;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  border-radius: 9px;
   font-size: 13px;
-  color: #C9663B;
-  padding: 6px 8px;
+  background: #F4E6D7;
+  color: #7A4E2D;
 }
 
 .op.danger {
-  color: #C0392B;
+  background: #F6E4DF;
+  color: #C94F3B;
 }
 
 .capacity-row {

@@ -1,3 +1,7 @@
 node_modules/
 .idea/
 .DS_Store
+
+# 微信开发者工具生成的本地私有配置：含本机工具状态，且会覆盖 project.config.json 的同名字段
+# 上游仓库曾跟踪此文件，已通过 git rm --cached 移出版本库，本地文件保留
+project.private.config.json

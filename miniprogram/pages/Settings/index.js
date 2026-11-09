@@ -174,6 +174,10 @@ Page({
   },
 
   // —— 人数上限 ——
+  goCategories() {
+    wx.navigateTo({ url: '/pages/CategoryManage/index' })
+  },
+
   openCapacity() {
     this.setData({ showCapacity: true, tempCapacity: this.data.maxMembers })
   },

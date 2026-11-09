@@ -59,6 +59,11 @@
         </view>
       </view>
 
+      <view class="capacity-row" wx:if="{{canManage}}" bindtap="goCategories">
+        <text>分类管理</text>
+        <text class="capacity-value">新增、改名与排序 ›</text>
+      </view>
+
       <view class="capacity-row" wx:if="{{canManage}}" bindtap="openCapacity">
         <text>家庭人数上限</text>
         <text class="capacity-value">{{maxMembers}} 人 ›</text>

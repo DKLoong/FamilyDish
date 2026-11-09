@@ -70,14 +70,23 @@ Page({
         api.list('OrderList', { filters: { status: 'pending' }, limit: 2 }).catch(function (err) {
           console.error('[MainPage] load pending orders failed', err)
           return { items: [], total: 0 }
+        }),
+        // 分类顺序以分类表为准；表里没有的（未同步过）退回菜品出现顺序
+        api.list('Category', { orderBy: 'sort', order: 'asc', limit: 100 }).catch(function (err) {
+          console.error('[MainPage] load categories failed', err)
+          return { items: [] }
         })
       ])
       const members = results[0]
       const listRes = results[1]
       const pendingRes = results[2]
+      const categoryRes = results[3]
 
       const dishes = (listRes.items || []).map(this.decorate)
       const categories = [ALL]
+      ;(categoryRes.items || []).forEach(function (item) {
+        if (item.name && categories.indexOf(item.name) < 0) categories.push(item.name)
+      })
       dishes.forEach(function (dish) {
         if (dish.category && categories.indexOf(dish.category) < 0) categories.push(dish.category)
       })

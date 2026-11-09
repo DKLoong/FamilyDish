@@ -1,4 +1,7 @@
 {
-  "usingComponents": {},
-  "navigationBarTitleText": "类目管理"
+  "navigationBarTitleText": "分类管理",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#FAF5EE",
+  "backgroundTextStyle": "dark",
+  "usingComponents": {}
 }

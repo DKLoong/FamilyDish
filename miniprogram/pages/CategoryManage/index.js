@@ -1,270 +1,126 @@
+// 分类管理：新增、重命名（同步菜品）、排序。
+// 首版分类只是「名称 + 排序」的轻量标签，菜品上仍存分类文本，
+// 所以重命名必须由服务端批量同步，否则菜品会挂在不存在的分类上。
 const app = getApp()
+const api = require('../../utils/api.js')
 
 Page({
   data: {
-    categories: [],
     loading: true,
-    // 添加/编辑弹窗
-    showModal: false,
-    editingIndex: -1,
-    tempName: '',
-    tempIcon: '🍽️',
-    emojiList: ['🥩', '🥬', '🍲', '🍚', '🍜', '🥗', '🍰', '🥤', '🍳', '🍕', '🌮', '🍣', '🥘', '🍝', '🥙', '🍱', '🧁', '🍺', '☕', '🫕', '🍽️', '🔥', '⭐', '🌶️'],
-    customIcon: '',
-    // 删除转移弹窗
-    showTransferModal: false,
-    deletingCategory: null,
-    deletingDishCount: 0,
-    transferTarget: '',
-    transferOptions: [],
-    sortChanged: false,
+    loadError: '',
+    categories: [],
+    submitting: false,
+    showSheet: false,
+    editingId: '',
+    formName: ''
   },
 
-  async onShow() {
-    await this.loadCategories()
+  onShow() {
+    this.load()
   },
 
-  async loadCategories() {
-    this.setData({ loading: true })
+  onPullDownRefresh() {
+    // 下拉时重新同步一次，兜住「新增菜品带来新分类」的情况
+    this._synced = false
+    this.load(true)
+  },
+
+  reload() {
+    this.load()
+  },
+
+  async load(refresh) {
+    if (refresh !== true) this.setData({ loading: true, loadError: '' })
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'manageCategory',
-        data: { action: 'list' }
-      })
-      if (res.result?.success) {
-        this.setData({ categories: res.result.data })
-        // 同步到全局
-        app.globalData.categories = res.result.data
-        app.globalData.categoriesLoaded = true
+      // 幂等同步：把菜品里已有、但分类表还没登记的分类补进来，避免首次进入是空列表
+      if (!this._synced) {
+        await api.action('syncCategories')
+        this._synced = true
       }
-    } catch (e) {
-      console.error('load categories error', e)
-      wx.showToast({ title: '加载失败', icon: 'none' })
-    }
-    this.setData({ loading: false })
-  },
-
-  // 显示添加弹窗
-  showAddModal() {
-    this.setData({
-      showModal: true,
-      editingIndex: -1,
-      tempName: '',
-      tempIcon: '🍽️',
-      customIcon: ''
-    })
-  },
-
-  // 点击分类进入编辑
-  editCategory(e) {
-    const index = e.currentTarget.dataset.index
-    const cat = this.data.categories[index]
-    this.setData({
-      showModal: true,
-      editingIndex: index,
-      tempName: cat.name,
-      tempIcon: cat.icon
-    })
-  },
-
-  selectEmoji(e) {
-    this.setData({ tempIcon: e.currentTarget.dataset.emoji, customIcon: '' })
-  },
-
-  onCustomIconInput(e) {
-    this.setData({ customIcon: e.detail.value })
-  },
-
-  useCustomIcon() {
-    if (this.data.customIcon) {
-      this.setData({ tempIcon: this.data.customIcon })
+      const res = await api.list('Category', { orderBy: 'sort', order: 'asc', limit: 100 })
+      this.setData({
+        loading: false,
+        loadError: '',
+        categories: (res.items || []).map(function (item) {
+          return { id: item._id, name: item.name }
+        })
+      })
+    } catch (err) {
+      console.error('[CategoryManage] load failed', err)
+      this.setData({ loading: false, loadError: (err && err.message) || '加载失败' })
+    } finally {
+      if (refresh === true) wx.stopPullDownRefresh()
     }
   },
+
+  // 上下移动：先在本地交换，再整体提交顺序。失败时重载回到服务端顺序。
+  async move(e) {
+    if (this.data.submitting) return
+    const index = Number(e.currentTarget.dataset.index)
+    const dir = Number(e.currentTarget.dataset.dir)
+    const target = index + dir
+    if (target < 0 || target >= this.data.categories.length) return
+
+    const list = this.data.categories.slice()
+    const temp = list[index]
+    list[index] = list[target]
+    list[target] = temp
+    this.setData({ categories: list })
+
+    try {
+      await api.action('reorderCategories', {
+        ids: list.map(function (item) { return item.id })
+      })
+    } catch (err) {
+      api.toastError(err)
+      this.load(true)
+    }
+  },
+
+  openCreate() {
+    this.setData({ showSheet: true, editingId: '', formName: '' })
+  },
+
+  openRename(e) {
+    const id = e.currentTarget.dataset.id
+    const found = this.data.categories.find(function (item) { return item.id === id })
+    this.setData({ showSheet: true, editingId: id, formName: found ? found.name : '' })
+  },
+
+  closeSheet() {
+    this.setData({ showSheet: false })
+  },
+
+  noop() {},
 
   onNameInput(e) {
-    let value = e.detail.value
-    if (value.length > 6) value = value.slice(0, 6)
-    this.setData({ tempName: value })
-    return value
+    this.setData({ formName: e.detail.value })
   },
 
-  closeModal() {
-    this.setData({ showModal: false })
-  },
-
-  // 保存分类（新增或编辑）
-  async saveCategory() {
-    const { tempName, tempIcon, editingIndex, categories } = this.data
-    if (!tempName.trim()) {
-      wx.showToast({ title: '请输入分类名称', icon: 'none' })
+  async submitSheet() {
+    if (this.data.submitting) return
+    const name = (this.data.formName || '').trim()
+    if (!name) {
+      wx.showToast({ title: '请填写分类名称', icon: 'none' })
       return
     }
 
-    wx.showLoading({ title: '保存中...', mask: true })
+    const payload = { name: name }
+    if (this.data.editingId) payload.id = this.data.editingId
 
+    this.setData({ submitting: true })
     try {
-      if (editingIndex >= 0) {
-        // 编辑
-        await wx.cloud.callFunction({
-          name: 'manageCategory',
-          data: {
-            action: 'update',
-            data: { _id: categories[editingIndex]._id, name: tempName.trim(), icon: tempIcon }
-          }
-        })
-      } else {
-        // 新增
-        await wx.cloud.callFunction({
-          name: 'manageCategory',
-          data: {
-            action: 'add',
-            data: { name: tempName.trim(), icon: tempIcon }
-          }
-        })
-      }
-
-      wx.hideLoading()
-      this.setData({ showModal: false })
-      await this.loadCategories()
-      wx.showToast({ title: '保存成功', icon: 'success' })
-    } catch (e) {
-      wx.hideLoading()
-      console.error('save category error', e)
-      wx.showToast({ title: '保存失败', icon: 'none' })
+      const result = await api.action('saveCategory', payload)
+      this.setData({ showSheet: false })
+      await this.load(true)
+      const tip = result && result.renamedDishes > 0
+        ? '已重命名，同步 ' + result.renamedDishes + ' 道菜'
+        : '已保存'
+      wx.showToast({ title: tip, icon: 'none' })
+    } catch (err) {
+      api.toastError(err)
+    } finally {
+      this.setData({ submitting: false })
     }
-  },
-
-  // 删除分类
-  async deleteCategory(e) {
-    if (this.data.categories.length <= 1) {
-      wx.showToast({ title: '至少保留一个分类', icon: 'none' })
-      return
-    }
-    const index = e.currentTarget.dataset.index
-    const cat = this.data.categories[index]
-
-    wx.showLoading({ title: '检查中...', mask: true })
-
-    try {
-      // 查询该分类下菜品数量
-      const res = await wx.cloud.callFunction({
-        name: 'manageCategory',
-        data: { action: 'countDishes', data: { _id: cat._id } }
-      })
-      wx.hideLoading()
-
-      const count = res.result?.count || 0
-
-      if (count === 0) {
-        // 无菜品，直接确认删除
-        wx.showModal({
-          title: '确认删除',
-          content: `确定删除「${cat.icon} ${cat.name}」分类？`,
-          success: async (modalRes) => {
-            if (!modalRes.confirm) return
-            wx.showLoading({ title: '删除中...', mask: true })
-            await wx.cloud.callFunction({
-              name: 'manageCategory',
-              data: { action: 'remove', data: { _id: cat._id } }
-            })
-            wx.hideLoading()
-            await this.loadCategories()
-            wx.showToast({ title: '已删除', icon: 'success' })
-          }
-        })
-      } else {
-        // 有菜品，弹出转移弹窗
-        const transferOptions = this.data.categories.filter(c => c._id !== cat._id)
-        this.setData({
-          showTransferModal: true,
-          deletingCategory: cat,
-          deletingDishCount: count,
-          transferTarget: '',
-          transferOptions
-        })
-      }
-    } catch (e) {
-      wx.hideLoading()
-      console.error('delete category error', e)
-      wx.showToast({ title: '操作失败', icon: 'none' })
-    }
-  },
-
-  selectTransferTarget(e) {
-    this.setData({ transferTarget: e.currentTarget.dataset.id })
-  },
-
-  closeTransferModal() {
-    this.setData({ showTransferModal: false })
-  },
-
-  // 确认转移并删除
-  async confirmDelete() {
-    const { deletingCategory, transferTarget } = this.data
-    if (!transferTarget) return
-
-    wx.showLoading({ title: '转移中...', mask: true })
-
-    try {
-      await wx.cloud.callFunction({
-        name: 'manageCategory',
-        data: {
-          action: 'remove',
-          data: { _id: deletingCategory._id, transferTo: transferTarget }
-        }
-      })
-      wx.hideLoading()
-      this.setData({ showTransferModal: false })
-      await this.loadCategories()
-      wx.showToast({ title: '已删除', icon: 'success' })
-    } catch (e) {
-      wx.hideLoading()
-      console.error('transfer and delete error', e)
-      wx.showToast({ title: '操作失败', icon: 'none' })
-    }
-  },
-
-  // 上移（本地交换）
-  moveUp(e) {
-    const index = e.currentTarget.dataset.index
-    if (index <= 0) return
-    const categories = [].concat(this.data.categories)
-    const temp = categories[index]
-    categories[index] = categories[index - 1]
-    categories[index - 1] = temp
-    this.setData({ categories, sortChanged: true })
-  },
-
-  // 下移（本地交换）
-  moveDown(e) {
-    const index = e.currentTarget.dataset.index
-    if (index >= this.data.categories.length - 1) return
-    const categories = [].concat(this.data.categories)
-    const temp = categories[index]
-    categories[index] = categories[index + 1]
-    categories[index + 1] = temp
-    this.setData({ categories, sortChanged: true })
-  },
-
-  // 保存排序
-  async saveSortOrder() {
-    const orders = this.data.categories.map((cat, i) => ({ _id: cat._id, sort: i }))
-    wx.showLoading({ title: '保存中...', mask: true })
-    try {
-      await wx.cloud.callFunction({
-        name: 'manageCategory',
-        data: { action: 'reorder', data: { orders } }
-      })
-      wx.hideLoading()
-      this.setData({ sortChanged: false })
-      // 同步到全局
-      app.globalData.categories = this.data.categories
-      wx.showToast({ title: '排序已保存', icon: 'success' })
-    } catch (e) {
-      wx.hideLoading()
-      wx.showToast({ title: '保存失败', icon: 'none' })
-    }
-  },
-
-  preventBubble() {},
+  }
 })

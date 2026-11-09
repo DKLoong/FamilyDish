@@ -33,7 +33,8 @@
 
     <view class="card">
       <view class="card-title">
-        食材<text class="sub">{{preparedCount}} / {{ingredients.length}} 已准备</text>
+        <view>食材<text class="sub">{{preparedCount}} / {{ingredients.length}} 已准备</text></view>
+        <text class="clear-link" wx:if="{{preparedCount > 0}}" bindtap="clearPrepared">一键清除</text>
       </view>
 
       <view

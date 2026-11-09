@@ -149,6 +149,33 @@ Page({
     this.setData({ ingredients: list, preparedCount: keys.length })
   },
 
+  // 一键清除：只清本地的「已准备」勾选，不改任何共享数据和已生成的购物清单
+  clearPrepared() {
+    const count = this.data.preparedCount
+    if (count === 0) return
+    const that = this
+
+    wx.showModal({
+      title: '清除已准备',
+      content: '将取消 ' + count + ' 项食材的勾选。已生成的购物清单不受影响。',
+      confirmText: '清除',
+      confirmColor: '#C9663B',
+      success(res) {
+        if (!res.confirm) return
+        try {
+          wx.removeStorageSync(that.preparedStorageKey(that.data.dish))
+        } catch (err) {
+          console.error('[DishDetail] clear prepared failed', err)
+        }
+        const list = that.data.ingredients.map(function (row) {
+          return Object.assign({}, row, { prepared: false })
+        })
+        that.setData({ ingredients: list, preparedCount: 0 })
+        wx.showToast({ title: '已清除', icon: 'none' })
+      }
+    })
+  },
+
   // —— 计时器 ——
   startTimer(e) {
     const index = Number(e.currentTarget.dataset.index)

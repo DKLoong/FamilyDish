@@ -78,6 +78,16 @@
   font-weight: 400;
 }
 
+/* 一键清除：文字 12px，用 padding + 负 margin 把触控区撑到约 42px，不撑高标题行 */
+.clear-link {
+  align-self: center;
+  font-size: 12px;
+  font-weight: 400;
+  color: #C9663B;
+  padding: 12px 8px;
+  margin: -12px -8px -12px 0;
+}
+
 .ing-row {
   display: flex;
   align-items: center;

@@ -1,29 +1,16 @@
-// 家庭首页：菜品列表、食材搜索、分类筛选、随机选菜、示例菜导入。
-// 菜谱详情与点菜在后续里程碑接入，此处先保证浏览可用。
+// 家庭首页：问候、搜索、分类、随机、菜品列表。
+// 顶部区固定，页面本身不滚动，只有菜品列表在 scroll-view 内滚动。
 const app = getApp()
 const api = require('../../utils/api.js')
 
 const ALL = '全部'
 
-// 待做摘要：菜名 + 点菜人（多人折叠）+ 餐次。
-// 记录可能来自改造前版本，没有 orderers 时退回单点菜人字段。
-function decoratePending(order) {
-  const snapshot = order.dishSnapshot || {}
-  const orderers = Array.isArray(order.orderers) && order.orderers.length > 0
-    ? order.orderers
-    : (order.ordererNickname ? [{ nickname: order.ordererNickname }] : [])
-  const names = orderers.map(function (item) { return item.nickname }).filter(Boolean)
-
-  const meta = []
-  if (names.length > 2) meta.push(names.slice(0, 2).join('、') + ' 等 ' + names.length + ' 人')
-  else if (names.length > 0) meta.push(names.join('、'))
-  if (order.mealType) meta.push(order.mealType)
-
-  return {
-    id: order._id,
-    name: snapshot.name || '（菜品已删除）',
-    meta: meta.join(' · ')
-  }
+function greetingOf(hour) {
+  if (hour < 5) return '夜深了'
+  if (hour < 11) return '早上好'
+  if (hour < 14) return '中午好'
+  if (hour < 18) return '下午好'
+  return '晚上好'
 }
 
 Page({
@@ -31,9 +18,11 @@ Page({
     loading: true,
     loadError: '',
     seeding: false,
+    refreshing: false,
 
     familyName: '',
-    roleLabel: '',
+    greeting: '',
+    nickname: '',
     memberCount: 0,
     maxMembers: 0,
     canManage: false,
@@ -43,19 +32,19 @@ Page({
     categories: [ALL],
     activeCategory: ALL,
     dishes: [],
-    visible: [],
-
-    // 最近待做点菜：让用户不进记录页也能知道家里现在有什么在等做
-    pendingOrders: [],
-    pendingTotal: 0
+    visible: []
   },
 
   onShow() {
     this.load()
   },
 
-  onPullDownRefresh() {
-    this.load(true)
+  // 页面不滚动，下拉刷新由列表 scroll-view 承担
+  async onRefresherRefresh() {
+    if (this.data.refreshing) return
+    this.setData({ refreshing: true })
+    await this.load(true)
+    this.setData({ refreshing: false })
   },
 
   async load(force) {
@@ -66,12 +55,7 @@ Page({
       const results = await Promise.all([
         api.action('listMembers'),
         api.list('DishList', { limit: 100 }),
-        // 待做摘要失败不影响首页主流程，降级为空
-        api.list('OrderList', { filters: { status: 'pending' }, limit: 2 }).catch(function (err) {
-          console.error('[MainPage] load pending orders failed', err)
-          return { items: [], total: 0 }
-        }),
-        // 分类顺序以分类表为准；表里没有的（未同步过）退回菜品出现顺序
+        // 分类顺序以分类表为准；表为空时退回菜品出现顺序作为兜底
         api.list('Category', { orderBy: 'sort', order: 'asc', limit: 100 }).catch(function (err) {
           console.error('[MainPage] load categories failed', err)
           return { items: [] }
@@ -79,16 +63,14 @@ Page({
       ])
       const members = results[0]
       const listRes = results[1]
-      const pendingRes = results[2]
-      const categoryRes = results[3]
+      const categoryRes = results[2]
 
       const dishes = (listRes.items || []).map(this.decorate)
-      // 分类以分类表为唯一来源，保证与分类管理页、菜谱编辑页一致。
-      // 只有分类表为空（老数据尚未同步）时才退回菜品顺序，作为兜底。
       const categories = [ALL]
       const registered = (categoryRes.items || [])
         .map(function (item) { return item.name })
         .filter(Boolean)
+
       if (registered.length > 0) {
         registered.forEach(function (name) {
           if (categories.indexOf(name) < 0) categories.push(name)
@@ -104,27 +86,26 @@ Page({
         ? this.data.activeCategory
         : ALL
 
+      const membership = app.globalData.membership
+
       this.setData({
         loading: false,
         familyName: members.familyName,
-        roleLabel: app.getRoleLabel(),
+        greeting: greetingOf(new Date().getHours()),
+        nickname: (membership && membership.nickname) || '',
         memberCount: members.members.length,
         maxMembers: members.maxMembers,
         canManage: members.canManage,
         isOwner: members.isOwner,
         categories: categories,
         activeCategory: activeCategory,
-        dishes: dishes,
-        pendingOrders: (pendingRes.items || []).map(decoratePending),
-        pendingTotal: pendingRes.total || 0
+        dishes: dishes
       })
       this.applyFilter()
     } catch (err) {
       console.error('[MainPage] load failed', err)
       this.setData({ loading: false, loadError: err.message || '加载失败' })
     }
-
-    if (force === true) wx.stopPullDownRefresh()
   },
 
   decorate(dish) {
@@ -224,17 +205,8 @@ Page({
     }
   },
 
-  createDish() {
-    wx.navigateTo({ url: '/pages/DishAdd/index' })
-  },
-
-  goMine() {
-    // Settings 是 tabBar 页，只能用 switchTab
-    wx.switchTab({ url: '/pages/Settings/index' })
-  },
-
-  goRecords() {
-    wx.switchTab({ url: '/pages/OrderHistory/index' })
+  goManage() {
+    wx.navigateTo({ url: '/pages/DishManage/index' })
   },
 
   retry() {

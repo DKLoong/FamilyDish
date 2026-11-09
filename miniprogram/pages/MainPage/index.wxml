@@ -1,85 +1,80 @@
 <view class="page">
-  <view class="header">
-    <view class="header-top">
-      <view class="header-left">
-        <view class="header-name">{{familyName || '我的家庭'}}</view>
-        <view class="header-meta">
-          <text class="role-chip">{{roleLabel}}</text>
-          <text class="member-text">{{memberCount}} / {{maxMembers}} 人</text>
+  <view class="top-area">
+    <view class="greeting">
+      <view class="greeting-text">{{greeting}}{{nickname ? '，' + nickname : ''}}</view>
+      <view class="family-chip">{{familyName || '我的家庭'}} · {{memberCount}} 人</view>
+    </view>
+
+    <input
+      class="search-input"
+      value="{{keyword}}"
+      placeholder="搜索菜名或食材，如「红烧」"
+      confirm-type="search"
+      bindinput="onSearchInput"
+    />
+
+    <scroll-view class="cats" scroll-x>
+      <view
+        class="cat {{activeCategory === item ? 'active' : ''}}"
+        wx:for="{{categories}}"
+        wx:key="*this"
+        data-cat="{{item}}"
+        bindtap="selectCategory"
+      >{{item}}</view>
+    </scroll-view>
+
+    <view class="toolbar">
+      <view class="toolbar-title">{{(keyword || activeCategory !== '全部') ? '筛选结果' : '全部菜品'}}<text class="toolbar-count" wx:if="{{keyword || activeCategory !== '全部'}}">{{visible.length}}</text></view>
+      <view class="toolbar-right">
+        <view class="random-btn" bindtap="randomPick">随机一下</view>
+        <view class="manage-btn" wx:if="{{canManage}}" bindtap="goManage">管理 ›</view>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view
+    class="list-area"
+    scroll-y
+    refresher-enabled
+    refresher-triggered="{{refreshing}}"
+    bindrefresherrefresh="onRefresherRefresh"
+  >
+    <view class="list-inner">
+      <view class="skeleton" wx:if="{{loading}}">
+        <view class="sk-card"></view>
+        <view class="sk-card"></view>
+      </view>
+
+      <view class="error-box" wx:elif="{{loadError}}">
+        <view class="error-text">{{loadError}}</view>
+        <view class="retry-btn" bindtap="retry">重新加载</view>
+      </view>
+
+      <view class="empty" wx:elif="{{visible.length === 0}}">
+        <view class="empty-title">{{dishes.length === 0 ? '这个家庭还没有菜品' : '没有匹配的菜品'}}</view>
+        <view class="empty-hint" wx:if="{{dishes.length === 0}}">
+          {{isOwner ? '可以先导入 5 道示例菜看看效果' : '请家庭创建者添加菜品'}}
+        </view>
+        <view class="empty-btn" wx:if="{{dishes.length === 0 && isOwner}}" bindtap="seedDishes">
+          {{seeding ? '导入中…' : '导入示例菜'}}
+        </view>
+        <view class="empty-btn ghost" wx:if="{{dishes.length > 0}}" bindtap="clearSearch">清除筛选</view>
+      </view>
+
+      <view class="grid" wx:else>
+        <view class="dish-card" wx:for="{{visible}}" wx:key="id" data-id="{{item.id}}" bindtap="openDish">
+          <view class="dish-art"><text class="dish-art-text">{{item.initial}}</text></view>
+          <view class="dish-info">
+            <view class="dish-name">{{item.name}}</view>
+            <view class="dish-meta">
+              <text wx:if="{{item.time}}">{{item.time}} 分钟</text>
+              <text wx:if="{{item.time && item.difficulty}}"> · </text>
+              <text wx:if="{{item.difficulty}}">{{item.difficulty}}</text>
+            </view>
+            <view class="dish-tag" wx:if="{{item.category}}">{{item.category}}</view>
+          </view>
         </view>
       </view>
-      <view class="mine-btn" bindtap="goMine">我的</view>
     </view>
-  </view>
-
-  <view class="pending-card" wx:if="{{pendingOrders.length > 0}}" bindtap="goRecords">
-    <view class="pending-head">
-      <view class="pending-title">待做<text class="pending-count">{{pendingTotal}} 道</text></view>
-      <view class="pending-more">查看记录 ›</view>
-    </view>
-    <view class="pending-row" wx:for="{{pendingOrders}}" wx:key="id">
-      <text class="pending-name">{{item.name}}</text>
-      <text class="pending-meta" wx:if="{{item.meta}}">{{item.meta}}</text>
-    </view>
-  </view>
-
-  <input
-    class="search-input"
-    value="{{keyword}}"
-    placeholder="搜索菜名或食材，如「红烧」"
-    confirm-type="search"
-    bindinput="onSearchInput"
-  />
-
-  <scroll-view class="cats" scroll-x>
-    <view
-      class="cat {{activeCategory === item ? 'active' : ''}}"
-      wx:for="{{categories}}"
-      wx:key="*this"
-      data-cat="{{item}}"
-      bindtap="selectCategory"
-    >{{item}}</view>
   </scroll-view>
-
-  <view class="toolbar">
-    <view class="toolbar-title">菜品<text class="toolbar-count">{{visible.length}}</text></view>
-    <view class="toolbar-right">
-      <view class="add-btn" wx:if="{{canManage}}" bindtap="createDish">+ 新增</view>
-      <view class="random-btn" bindtap="randomPick">随机一下</view>
-    </view>
-  </view>
-
-  <view class="skeleton" wx:if="{{loading}}">
-    <view class="sk-card"></view>
-    <view class="sk-card"></view>
-  </view>
-
-  <view class="error-box" wx:elif="{{loadError}}">
-    <view class="error-text">{{loadError}}</view>
-    <view class="retry-btn" bindtap="retry">重新加载</view>
-  </view>
-
-  <view class="empty" wx:elif="{{visible.length === 0}}">
-    <view class="empty-title">{{dishes.length === 0 ? '这个家庭还没有菜品' : '没有匹配的菜品'}}</view>
-    <view class="empty-hint" wx:if="{{dishes.length === 0}}">
-      {{isOwner ? '可以先导入 5 道示例菜看看效果' : '请家庭创建者添加菜品'}}
-    </view>
-    <view class="empty-btn" wx:if="{{dishes.length === 0 && isOwner}}" bindtap="seedDishes">
-      {{seeding ? '导入中…' : '导入示例菜'}}
-    </view>
-    <view class="empty-btn ghost" wx:if="{{dishes.length > 0}}" bindtap="clearSearch">清除筛选</view>
-  </view>
-
-  <view class="grid" wx:else>
-    <view class="dish-card" wx:for="{{visible}}" wx:key="id" data-id="{{item.id}}" bindtap="openDish">
-      <view class="dish-art">{{item.initial}}</view>
-      <view class="dish-body">
-        <view class="dish-name">{{item.name}}</view>
-        <view class="dish-meta">
-          <text class="dish-cat">{{item.category}}</text>
-          <text class="dish-time" wx:if="{{item.time}}">{{item.time}} 分钟</text>
-        </view>
-      </view>
-    </view>
-  </view>
 </view>

@@ -209,19 +209,41 @@
 }
 
 /* 手工添加按钮 */
+/* 手工添加按钮：与记录页分享按钮同尺寸、同底距、同水平居中。
+   「+」用两条实心线画，不用字符，避免字体基线导致的偏移。 */
 .fab {
   position: fixed;
-  right: 16px;
-  bottom: 24px;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  margin: 0 auto;
   width: 56px;
   height: 56px;
-  border-radius: 50%;
+  border-radius: 28px;
   background: #C9663B;
-  color: #FFFFFF;
-  font-size: 28px;
-  line-height: 54px;
-  text-align: center;
-  box-shadow: 0 6px 16px rgba(201, 102, 59, 0.28);
+  box-shadow: 0 4px 14px rgba(201, 102, 59, 0.3);
+  z-index: 5;
+}
+
+.fab-h,
+.fab-v {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: #FFFFFF;
+  border-radius: 2px;
+}
+
+.fab-h {
+  width: 22px;
+  height: 2.5px;
+  margin: -1.25px 0 0 -11px;
+}
+
+.fab-v {
+  width: 2.5px;
+  height: 22px;
+  margin: -11px 0 0 -1.25px;
 }
 
 /* 手工添加弹层 */

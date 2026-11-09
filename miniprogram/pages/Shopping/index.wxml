@@ -64,7 +64,10 @@
     <view class="bottom-space"></view>
   </block>
 
-  <view class="fab" wx:if="{{!loading && !loadError}}" bindtap="openSheet">+</view>
+  <view class="fab" wx:if="{{!loading && !loadError}}" bindtap="openSheet" aria-role="button" aria-label="手动添加">
+    <view class="fab-h"></view>
+    <view class="fab-v"></view>
+  </view>
 
   <view class="sheet-mask" wx:if="{{showSheet}}" bindtap="closeSheet"></view>
   <view class="sheet" wx:if="{{showSheet}}" catchtap="noop">

@@ -26,7 +26,10 @@
     <view class="bottom-space"></view>
   </block>
 
-  <view class="fab" wx:if="{{!loading && !loadError}}" bindtap="openCreate">+</view>
+  <view class="fab" wx:if="{{!loading && !loadError}}" bindtap="openCreate" aria-role="button" aria-label="新增分类">
+    <view class="fab-h"></view>
+    <view class="fab-v"></view>
+  </view>
 
   <view class="mask" wx:if="{{showSheet}}" bindtap="closeSheet"></view>
   <view class="sheet" wx:if="{{showSheet}}" catchtap="noop">

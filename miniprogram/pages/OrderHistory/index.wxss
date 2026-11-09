@@ -123,28 +123,41 @@
   height: 92px;
 }
 
+/* 微信 button 自带左右 padding 与 line-height，只给 width/height 会被撑成椭圆。
+   这里用具体半径值 + 显式约束 + 关闭默认伪元素，保证是正圆。 */
 .share-fab {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   bottom: 16px;
+  margin: 0 auto;
   width: 56px;
+  min-width: 56px;
+  max-width: 56px;
   height: 56px;
-  border-radius: 50%;
-  background: #C9663B;
+  min-height: 56px;
+  max-height: 56px;
   padding: 0;
+  border: none;
+  border-radius: 28px;
+  background: #C9663B;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1;
+  overflow: hidden;
   box-shadow: 0 2px 10px rgba(201, 102, 59, 0.28);
   z-index: 20;
 }
 
 .share-fab::after {
   border: none;
+  display: none;
 }
 
 .share-icon {
+  display: block;
   width: 24px;
   height: 24px;
 }

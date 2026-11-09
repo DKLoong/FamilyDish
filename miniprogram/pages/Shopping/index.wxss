@@ -1,42 +1,319 @@
 .page {
   min-height: 100vh;
   background: #FAF5EE;
-  padding: 16px;
+  padding: 12px 16px 0;
   box-sizing: border-box;
 }
 
-.card {
+/* 概览：待购与已购数量 */
+.summary {
+  display: flex;
+  align-items: center;
   background: #FFFFFF;
   border-radius: 12px;
-  padding: 20px 16px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
 }
 
-.title {
-  font-size: 18px;
+.summary-block {
+  flex: 1;
+  text-align: center;
+}
+
+.summary-num {
+  font-size: 20px;
   font-weight: 500;
-  color: #3B2B23;
+  color: #C9663B;
+  line-height: 26px;
 }
 
-.desc {
-  margin-top: 10px;
-  font-size: 13px;
+.summary-num.muted {
   color: #7B685C;
-  line-height: 1.6;
 }
 
-.tag {
-  display: inline-block;
-  margin-top: 14px;
-  padding: 4px 12px;
+.summary-label {
+  font-size: 12px;
+  color: #7B685C;
+  margin-top: 2px;
+}
+
+.summary-split {
+  width: 1px;
+  height: 28px;
+  background: #E7D9CB;
+}
+
+.clear-btn {
+  flex: 0 0 auto;
+  margin-left: 12px;
+  padding: 6px 10px;
   border-radius: 999px;
   background: #F4E6D7;
   color: #7A4E2D;
   font-size: 12px;
 }
 
-.ghost {
-  margin-top: 24px;
+/* 分区标题 */
+.section {
+  display: flex;
+  align-items: center;
+  padding: 4px 2px 8px;
+}
+
+.bought-section {
+  margin-top: 10px;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #3B2B23;
+}
+
+.section-count {
+  margin-left: 6px;
+  font-size: 12px;
+  color: #7B685C;
+}
+
+/* 清单行 */
+.row {
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  min-height: 24px;
+}
+
+.row.bought {
+  background: #FBF7F1;
+}
+
+.check {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid #E7D9CB;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #FFFFFF;
+  background: #FFFFFF;
+}
+
+.check.checked {
+  background: #708B57;
+  border-color: #708B57;
+}
+
+.row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-name {
+  font-size: 15px;
+  color: #3B2B23;
+  line-height: 22px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row.bought .row-name {
+  color: #A08E80;
+  text-decoration: line-through;
+}
+
+.row-meta {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #7B685C;
+  line-height: 18px;
+}
+
+.row.bought .row-meta {
+  color: #B7A699;
+}
+
+.row-source {
+  margin-left: 6px;
+}
+
+.row-del {
+  flex: 0 0 auto;
+  margin-left: 10px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #B4453A;
+  background: #FBEBE9;
+  border-radius: 8px;
+}
+
+/* 状态 */
+.state {
+  padding: 60px 0;
   text-align: center;
+  font-size: 13px;
+  color: #7B685C;
+}
+
+.state-text {
+  margin-bottom: 14px;
+}
+
+.state-btn {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 999px;
+  background: #C9663B;
+  color: #FFFFFF;
+  font-size: 13px;
+}
+
+.empty {
+  padding: 70px 24px;
+  text-align: center;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #3B2B23;
+  margin-bottom: 8px;
+}
+
+.empty-desc {
+  font-size: 13px;
+  color: #7B685C;
+  line-height: 20px;
+  margin-bottom: 20px;
+}
+
+.empty-btn {
+  display: inline-block;
+  padding: 9px 22px;
+  border-radius: 999px;
+  background: #F4E6D7;
+  color: #7A4E2D;
+  font-size: 13px;
+}
+
+.bottom-space {
+  height: 96px;
+}
+
+/* 手工添加按钮 */
+.fab {
+  position: fixed;
+  right: 16px;
+  bottom: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #C9663B;
+  color: #FFFFFF;
+  font-size: 28px;
+  line-height: 54px;
+  text-align: center;
+  box-shadow: 0 6px 16px rgba(201, 102, 59, 0.28);
+}
+
+/* 手工添加弹层 */
+.sheet-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(59, 43, 35, 0.35);
+  z-index: 10;
+}
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 11;
+  background: #FFFFFF;
+  border-radius: 16px 16px 0 0;
+  padding: 18px 16px calc(16px + env(safe-area-inset-bottom));
+}
+
+.sheet-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #3B2B23;
+  margin-bottom: 16px;
+}
+
+.field {
+  margin-bottom: 12px;
+}
+
+.field-row {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.field.half {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.field.half:first-child {
+  margin-right: 10px;
+}
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  color: #7B685C;
+  margin-bottom: 6px;
+}
+
+.field-input {
+  height: 44px;
+  padding: 0 12px;
+  background: #FAF5EE;
+  border: 1px solid #E7D9CB;
+  border-radius: 10px;
   font-size: 14px;
-  color: #C9663B;
+  color: #3B2B23;
+  box-sizing: border-box;
+}
+
+.sheet-actions {
+  display: flex;
+  margin-top: 18px;
+}
+
+.btn {
+  flex: 1;
+  height: 44px;
+  line-height: 44px;
+  text-align: center;
+  border-radius: 12px;
+  font-size: 15px;
+}
+
+.btn.ghost {
+  background: #F4E6D7;
+  color: #7A4E2D;
+  margin-right: 10px;
+}
+
+.btn.primary {
+  background: #C9663B;
+  color: #FFFFFF;
+}
+
+.btn.primary.disabled {
+  background: #E3B7A3;
 }

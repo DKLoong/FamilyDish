@@ -1,9 +1,99 @@
 <view class="page">
-  <view class="card">
-    <view class="title">购物清单</view>
-    <view class="desc">点菜时未勾选「已准备」的食材会自动进入这里，并按来源合并显示。</view>
-    <view class="tag">下一步接入</view>
+  <view class="summary">
+    <view class="summary-block">
+      <view class="summary-num">{{pendingCount}}</view>
+      <view class="summary-label">待购买</view>
+    </view>
+    <view class="summary-split"></view>
+    <view class="summary-block">
+      <view class="summary-num muted">{{purchasedCount}}</view>
+      <view class="summary-label">已购买</view>
+    </view>
+    <view class="clear-btn" wx:if="{{canClearPurchased && purchasedCount > 0}}" bindtap="clearPurchased">清空已购</view>
   </view>
 
-  <view class="ghost" bindtap="goHome">去首页看看菜品</view>
+  <view class="state" wx:if="{{loading}}">加载中…</view>
+
+  <view class="state" wx:elif="{{loadError}}">
+    <view class="state-text">{{loadError}}</view>
+    <view class="state-btn" bindtap="reload">重试</view>
+  </view>
+
+  <block wx:else>
+    <view class="empty" wx:if="{{pendingCount === 0 && purchasedCount === 0}}">
+      <view class="empty-title">清单还是空的</view>
+      <view class="empty-desc">点菜时会自动带入未准备的食材，也可以手动添加</view>
+      <view class="empty-btn" bindtap="goHome">去点菜</view>
+    </view>
+
+    <block wx:if="{{pendingGroups.length > 0}}">
+      <view class="section">
+        <text class="section-title">待购买</text>
+        <text class="section-count">{{pendingGroups.length}} 项</text>
+      </view>
+      <view class="row" wx:for="{{pendingGroups}}" wx:key="key">
+        <view class="check" data-key="{{item.key}}" bindtap="toggleGroup"></view>
+        <view class="row-main">
+          <view class="row-name">{{item.name}}</view>
+          <view class="row-meta">
+            <text class="row-qty">{{item.quantityText}}</text>
+            <text class="row-source" wx:if="{{item.sourceLabel}}">· {{item.sourceLabel}}</text>
+          </view>
+        </view>
+        <view class="row-del" wx:if="{{item.canRemove}}" data-key="{{item.key}}" catchtap="removeGroup">删除</view>
+      </view>
+    </block>
+
+    <block wx:if="{{purchasedGroups.length > 0}}">
+      <view class="section bought-section">
+        <text class="section-title">已购买</text>
+        <text class="section-count">{{purchasedGroups.length}} 项</text>
+      </view>
+      <view class="row bought" wx:for="{{purchasedGroups}}" wx:key="key">
+        <view class="check checked" data-key="{{item.key}}" bindtap="toggleGroup">✓</view>
+        <view class="row-main">
+          <view class="row-name">{{item.name}}</view>
+          <view class="row-meta">
+            <text class="row-qty">{{item.quantityText}}</text>
+          </view>
+        </view>
+        <view class="row-del" wx:if="{{item.canRemove}}" data-key="{{item.key}}" catchtap="removeGroup">删除</view>
+      </view>
+    </block>
+
+    <view class="bottom-space"></view>
+  </block>
+
+  <view class="fab" wx:if="{{!loading && !loadError}}" bindtap="openSheet">+</view>
+
+  <view class="sheet-mask" wx:if="{{showSheet}}" bindtap="closeSheet"></view>
+  <view class="sheet" wx:if="{{showSheet}}" catchtap="noop">
+    <view class="sheet-title">手动添加</view>
+
+    <view class="field">
+      <text class="field-label">食材名称</text>
+      <input class="field-input" value="{{form.name}}" data-field="name" bindinput="onFormInput" placeholder="如：生抽" maxlength="20" />
+    </view>
+
+    <view class="field-row">
+      <view class="field half">
+        <text class="field-label">数量（选填）</text>
+        <input class="field-input" type="digit" value="{{form.quantity}}" data-field="quantity" bindinput="onFormInput" placeholder="如：500" />
+      </view>
+      <view class="field half">
+        <text class="field-label">单位（选填）</text>
+        <input class="field-input" value="{{form.unit}}" data-field="unit" bindinput="onFormInput" placeholder="如：g" maxlength="6" />
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="field-label">备注（选填）</text>
+      <input class="field-input" value="{{form.note}}" data-field="note" bindinput="onFormInput" placeholder="如：适量、买两把" maxlength="20" />
+    </view>
+
+    <view class="sheet-actions">
+      <view class="btn ghost" bindtap="closeSheet">取消</view>
+      <view class="btn primary {{submitting ? 'disabled' : ''}}" bindtap="submitManual">{{submitting ? '添加中' : '添加'}}</view>
+    </view>
+  </view>
 </view>

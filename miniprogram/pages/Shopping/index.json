@@ -1,5 +1,7 @@
 {
-  "usingComponents": {},
   "navigationBarTitleText": "购物清单",
-  "backgroundColor": "#FAF5EE"
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#FAF5EE",
+  "backgroundTextStyle": "dark",
+  "usingComponents": {}
 }

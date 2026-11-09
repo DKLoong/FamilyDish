@@ -1,19 +1,20 @@
-// 全局页面绑定拦截器 —— 白名单之外的页面自动校验绑定状态
+// 全局家庭守卫：白名单之外的页面，未加入家庭时统一导流到 Bind。
+// 与上游 bind-guard 的区别是「真的拦截」，不只是 setData。
 const _originalPage = Page
-const _bindWhitelist = ['pages/MainPage/index', 'pages/Settings/index', 'pages/Bind/index']
+const PAGE_WHITELIST = ['pages/Bind/index']
 
-Page = function(options) {
+Page = function (options) {
   const originalOnShow = options.onShow
-  options.onShow = function(...args) {
+  options.onShow = function (...args) {
     const app = getApp()
     const pages = getCurrentPages()
-    const route = pages[pages.length - 1]?.route || ''
-    const whitelisted = _bindWhitelist.some(w => route.includes(w))
+    const current = pages[pages.length - 1]
+    const route = (current && current.route) || ''
+    const whitelisted = PAGE_WHITELIST.some(function (w) { return route.indexOf(w) === 0 })
 
-    if (!whitelisted && app && app.bindGuard && !app.bindGuard(this)) {
+    if (!whitelisted && app && app.familyGuard && !app.familyGuard(this)) {
       return
     }
-
     if (originalOnShow) {
       return originalOnShow.apply(this, args)
     }
@@ -22,266 +23,162 @@ Page = function(options) {
 }
 
 App({
-  async onLaunch() {
-    this.initcloud()
-
+  onLaunch() {
     this.globalData = {
-      // 当前用户信息（动态获取）
-      currentUser: null,
-      // 伴侣信息（动态获取）
-      partner: null,
-      // 用户信息是否已加载
-      userLoaded: false,
-      // 用户信息加载Promise
-      userLoadPromise: null,
+      ready: false,
+      openid: '',
+      membership: null,
+      family: null,
+      role: null,
 
-      // 云数据库集合名称
+      // —— 以下字段仅为兼容尚未重写的旧页面（M3–M6 清理）——
+      currentUser: null,
+      partner: null,
+      userLoaded: false,
       collectionDishList: 'DishList',
       collectionOrderList: 'OrderList',
-
-      // 应用信息
-      appName: '帕恰狗的小厨房',
-      version: '1.0.0',
-
-      // 订阅消息模板ID
-      notifyTmplIds: ['your-template-id'],
-
-      // 菜品分类（从数据库动态加载）
       categories: [],
-      categoriesLoaded: false,
+      categoriesLoaded: false
+    }
+    this.initCloud()
+    // 不阻塞启动：页面 onShow 时若上下文未就绪，守卫会自行等待
+    this.refreshContext()
+  },
+
+  initCloud() {
+    const envList = require('./envList.js').envList || []
+    const first = envList[0]
+    if (first && first.envId) {
+      wx.cloud.init({ traceUser: true, env: first.envId })
+      return
+    }
+    wx.showModal({ content: '未找到云开发环境配置，请检查 envList.js', showCancel: false })
+  },
+
+  // 读取用户与家庭上下文。同一时刻只发一次请求。
+  async refreshContext(force) {
+    if (this.globalData.ready && !force) return this.contextSummary()
+    if (this._contextPromise && !force) return this._contextPromise
+
+    this._contextPromise = this._loadContext()
+    try {
+      return await this._contextPromise
+    } finally {
+      this._contextPromise = null
     }
   },
 
-  flag: false,
-
-  /**
-   * 初始化云开发环境
-   */
-  async initcloud() {
-    const normalinfo = require('./envList.js').envList || []
-    if (normalinfo.length != 0 && normalinfo[0].envId != null) {
-      wx.cloud.init({
-        traceUser: true,
-        env: normalinfo[0].envId
-      })
-      this.cloud = () => {
-        return wx.cloud
+  async _loadContext() {
+    try {
+      const res = await wx.cloud.callFunction({ name: 'ensureUser' })
+      const result = res && res.result
+      if (!result || !result.success) {
+        console.error('[app] ensureUser failed', result)
+      } else {
+        const data = result.data || {}
+        // 开发期日志：一行看清 openid / membership / trace，定位完可移除
+        console.log('[app] context', JSON.stringify(data))
+        this.globalData.openid = data.openid || ''
+        this.globalData.membership = data.membership || null
+        this.globalData.family = data.family || null
+        this.globalData.role = data.membership ? data.membership.role : null
       }
-    } else {
-      this.cloud = () => {
-        wx.showModal({
-          content: '帕恰狗找不到云环境啦~',
-          showCancel: false
+    } catch (err) {
+      console.error('[app] load context failed', err)
+    }
+
+    this.globalData.ready = true
+    this.globalData.userLoaded = true
+    // 旧页面读取 currentUser / partner，这里给最小可用值，避免空指针
+    this.globalData.currentUser = this.globalData.openid
+      ? {
+          _id: this.globalData.openid,
+          nickname: this.globalData.membership ? this.globalData.membership.nickname : ''
+        }
+      : null
+    this.globalData.partner = null
+
+    return this.contextSummary()
+  },
+
+  contextSummary() {
+    return {
+      openid: this.globalData.openid,
+      membership: this.globalData.membership,
+      family: this.globalData.family,
+      role: this.globalData.role,
+      ready: this.globalData.ready
+    }
+  },
+
+  // 页面守卫：返回 false 表示已接管跳转，页面 onShow 应中止
+  familyGuard(page) {
+    const apply = () => {
+      if (page && page.setData) {
+        page.setData({
+          familyReady: true,
+          familyName: this.getFamilyName(),
+          roleLabel: this.getRoleLabel()
         })
-        throw new Error('无云开发环境')
-      }
-    }
-  },
-
-  // 获取云数据库实例
-  async database() {
-    return (await this.cloud()).database()
-  },
-
-  // 加载用户信息（带缓存）
-  async loadUserInfo(forceRefresh = false) {
-    // 如果已加载且不强制刷新，直接返回
-    if (this.globalData.userLoaded && !forceRefresh) {
-      return {
-        currentUser: this.globalData.currentUser,
-        partner: this.globalData.partner
       }
     }
 
-    // 如果正在加载中，等待加载完成
-    if (this.globalData.userLoadPromise && !forceRefresh) {
-      return this.globalData.userLoadPromise
-    }
-
-    // 开始加载
-    this.globalData.userLoadPromise = this._doLoadUserInfo()
-    return this.globalData.userLoadPromise
-  },
-
-  // 实际加载用户信息
-  async _doLoadUserInfo() {
-    try {
-      const res = await wx.cloud.callFunction({ name: 'createUser' })
-      if (res.result && res.result.success) {
-        // 转换头像为临时链接
-        const avatarIds = [res.result.user?.avatarUrl, res.result.partner?.avatarUrl].filter(u => u && u.startsWith('cloud://'))
-        if (avatarIds.length > 0) {
-          const urlMap = await this.getTempFileURLs(avatarIds)
-          if (res.result.user?.avatarUrl && urlMap[res.result.user.avatarUrl]) {
-            res.result.user.avatarUrl = urlMap[res.result.user.avatarUrl]
-          }
-          if (res.result.partner?.avatarUrl && urlMap[res.result.partner.avatarUrl]) {
-            res.result.partner.avatarUrl = urlMap[res.result.partner.avatarUrl]
-          }
+    if (!this.globalData.ready) {
+      // 首次启动上下文未就绪：先放行，加载完再决定是否导流
+      this.refreshContext().then(() => {
+        if (!this.globalData.membership) {
+          wx.reLaunch({ url: '/pages/Bind/index' })
+        } else {
+          apply()
         }
-        this.globalData.currentUser = res.result.user
-        this.globalData.partner = res.result.partner
-        this.globalData.userLoaded = true
-        // 已绑定时加载分类
-        if (res.result.user?.bindStatus === 'bound') {
-          await this.loadCategories()
-        }
-        return {
-          currentUser: res.result.user,
-          partner: res.result.partner
-        }
-      }
-    } catch (e) {
-      console.error('load user info error', e)
-    }
-    return { currentUser: null, partner: null }
-  },
-
-  // 加载分类数据
-  async loadCategories(forceRefresh = false) {
-    if (this.globalData.categoriesLoaded && !forceRefresh) {
-      return this.globalData.categories
-    }
-    try {
-      // 先确保初始化默认分类
-      await wx.cloud.callFunction({
-        name: 'manageCategory',
-        data: { action: 'init' }
       })
-      // 加载分类列表
-      const res = await wx.cloud.callFunction({
-        name: 'manageCategory',
-        data: { action: 'list' }
-      })
-      if (res.result?.success) {
-        this.globalData.categories = res.result.data
-        this.globalData.categoriesLoaded = true
-        return res.result.data
-      }
-    } catch (e) {
-      console.error('load categories error', e)
+      return true
     }
-    return []
-  },
 
-  // 更新用户昵称
-  async updateNickname(nickname) {
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'createUser',
-        data: { nickname }
-      })
-      if (res.result && res.result.success) {
-        this.globalData.currentUser = res.result.user
-        return true
-      }
-    } catch (e) {
-      console.error('update nickname error', e)
+    if (!this.globalData.membership) {
+      wx.reLaunch({ url: '/pages/Bind/index' })
+      return false
     }
-    return false
-  },
 
-  // 绑定伴侣
-  async bindPartner(inviteCode) {
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'bindPartner',
-        data: { inviteCode }
-      })
-      if (res.result && res.result.success) {
-        // 刷新用户信息（会自动加载分类）
-        await this.loadUserInfo(true)
-        return { success: true, partner: res.result.partner }
-      }
-      return { success: false, message: res.result?.message || '绑定失败' }
-    } catch (e) {
-      console.error('bind partner error', e)
-      return { success: false, message: '绑定失败，请重试' }
-    }
-  },
-
-  // 解除绑定
-  async unbindPartner() {
-    try {
-      const res = await wx.cloud.callFunction({ name: 'unbindPartner' })
-      if (res.result && res.result.success) {
-        this.globalData.partner = null
-        if (this.globalData.currentUser) {
-          this.globalData.currentUser.partnerId = ''
-          this.globalData.currentUser.bindStatus = 'unbound'
-          this.globalData.currentUser.coupleId = ''
-        }
-        return { success: true }
-      }
-      return { success: false, message: res.result?.message || '解绑失败' }
-    } catch (e) {
-      console.error('unbind partner error', e)
-      return { success: false, message: '解绑失败，请重试' }
-    }
-  },
-
-  // 检查是否已绑定伴侣
-  isBound() {
-    return this.globalData.currentUser?.bindStatus === 'bound' && this.globalData.partner
-  },
-
-  // 检查用户信息是否完整（有昵称和头像）
-  isProfileComplete() {
-    const user = this.globalData.currentUser
-    return user?.nickname && user?.avatarUrl
-  },
-
-  // 页面绑定守卫：仅设置绑定状态到页面 data，不拦截页面展示
-  bindGuard(page) {
-    page.setData({ isBound: this.isBound() })
+    apply()
     return true
   },
 
-  // 获取伴侣名字
-  getPartnerName() {
-    return this.globalData.partner?.nickname || '对方'
+  hasFamily() {
+    return !!this.globalData.membership
   },
 
-  // 获取当前用户名字
-  getCurrentUserName() {
-    return this.globalData.currentUser?.nickname || '我'
+  getFamilyName() {
+    return this.globalData.family ? this.globalData.family.name : ''
   },
 
-  // 根据 openid 获取显示名称
-  getDisplayName(openid) {
-    if (openid === this.globalData.currentUser?._id) {
-      return '你'
-    }
-    if (openid === this.globalData.partner?.openid) {
-      return this.globalData.partner?.nickname || '对方'
-    }
-    return '未知'
+  getRoleLabel() {
+    const role = this.globalData.role
+    if (role === 'owner') return '创建者'
+    if (role === 'admin') return '管理员'
+    if (role === 'member') return '成员'
+    return ''
   },
 
-  // 获取厨房名称（自定义或默认）
-  getKitchenName() {
-    return this.globalData.currentUser?.kitchenName || this.globalData.appName
+  isAdmin() {
+    return this.globalData.role === 'owner' || this.globalData.role === 'admin'
   },
 
-  // 设置页面导航栏标题为厨房名称
-  setKitchenTitle() {
-    const title = this.getKitchenName()
-    wx.setNavigationBarTitle({ title })
+  isOwner() {
+    return this.globalData.role === 'owner'
   },
 
   // 临时链接缓存（fileID -> { url, expireTime }）
   _tempUrlCache: {},
 
-  // 批量将 cloud:// fileID 转为临时链接
   async getTempFileURLs(fileIds) {
     if (!fileIds || fileIds.length === 0) return {}
-
     const now = Date.now()
     const result = {}
     const needFetch = []
 
     for (const id of fileIds) {
-      if (!id || !id.startsWith('cloud://')) continue;
+      if (!id || !String(id).startsWith('cloud://')) continue
       const cached = this._tempUrlCache[id]
       if (cached && cached.expireTime > now) {
         result[id] = cached.url
@@ -292,15 +189,11 @@ App({
 
     if (needFetch.length > 0) {
       try {
-        const res = await wx.cloud.callFunction({
-          name: 'getFileURL',
-          data: { fileList: needFetch }
-        })
-        if (res.result?.success) {
+        const res = await wx.cloud.callFunction({ name: 'getFileURL', data: { fileList: needFetch } })
+        if (res.result && res.result.success) {
           for (const item of res.result.fileList) {
             if (item.tempFileURL) {
               result[item.fileID] = item.tempFileURL
-              // 缓存 1.5 小时（临时链接有效期约 2 小时）
               this._tempUrlCache[item.fileID] = {
                 url: item.tempFileURL,
                 expireTime: now + 90 * 60 * 1000
@@ -308,21 +201,19 @@ App({
             }
           }
         }
-      } catch (e) {
-        console.error('getTempFileURLs error', e)
+      } catch (err) {
+        console.error('[app] getTempFileURLs failed', err)
       }
     }
-
     return result
   },
 
-  // 批量转换数组中对象的指定字段为临时链接，原始值保留到 _raw_xxx
   async convertFileURLs(items, fields) {
     const allIds = []
     for (const item of items) {
       for (const field of fields) {
         const val = item[field]
-        if (val && val.startsWith('cloud://')) allIds.push(val)
+        if (val && String(val).startsWith('cloud://')) allIds.push(val)
       }
     }
     const urlMap = await this.getTempFileURLs(allIds)
@@ -338,24 +229,69 @@ App({
     return items
   },
 
-  // 更新厨房名称（同步到伴侣）
-  async updateKitchenName(name) {
-    if (!name || name.length > 8) {
-      return { success: false, message: '名称不能超过8个字' }
-    }
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'updateKitchenName',
-        data: { kitchenName: name }
-      })
-      if (res.result?.success) {
-        this.globalData.currentUser.kitchenName = name
-        return { success: true }
-      }
-      return { success: false, message: res.result?.message || '更新失败' }
-    } catch (e) {
-      console.error('update kitchen name error', e)
-      return { success: false, message: '更新失败' }
-    }
+  // —— 兼容层：旧页面仍在调用这些方法（M3–M6 重写后删除）——
+  async loadUserInfo() {
+    await this.refreshContext()
+    return { currentUser: this.globalData.currentUser, partner: null }
   },
+
+  isBound() {
+    return this.hasFamily()
+  },
+
+  bindGuard(page) {
+    return this.familyGuard(page)
+  },
+
+  getCurrentUserName() {
+    const membership = this.globalData.membership
+    return membership && membership.nickname ? membership.nickname : '我'
+  },
+
+  getPartnerName() {
+    return '家人'
+  },
+
+  getDisplayName() {
+    return '家人'
+  },
+
+  getKitchenName() {
+    return this.getFamilyName() || '家庭菜单'
+  },
+
+  setKitchenTitle() {
+    wx.setNavigationBarTitle({ title: this.getKitchenName() })
+  },
+
+  // 以下为已停用能力的兜底桩，只为避免旧页面报 "is not a function"。
+  // 对应页面在 M3–M6 重写后，这些桩可以整体删除。
+  async loadCategories() {
+    return this.globalData.categories
+  },
+
+  isProfileComplete() {
+    return true
+  },
+
+  async bindPartner() {
+    return { success: false, message: '该功能已停用' }
+  },
+
+  async unbindPartner() {
+    return { success: false, message: '该功能已停用' }
+  },
+
+  async updateNickname() {
+    return { success: false, message: '该功能已停用' }
+  },
+
+  async updateKitchenName() {
+    return { success: false, message: '该功能已停用' }
+  },
+
+  async database() {
+    // 故意抛错：静默返回假实例会掩盖「前端不该直连数据库」这件事
+    throw new Error('前端已禁止直连数据库，请通过 utils/api.js 调用云函数')
+  }
 })

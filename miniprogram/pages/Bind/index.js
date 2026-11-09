@@ -1,231 +1,115 @@
+// 创建家庭 / 加入家庭。取代上游的「伴侣绑定」。
 const app = getApp()
+const api = require('../../utils/api.js')
+
+const MODE_CREATE = 'create'
+const MODE_JOIN = 'join'
+const CODE_LENGTH = 6
 
 Page({
   data: {
-    inviteCode: '',
-    inputCode: '',
+    mode: MODE_CREATE,
+    familyName: '',
     nickname: '',
-    avatarUrl: '',
-    partnerNickname: '',
-    partnerAvatarUrl: '',
-    bindStatus: 'unbound',
-    bindDays: 0,
-    bindDate: '',
-    dishCount: 0,
-    orderCount: 0,
-    kitchenName: '',
-    tempKitchenName: '',
-    showKitchenNameModal: false,
-    loading: true,
+    inviteCode: '',
     submitting: false,
     statusBarHeight: 20,
+    fromInvite: false
   },
 
-  onLoad() {
-    const sysInfo = wx.getSystemInfoSync()
-    this.setData({ statusBarHeight: sysInfo.statusBarHeight })
+  onLoad(options) {
+    const sys = wx.getSystemInfoSync()
+    const inviteCode = (options && options.inviteCode) || ''
+    const normalized = String(inviteCode).toUpperCase()
+    this.setData({
+      statusBarHeight: sys.statusBarHeight || 20,
+      inviteCode: normalized,
+      mode: normalized ? MODE_JOIN : MODE_CREATE,
+      fromInvite: !!normalized
+    })
   },
 
   async onShow() {
-    await this.loadUserInfo()
-
-    // 如果有待绑定的邀请码（从分享链接进入），自动执行绑定
-    if (app.globalData.pendingInviteCode && this.data.bindStatus !== 'bound') {
-      this.setData({ inputCode: app.globalData.pendingInviteCode })
-      app.globalData.pendingInviteCode = null
-      setTimeout(() => this.bindPartner(), 500)
+    // 已有家庭直接回首页，避免重复创建
+    const ctx = await app.refreshContext()
+    if (ctx.membership) {
+      wx.reLaunch({ url: '/pages/MainPage/index' })
     }
   },
 
-  // 加载用户信息
-  async loadUserInfo() {
-    this.setData({ loading: true })
-    const { currentUser, partner } = await app.loadUserInfo()
-
-    // 计算绑定天数和日期
-    let bindDays = 0
-    let bindDate = ''
-    if (currentUser?.bindStatus === 'bound' && currentUser?.bindTime) {
-      const bindTime = new Date(currentUser.bindTime)
-      const now = new Date()
-      bindDays = Math.floor((now - bindTime) / (1000 * 60 * 60 * 24)) + 1
-      bindDate = `${bindTime.getFullYear()}年${bindTime.getMonth() + 1}月${bindTime.getDate()}日`
-    }
-
-    this.setData({
-      loading: false,
-      inviteCode: currentUser?.inviteCode || '',
-      nickname: currentUser?.nickname || '',
-      avatarUrl: currentUser?.avatarUrl || '',
-      bindStatus: currentUser?.bindStatus || 'unbound',
-      bindDays,
-      bindDate,
-      kitchenName: app.getKitchenName(),
-      partnerNickname: partner?.nickname || '',
-      partnerAvatarUrl: partner?.avatarUrl || ''
-    })
-
-    // 已绑定时加载统计数据
-    if (currentUser?.bindStatus === 'bound') {
-      this.loadStats()
-    }
+  switchMode(e) {
+    const mode = e.currentTarget.dataset.mode
+    if (mode === this.data.mode || this.data.submitting) return
+    this.setData({ mode: mode })
   },
 
-  // 加载统计数据
-  async loadStats() {
-    try {
-      const [dishRes, orderRes] = await Promise.all([
-        wx.cloud.callFunction({
-          name: 'getCoupleData',
-          data: { collection: app.globalData.collectionDishList, countOnly: true }
-        }),
-        wx.cloud.callFunction({
-          name: 'getCoupleData',
-          data: { collection: app.globalData.collectionOrderList, countOnly: true }
-        })
-      ])
-
-      this.setData({
-        dishCount: dishRes.result?.total || 0,
-        orderCount: orderRes.result?.total || 0
-      })
-    } catch (e) {
-      console.error('loadStats error', e)
-    }
+  onFamilyNameInput(e) {
+    this.setData({ familyName: e.detail.value })
   },
 
-  // 输入邀请码
-  onInputCode(e) {
-    this.setData({ inputCode: e.detail.value.toUpperCase() })
+  onNicknameInput(e) {
+    this.setData({ nickname: e.detail.value })
   },
 
-  // 绑定伴侣
-  async bindPartner() {
-    const { inputCode, submitting } = this.data
-    if (submitting || !inputCode || inputCode.length !== 6) {
-      wx.showToast({ title: '请输入6位邀请码', icon: 'none' })
-      return
-    }
-
-    this.setData({ submitting: true })
-    wx.showLoading({ title: '绑定中...', mask: true })
-
-    const result = await app.bindPartner(inputCode)
-
-    if (result.success) {
-      // 刷新页面显示已绑定状态
-      await app.loadUserInfo(true)
-      await this.loadUserInfo()
-      wx.hideLoading()
-      wx.showToast({ title: '绑定成功', icon: 'success' })
-      // 绑定成功后立即请求通知授权，为接收伴侣点菜通知积攒额度
-      wx.requestSubscribeMessage({
-        tmplIds: app.globalData.notifyTmplIds,
-        complete: () => {}
-      })
-    } else {
-      wx.hideLoading()
-      wx.showToast({ title: result.message, icon: 'none' })
-    }
-    this.setData({ submitting: false })
-  },
-
-  // 解除绑定
-  unbindPartner() {
-    wx.showModal({
-      title: '确认解绑',
-      content: '解绑后你们将无法互相看到对方的点菜，确定要解绑吗？',
-      confirmColor: '#E57373',
-      success: async (res) => {
-        if (res.confirm) {
-          wx.showLoading({ title: '解绑中...', mask: true })
-          const result = await app.unbindPartner()
-          if (result.success) {
-            await this.loadUserInfo()
-            wx.hideLoading()
-            wx.showToast({ title: '已解绑', icon: 'success' })
-          } else {
-            wx.hideLoading()
-            wx.showToast({ title: result.message, icon: 'none' })
-          }
-        }
-      }
-    })
-  },
-
-  // 复制邀请码
-  copyInviteCode() {
-    wx.setClipboardData({
-      data: this.data.inviteCode,
-      success: () => {
-        wx.showToast({ title: '已复制邀请码', icon: 'success' })
-      }
-    })
-  },
-
-  // 分享邀请链接
-  onShareAppMessage() {
-    const { inviteCode, nickname } = this.data
-    return {
-      title: `${nickname || '我'}邀请你一起使用帕恰狗的小厨房`,
-      path: `/pages/MainPage/index?inviteCode=${inviteCode}`,
-      imageUrl: '/images/123.jpg'
-    }
-  },
-
-  // 返回上一页
-  goBack() {
-    wx.navigateBack()
-  },
-
-  // 显示修改厨房名称弹窗
-  showKitchenNameModal() {
-    this.setData({
-      showKitchenNameModal: true,
-      tempKitchenName: this.data.kitchenName
-    })
-  },
-
-  // 隐藏弹窗
-  hideKitchenNameModal() {
-    this.setData({ showKitchenNameModal: false })
-  },
-
-  // 阻止冒泡
-  preventClose() {},
-
-  // 输入厨房名称
-  onKitchenNameInput(e) {
-    let value = e.detail.value
-    if (value.length > 8) value = value.slice(0, 8)
-    this.setData({ tempKitchenName: value })
+  onCodeInput(e) {
+    const value = String(e.detail.value || '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .slice(0, CODE_LENGTH)
+    this.setData({ inviteCode: value })
     return value
   },
 
-  // 保存厨房名称
-  async saveKitchenName() {
-    const { tempKitchenName } = this.data
-    if (!tempKitchenName.trim()) {
-      wx.showToast({ title: '请输入厨房名称', icon: 'none' })
-      return
-    }
-    if (tempKitchenName.length > 8) {
-      wx.showToast({ title: '名称不能超过8个字', icon: 'none' })
-      return
-    }
+  async submit() {
+    if (this.data.submitting) return
 
-    wx.showLoading({ title: '保存中...' })
-    const result = await app.updateKitchenName(tempKitchenName.trim())
-    wx.hideLoading()
+    const nickname = this.data.nickname.trim()
+    if (!nickname) return this.toast('请填写家庭内昵称')
+    if (nickname.length > 20) return this.toast('昵称最多 20 个字符')
 
-    if (result.success) {
-      this.setData({
-        kitchenName: tempKitchenName.trim(),
-        showKitchenNameModal: false
+    if (this.data.mode === MODE_CREATE) {
+      const familyName = this.data.familyName.trim()
+      if (!familyName) return this.toast('请填写家庭名称')
+      if (familyName.length > 12) return this.toast('家庭名称最多 12 个字符')
+      await this.run(MODE_CREATE, {
+        action: 'createFamily',
+        payload: { familyName: familyName, nickname: nickname }
       })
-      wx.showToast({ title: '保存成功', icon: 'success' })
-    } else {
-      wx.showToast({ title: result.message, icon: 'none' })
+      return
+    }
+
+    if (this.data.inviteCode.length !== CODE_LENGTH) {
+      return this.toast('请输入 ' + CODE_LENGTH + ' 位邀请码')
+    }
+    await this.run(MODE_JOIN, {
+      action: 'joinFamily',
+      payload: { inviteCode: this.data.inviteCode, nickname: nickname }
+    })
+  },
+
+  async run(mode, request) {
+    this.setData({ submitting: true })
+    try {
+      await api.withLoading(mode === MODE_CREATE ? '创建中' : '加入中', function () {
+        return api.action(request.action, request.payload)
+      })
+      await app.refreshContext(true)
+      wx.showToast({
+        title: mode === MODE_CREATE ? '家庭已创建' : '已加入家庭',
+        icon: 'success',
+        duration: 800
+      })
+      setTimeout(function () {
+        wx.reLaunch({ url: '/pages/MainPage/index' })
+      }, 700)
+    } catch (err) {
+      api.toastError(err)
+    } finally {
+      this.setData({ submitting: false })
     }
   },
+
+  toast(message) {
+    wx.showToast({ title: message, icon: 'none' })
+  }
 })

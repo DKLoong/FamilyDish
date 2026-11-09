@@ -143,6 +143,8 @@ async function placeOrder(db, ctx, payload) {
       remark: normalizeRemark(payload.remark),
       status: ORDER_STATUS.PENDING,
       statusTimes: { createdAt: now, completedAt: null, cancelledAt: null },
+      // 供「取消」二次确认提示将移除几项购物清单项目
+      shoppingCount: pendingIngredients.length,
       requestId: requestId,
       createTime: now,
       updateTime: now

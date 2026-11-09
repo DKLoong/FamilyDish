@@ -162,6 +162,7 @@ function assert(label, condition, detail) {
   assert('购物项关联 orderId', created.length === 2 && created.every(s => s.sourceType === 'order'))
   assert('已准备项被排除', created.every(s => s.ingredient.key !== 'i1'))
   assert('保留选填项', order.mealDate === '2026-11-09' && order.mealType === '晚餐' && order.remark === '少辣')
+  assert('记录购物项数量供取消提示', order.shoppingCount === 2, 'shoppingCount=' + order.shoppingCount)
 
   console.log('3. 幂等')
   const again = await ACTIONS.placeOrder.run(db, member, { dishId: 'd1', requestId: 'req_12345678' })

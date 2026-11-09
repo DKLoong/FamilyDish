@@ -6,6 +6,17 @@ const api = require('../../utils/api.js')
 // 全局只允许一个进行中的计时器，按菜品存本地
 const TIMER_KEY = 'dishTimer'
 
+function todayStr() {
+  const d = new Date()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return d.getFullYear() + '-' + month + '-' + day
+}
+
+function newRequestId() {
+  return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)
+}
+
 function formatAmount(item) {
   if (typeof item.quantity === 'number') {
     return item.quantity + (item.unit ? ' ' + item.unit : '')
@@ -24,7 +35,16 @@ Page({
     ingredients: [],
     steps: [],
     preparedCount: 0,
-    timer: null
+    timer: null,
+
+    showOrderSheet: false,
+    submitting: false,
+    mealTypes: ['早餐', '午餐', '晚餐', '其他'],
+    orderDate: '',
+    orderMeal: '',
+    orderRemark: '',
+    requestId: '',
+    pendingCount: 0
   },
 
   onLoad(options) {
@@ -277,9 +297,70 @@ Page({
     })
   },
 
+  // —— 点菜 ——
   orderDish() {
-    wx.showToast({ title: '点菜功能即将接入', icon: 'none' })
+    this.openOrderSheet()
   },
+
+  openOrderSheet() {
+    this.setData({
+      showOrderSheet: true,
+      orderDate: todayStr(),
+      orderMeal: '',
+      orderRemark: '',
+      requestId: newRequestId(),
+      pendingCount: this.data.ingredients.filter(function (item) { return !item.prepared }).length
+    })
+  },
+
+  closeOrderSheet() {
+    this.setData({ showOrderSheet: false })
+  },
+
+  onDateChange(e) {
+    this.setData({ orderDate: e.detail.value })
+  },
+
+  pickMeal(e) {
+    const meal = e.currentTarget.dataset.meal
+    this.setData({ orderMeal: this.data.orderMeal === meal ? '' : meal })
+  },
+
+  onRemarkInput(e) {
+    this.setData({ orderRemark: e.detail.value })
+  },
+
+  async submitOrder() {
+    if (this.data.submitting) return
+    this.setData({ submitting: true })
+    try {
+      const preparedKeys = this.data.ingredients
+        .filter(function (item) { return item.prepared })
+        .map(function (item) { return item.key })
+
+      const result = await api.action('placeOrder', {
+        dishId: this.data.dishId,
+        requestId: this.data.requestId,
+        preparedKeys: preparedKeys,
+        mealDate: this.data.orderDate,
+        mealType: this.data.orderMeal,
+        remark: this.data.orderRemark
+      })
+
+      this.setData({ showOrderSheet: false })
+      wx.showToast({
+        title: result.duplicated ? '这笔点菜已提交过' : '已点菜，可分享给家人',
+        icon: 'none',
+        duration: 2000
+      })
+    } catch (err) {
+      api.toastError(err)
+    } finally {
+      this.setData({ submitting: false })
+    }
+  },
+
+  noop() {},
 
   retry() {
     this.load()

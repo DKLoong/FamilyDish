@@ -73,6 +73,47 @@
       <view class="tips">{{dish.tips}}</view>
     </view>
 
+    <view class="mask" wx:if="{{showOrderSheet}}" bindtap="closeOrderSheet">
+      <view class="sheet" catchtap="noop">
+        <view class="sheet-title">点这道菜</view>
+        <view class="sheet-dish">{{dish.name}}</view>
+
+        <view class="sheet-row">
+          <view class="sheet-label">用餐日期</view>
+          <picker mode="date" value="{{orderDate}}" bindchange="onDateChange">
+            <view class="sheet-value">{{orderDate || '选择日期'}} ›</view>
+          </picker>
+        </view>
+
+        <view class="sheet-row">
+          <view class="sheet-label">餐次</view>
+          <view class="meal-chips">
+            <view
+              class="meal-chip {{orderMeal === item ? 'active' : ''}}"
+              wx:for="{{mealTypes}}"
+              wx:key="*this"
+              data-meal="{{item}}"
+              bindtap="pickMeal"
+            >{{item}}</view>
+          </view>
+        </view>
+
+        <view class="sheet-row column">
+          <view class="sheet-label">备注（选填）</view>
+          <input class="sheet-input" value="{{orderRemark}}" maxlength="100" placeholder="例如：少辣" bindinput="onRemarkInput" />
+        </view>
+
+        <view class="sheet-hint">
+          {{pendingCount > 0 ? '将为 ' + pendingCount + ' 项未准备食材加入购物清单' : '食材都已标记已准备，不会加入购物清单'}}
+        </view>
+
+        <view class="sheet-actions">
+          <button class="btn ghost" bindtap="closeOrderSheet">取消</button>
+          <button class="btn primary" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitOrder">确认点菜</button>
+        </view>
+      </view>
+    </view>
+
     <view class="bottom-space"></view>
 
     <view class="footer">

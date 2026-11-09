@@ -12,6 +12,17 @@
     </view>
   </view>
 
+  <view class="pending-card" wx:if="{{pendingOrders.length > 0}}" bindtap="goRecords">
+    <view class="pending-head">
+      <view class="pending-title">待做<text class="pending-count">{{pendingTotal}} 道</text></view>
+      <view class="pending-more">查看记录 ›</view>
+    </view>
+    <view class="pending-row" wx:for="{{pendingOrders}}" wx:key="id">
+      <text class="pending-name">{{item.name}}</text>
+      <text class="pending-meta" wx:if="{{item.meta}}">{{item.meta}}</text>
+    </view>
+  </view>
+
   <input
     class="search-input"
     value="{{keyword}}"

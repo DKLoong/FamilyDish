@@ -5,6 +5,27 @@ const api = require('../../utils/api.js')
 
 const ALL = '全部'
 
+// 待做摘要：菜名 + 点菜人（多人折叠）+ 餐次。
+// 记录可能来自改造前版本，没有 orderers 时退回单点菜人字段。
+function decoratePending(order) {
+  const snapshot = order.dishSnapshot || {}
+  const orderers = Array.isArray(order.orderers) && order.orderers.length > 0
+    ? order.orderers
+    : (order.ordererNickname ? [{ nickname: order.ordererNickname }] : [])
+  const names = orderers.map(function (item) { return item.nickname }).filter(Boolean)
+
+  const meta = []
+  if (names.length > 2) meta.push(names.slice(0, 2).join('、') + ' 等 ' + names.length + ' 人')
+  else if (names.length > 0) meta.push(names.join('、'))
+  if (order.mealType) meta.push(order.mealType)
+
+  return {
+    id: order._id,
+    name: snapshot.name || '（菜品已删除）',
+    meta: meta.join(' · ')
+  }
+}
+
 Page({
   data: {
     loading: true,
@@ -22,7 +43,11 @@ Page({
     categories: [ALL],
     activeCategory: ALL,
     dishes: [],
-    visible: []
+    visible: [],
+
+    // 最近待做点菜：让用户不进记录页也能知道家里现在有什么在等做
+    pendingOrders: [],
+    pendingTotal: 0
   },
 
   onShow() {
@@ -40,10 +65,16 @@ Page({
     try {
       const results = await Promise.all([
         api.action('listMembers'),
-        api.list('DishList', { limit: 100 })
+        api.list('DishList', { limit: 100 }),
+        // 待做摘要失败不影响首页主流程，降级为空
+        api.list('OrderList', { filters: { status: 'pending' }, limit: 2 }).catch(function (err) {
+          console.error('[MainPage] load pending orders failed', err)
+          return { items: [], total: 0 }
+        })
       ])
       const members = results[0]
       const listRes = results[1]
+      const pendingRes = results[2]
 
       const dishes = (listRes.items || []).map(this.decorate)
       const categories = [ALL]
@@ -66,7 +97,9 @@ Page({
         isOwner: members.isOwner,
         categories: categories,
         activeCategory: activeCategory,
-        dishes: dishes
+        dishes: dishes,
+        pendingOrders: (pendingRes.items || []).map(decoratePending),
+        pendingTotal: pendingRes.total || 0
       })
       this.applyFilter()
     } catch (err) {
@@ -181,6 +214,10 @@ Page({
   goMine() {
     // Settings 是 tabBar 页，只能用 switchTab
     wx.switchTab({ url: '/pages/Settings/index' })
+  },
+
+  goRecords() {
+    wx.switchTab({ url: '/pages/OrderHistory/index' })
   },
 
   retry() {

@@ -1,0 +1,9 @@
+{
+  "name": "ensureUser",
+  "version": "1.0.0",
+  "description": "幂等创建用户存根，返回当前家庭上下文",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

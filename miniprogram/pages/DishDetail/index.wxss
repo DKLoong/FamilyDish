@@ -393,6 +393,13 @@
   color: #FFFFFF;
 }
 
+/* 提交中按 design-spec 的禁用态：浅主色底配白字，不叠系统 loading 转圈 */
+.btn.primary.is-pending {
+  background: #E2B39D;
+  color: #FFFFFF;
+  opacity: 1;
+}
+
 .btn.ghost {
   background: #F4E6D7;
   color: #7A4E2D;

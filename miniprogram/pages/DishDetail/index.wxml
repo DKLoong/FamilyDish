@@ -110,7 +110,11 @@
 
         <view class="sheet-actions">
           <button class="btn ghost" bindtap="closeOrderSheet">取消</button>
-          <button class="btn primary" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitOrder">确认点菜</button>
+          <button
+            class="btn primary {{submitting ? 'is-pending' : ''}}"
+            disabled="{{submitting}}"
+            bindtap="submitOrder"
+          >{{submitting ? '提交中…' : '确认点菜'}}</button>
         </view>
       </view>
     </view>

@@ -128,12 +128,24 @@ Page({
         await api.action('removeMember', { memberId: memberId })
       }
       this.setData({ showConfirm: false, confirmTargetId: '' })
+      this.notifyOpener()
       wx.showToast({ title: action === 'role' ? '已更新角色' : '已移除', icon: 'success' })
       await this.load(true)
     } catch (err) {
       api.toastError(err)
     } finally {
       this.setData({ confirming: false })
+    }
+  },
+
+  // 成员变动会改变「我的」页的人数与可管理状态，通知上一页在返回时重新拉取。
+  // 本页也可能不是经 navigateTo 打开，取不到通道时静默跳过。
+  notifyOpener() {
+    try {
+      const channel = this.getOpenerEventChannel()
+      if (channel && typeof channel.emit === 'function') channel.emit('membersChanged')
+    } catch (err) {
+      console.warn('[MemberManage] 通知上一页失败', err)
     }
   },
 

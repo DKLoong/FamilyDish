@@ -6,6 +6,10 @@ const appInfo = require('../../utils/app-info.js')
 
 const ROLE_LABEL = { owner: '创建者', admin: '管理员', member: '成员' }
 
+// 本页内容是低频变化的家庭资料：首次加载后复用内存数据，
+// 只有缓存过期、子页面报告变更或下拉刷新时才重新请求，避免每次返回都闪骨架。
+const CACHE_TTL = 5 * 60 * 1000
+
 Page({
   data: {
     loading: true,
@@ -43,20 +47,44 @@ Page({
   },
 
   onShow() {
-    this.load()
+    if (this.shouldRefresh()) this.load()
   },
 
   onPullDownRefresh() {
     this.load(true)
   },
 
+  // 首次进入、缓存过期、子页面报告过变更时才需要请求
+  shouldRefresh() {
+    if (!this._loaded) return true
+    if (this._stale) return true
+    return Date.now() - this._loadedAt > CACHE_TTL
+  },
+
+  // 写操作返回的已是权威值，重置缓存时间，避免下次进入再多拉一次
+  touchCache() {
+    this._loadedAt = Date.now()
+    this._stale = false
+  },
+
   async load(force) {
-    if (force !== true) this.setData({ loading: true })
+    if (this._loading) {
+      // 已有请求在飞，下拉刷新的圈要收掉，否则会一直转
+      if (force === true) wx.stopPullDownRefresh()
+      return
+    }
+
+    // 已有数据时不再回到骨架态：缓存过期的静默刷新与下拉刷新直接替换内容
+    if (!this._loaded && force !== true) this.setData({ loading: true })
     this.setData({ loadError: '' })
 
-    if (force === true) await app.refreshContext(true)
-
+    this._loading = true
     try {
+      // 数据整体缓存后，昵称要取上下文的权威值：冷启动首屏若上下文未就绪，
+      // 等它一次，否则会把占位昵称缓存整个 TTL
+      if (force === true) await app.refreshContext(true)
+      else if (!app.globalData.ready) await app.refreshContext()
+
       const data = await api.action('listMembers')
       const isOwner = data.role === 'owner'
       const members = data.members || []
@@ -64,6 +92,7 @@ Page({
 
       this.setData({
         loading: false,
+        loadError: '',
         familyName: data.familyName,
         myNickname: nickname,
         initial: String(nickname || data.familyName || '?').slice(0, 1),
@@ -74,12 +103,21 @@ Page({
         isOwner: isOwner,
         canManage: data.canManage
       })
+
+      this._loaded = true
+      this.touchCache()
     } catch (err) {
       console.error('[Settings] load failed', err)
-      this.setData({ loading: false, loadError: err.message || '加载失败' })
+      if (this._loaded) {
+        // 静默刷新失败：保留已渲染的内容，不把整页切成错误态，下次进入会再试
+        console.warn('[Settings] 静默刷新失败，沿用上次数据')
+      } else {
+        this.setData({ loading: false, loadError: err.message || '加载失败' })
+      }
+    } finally {
+      this._loading = false
+      if (force === true) wx.stopPullDownRefresh()
     }
-
-    if (force === true) wx.stopPullDownRefresh()
   },
 
   // —— 邀请 ——
@@ -139,7 +177,15 @@ Page({
   },
 
   goMembers() {
-    wx.navigateTo({ url: '/pages/MemberManage/index' })
+    wx.navigateTo({
+      url: '/pages/MemberManage/index',
+      events: {
+        // 成员增删或改角色会改变人数与可否管理，回本页时需要重新拉取
+        membersChanged: () => {
+          this._stale = true
+        }
+      }
+    })
   },
 
   goAbout() {
@@ -165,8 +211,9 @@ Page({
     if (name.length > 12) return wx.showToast({ title: '最多 12 个字', icon: 'none' })
 
     try {
-      await api.action('renameFamily', { name: name })
-      this.setData({ showRename: false, familyName: name })
+      const data = await api.action('renameFamily', { name: name })
+      this.setData({ showRename: false, familyName: (data && data.familyName) || name })
+      this.touchCache()
       await app.refreshContext(true)
       wx.showToast({ title: '已更新', icon: 'success' })
     } catch (err) {
@@ -195,9 +242,14 @@ Page({
 
   async saveCapacity() {
     try {
-      await api.action('updateCapacity', { maxMembers: this.data.tempCapacity })
-      this.setData({ showCapacity: false })
-      await this.load()
+      const data = await api.action('updateCapacity', { maxMembers: this.data.tempCapacity })
+      // 接口返回权威值，直接局部更新，不再整页重拉
+      this.setData({
+        showCapacity: false,
+        maxMembers: (data && data.maxMembers) || this.data.tempCapacity,
+        memberCount: (data && data.memberCount) || this.data.memberCount
+      })
+      this.touchCache()
       wx.showToast({ title: '已更新', icon: 'success' })
     } catch (err) {
       api.toastError(err)
@@ -230,7 +282,7 @@ Page({
         myNickname: nickname,
         initial: String(nickname).slice(0, 1)
       })
-      await this.load()
+      this.touchCache()
       wx.showToast({ title: '已更新', icon: 'success' })
     } catch (err) {
       api.toastError(err)
@@ -287,6 +339,7 @@ Page({
   noop() {},
 
   retry() {
-    this.load(true)
+    // 首次加载失败后重试要回到骨架态，所以不带 force
+    this.load()
   }
 })

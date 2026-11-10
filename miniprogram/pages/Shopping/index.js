@@ -12,10 +12,11 @@ Page({
   data: {
     loading: true,
     loadError: '',
+    refreshing: false,
     pendingGroups: [],
     purchasedGroups: [],
-    pendingCount: 0,
-    purchasedCount: 0,
+    // 数量口径统一用合并后的组数（pendingGroups/purchasedGroups 的长度），
+    // utils 里的来源条数不再上屏，避免看板与清空提示出现两个数字
     canClearPurchased: false,
     showSheet: false,
     form: { name: '', quantity: '', unit: '', note: '' },
@@ -34,8 +35,12 @@ Page({
     this.load()
   },
 
-  onPullDownRefresh() {
-    this.load(true)
+  // 页面不滚动，下拉刷新由列表 scroll-view 承担
+  async onRefresherRefresh() {
+    if (this.data.refreshing) return
+    this.setData({ refreshing: true })
+    await this.load(true)
+    this.setData({ refreshing: false })
   },
 
   reload() {
@@ -51,8 +56,6 @@ Page({
     } catch (err) {
       console.error('[shopping] load failed', err)
       this.setData({ loading: false, loadError: (err && err.message) || '加载失败' })
-    } finally {
-      wx.stopPullDownRefresh()
     }
   },
 
@@ -83,8 +86,6 @@ Page({
     this.setData({
       pendingGroups: view.pendingGroups,
       purchasedGroups: view.purchasedGroups,
-      pendingCount: view.pendingCount,
-      purchasedCount: view.purchasedCount,
       canClearPurchased: app.isAdmin()
     })
   },
@@ -155,11 +156,11 @@ Page({
   },
 
   clearPurchased() {
-    if (!this.data.canClearPurchased || this.data.purchasedCount === 0) return
+    if (!this.data.canClearPurchased || this.data.purchasedGroups.length === 0) return
     this.setData({
       showConfirm: true,
       confirmTitle: '清空已购项目',
-      confirmLines: ['将删除 ' + this.data.purchasedCount + ' 条已购买记录，待购买项目不受影响。'],
+      confirmLines: ['将清空 ' + this.data.purchasedGroups.length + ' 项已购买食材，待购买项目不受影响。'],
       confirmText: '清空',
       confirmMode: 'clear',
       confirmTargetIds: []
@@ -179,11 +180,13 @@ Page({
   },
 
   async doClear() {
+    // 提示按食材种类计数，与看板口径一致；底层仍按来源逐条删除
+    const count = this.data.purchasedGroups.length
     this.setData({ submitting: true })
     try {
-      const result = await api.withLoading('清空中', () => api.action('clearPurchased'))
+      await api.withLoading('清空中', () => api.action('clearPurchased'))
       await this.load(true)
-      wx.showToast({ title: '已清空 ' + ((result && result.removed) || 0) + ' 项', icon: 'none' })
+      wx.showToast({ title: '已清空 ' + count + ' 项', icon: 'none' })
     } catch (err) {
       api.toastError(err)
     } finally {

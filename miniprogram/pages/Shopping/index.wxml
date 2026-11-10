@@ -1,68 +1,78 @@
 <view class="page">
-  <view class="summary">
-    <view class="summary-block">
-      <view class="summary-num">{{pendingCount}}</view>
-      <view class="summary-label">待购买</view>
+  <view class="top-area">
+    <view class="summary">
+      <view class="summary-block">
+        <view class="summary-num">{{pendingGroups.length}}</view>
+        <view class="summary-label">待购买</view>
+      </view>
+      <view class="summary-split"></view>
+      <view class="summary-block">
+        <view class="summary-num muted">{{purchasedGroups.length}}</view>
+        <view class="summary-label">已购买</view>
+      </view>
+      <view class="clear-btn" wx:if="{{canClearPurchased && purchasedGroups.length > 0}}" bindtap="clearPurchased">清空已购</view>
     </view>
-    <view class="summary-split"></view>
-    <view class="summary-block">
-      <view class="summary-num muted">{{purchasedCount}}</view>
-      <view class="summary-label">已购买</view>
-    </view>
-    <view class="clear-btn" wx:if="{{canClearPurchased && purchasedCount > 0}}" bindtap="clearPurchased">清空已购</view>
   </view>
 
-  <view class="state" wx:if="{{loading}}">加载中…</view>
+  <scroll-view
+    class="list-area"
+    scroll-y
+    refresher-enabled
+    refresher-triggered="{{refreshing}}"
+    bindrefresherrefresh="onRefresherRefresh"
+  >
+    <view class="list-inner">
+      <view class="state" wx:if="{{loading}}">加载中…</view>
 
-  <view class="state" wx:elif="{{loadError}}">
-    <view class="state-text">{{loadError}}</view>
-    <view class="state-btn" bindtap="reload">重试</view>
-  </view>
+      <view class="state" wx:elif="{{loadError}}">
+        <view class="state-text">{{loadError}}</view>
+        <view class="state-btn" bindtap="reload">重试</view>
+      </view>
 
-  <block wx:else>
-    <view class="empty" wx:if="{{pendingCount === 0 && purchasedCount === 0}}">
-      <view class="empty-title">清单还是空的</view>
-      <view class="empty-desc">点菜时会自动带入未准备的食材，也可以手动添加</view>
-      <view class="empty-btn" bindtap="goHome">去点菜</view>
+      <block wx:else>
+        <view class="empty" wx:if="{{pendingGroups.length === 0 && purchasedGroups.length === 0}}">
+          <view class="empty-title">清单还是空的</view>
+          <view class="empty-desc">点菜时会自动带入未准备的食材，也可以手动添加</view>
+          <view class="empty-btn" bindtap="goHome">去点菜</view>
+        </view>
+
+        <block wx:if="{{pendingGroups.length > 0}}">
+          <view class="section">
+            <text class="section-title">待购买</text>
+          </view>
+          <view class="row" wx:for="{{pendingGroups}}" wx:key="key">
+            <view class="check" data-key="{{item.key}}" bindtap="toggleGroup"></view>
+            <view class="row-main">
+              <view class="row-name">{{item.name}}</view>
+              <view class="row-meta">
+                <text class="row-qty">{{item.quantityText}}</text>
+                <text class="row-source" wx:if="{{item.sourceLabel}}">· {{item.sourceLabel}}</text>
+              </view>
+            </view>
+            <view class="row-del" wx:if="{{item.canRemove}}" data-key="{{item.key}}" catchtap="removeGroup">删除</view>
+          </view>
+        </block>
+
+        <block wx:if="{{purchasedGroups.length > 0}}">
+          <view class="section bought-section">
+            <text class="section-title">已购买</text>
+          </view>
+          <view class="row bought" wx:for="{{purchasedGroups}}" wx:key="key">
+            <view class="check checked" data-key="{{item.key}}" bindtap="toggleGroup">✓</view>
+            <view class="row-main">
+              <view class="row-name">{{item.name}}</view>
+              <view class="row-meta">
+                <text class="row-qty">{{item.quantityText}}</text>
+              </view>
+            </view>
+            <view class="row-del" wx:if="{{item.canRemove}}" data-key="{{item.key}}" catchtap="removeGroup">删除</view>
+          </view>
+        </block>
+
+        <view class="bottom-space"></view>
+      </block>
     </view>
-
-    <block wx:if="{{pendingGroups.length > 0}}">
-      <view class="section">
-        <text class="section-title">待购买</text>
-        <text class="section-count">{{pendingGroups.length}} 项</text>
-      </view>
-      <view class="row" wx:for="{{pendingGroups}}" wx:key="key">
-        <view class="check" data-key="{{item.key}}" bindtap="toggleGroup"></view>
-        <view class="row-main">
-          <view class="row-name">{{item.name}}</view>
-          <view class="row-meta">
-            <text class="row-qty">{{item.quantityText}}</text>
-            <text class="row-source" wx:if="{{item.sourceLabel}}">· {{item.sourceLabel}}</text>
-          </view>
-        </view>
-        <view class="row-del" wx:if="{{item.canRemove}}" data-key="{{item.key}}" catchtap="removeGroup">删除</view>
-      </view>
-    </block>
-
-    <block wx:if="{{purchasedGroups.length > 0}}">
-      <view class="section bought-section">
-        <text class="section-title">已购买</text>
-        <text class="section-count">{{purchasedGroups.length}} 项</text>
-      </view>
-      <view class="row bought" wx:for="{{purchasedGroups}}" wx:key="key">
-        <view class="check checked" data-key="{{item.key}}" bindtap="toggleGroup">✓</view>
-        <view class="row-main">
-          <view class="row-name">{{item.name}}</view>
-          <view class="row-meta">
-            <text class="row-qty">{{item.quantityText}}</text>
-          </view>
-        </view>
-        <view class="row-del" wx:if="{{item.canRemove}}" data-key="{{item.key}}" catchtap="removeGroup">删除</view>
-      </view>
-    </block>
-
-    <view class="bottom-space"></view>
-  </block>
+  </scroll-view>
 
   <view class="fab" wx:if="{{!loading && !loadError}}" bindtap="openSheet" aria-role="button" aria-label="手动添加">
     <view class="fab-h"></view>
@@ -72,6 +82,7 @@
   <view class="sheet-mask" wx:if="{{showSheet}}" bindtap="closeSheet"></view>
   <view class="sheet" wx:if="{{showSheet}}" catchtap="noop">
     <view class="sheet-title">手动添加</view>
+
     <view class="field">
       <text class="field-label">食材名称</text>
       <input class="field-input" value="{{form.name}}" data-field="name" bindinput="onFormInput" placeholder="如：生抽" maxlength="20" />

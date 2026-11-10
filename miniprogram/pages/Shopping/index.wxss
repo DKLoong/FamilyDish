@@ -1,8 +1,24 @@
+/* 页面固定高度，概览看板不参与滚动，清单在 scroll-view 内滚动 */
 .page {
-  min-height: 100vh;
+  height: 100vh;
   background: #FAF5EE;
-  padding: 12px 16px 0;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
+}
+
+.top-area {
+  flex: 0 0 auto;
+  padding: 12px 16px 0;
+}
+
+.list-area {
+  flex: 1;
+  min-height: 0;
+}
+
+.list-inner {
+  padding: 0 16px;
 }
 
 /* 概览：待购与已购数量 */
@@ -74,12 +90,6 @@
   font-size: 13px;
   font-weight: 500;
   color: #3B2B23;
-}
-
-.section-count {
-  margin-left: 6px;
-  font-size: 12px;
-  color: #7B685C;
 }
 
 /* 清单行 */

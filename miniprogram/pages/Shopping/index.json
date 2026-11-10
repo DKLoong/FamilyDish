@@ -1,6 +1,5 @@
 {
   "navigationBarTitleText": "购物清单",
-  "enablePullDownRefresh": true,
   "backgroundColor": "#FAF5EE",
   "backgroundTextStyle": "dark",
   "usingComponents": {}

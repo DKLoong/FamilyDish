@@ -22,6 +22,9 @@ Page({
     form: { name: '', quantity: '', unit: '', note: '' },
     submitting: false,
 
+    // 点击看板的分区可直接滚到对应标题
+    scrollTarget: '',
+
     // 删除与清空共用一套自定义确认弹层，替代样式不可控的 wx.showModal
     showConfirm: false,
     confirmTitle: '',
@@ -153,6 +156,21 @@ Page({
     } finally {
       this.setData({ submitting: false })
     }
+  },
+
+  // 点看板的「待购买 / 已购买」跳到对应分区标题
+  jumpToSection(e) {
+    const key = e.currentTarget.dataset.key
+    if (key === 'pending' && this.data.pendingGroups.length === 0) return
+    if (key === 'purchased' && this.data.purchasedGroups.length === 0) return
+
+    // 先清空再赋值：scroll-into-view 只在值变化时触发，
+    // 连续点同一分区也能重新滚回去
+    const that = this
+    const target = 'sec-' + key
+    this.setData({ scrollTarget: '' }, function () {
+      that.setData({ scrollTarget: target })
+    })
   },
 
   clearPurchased() {

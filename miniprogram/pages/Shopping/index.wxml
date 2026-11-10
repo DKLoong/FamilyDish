@@ -1,22 +1,24 @@
 <view class="page">
   <view class="top-area">
     <view class="summary">
-      <view class="summary-block">
+      <view class="summary-block" data-key="pending" bindtap="jumpToSection" hover-class="summary-block-tap">
         <view class="summary-num">{{pendingGroups.length}}</view>
         <view class="summary-label">待购买</view>
       </view>
       <view class="summary-split"></view>
-      <view class="summary-block">
+      <view class="summary-block" data-key="purchased" bindtap="jumpToSection" hover-class="summary-block-tap">
         <view class="summary-num muted">{{purchasedGroups.length}}</view>
         <view class="summary-label">已购买</view>
       </view>
-      <view class="clear-btn" wx:if="{{canClearPurchased && purchasedGroups.length > 0}}" bindtap="clearPurchased">清空已购</view>
+      <view class="clear-btn" wx:if="{{canClearPurchased && purchasedGroups.length > 0}}" catchtap="clearPurchased">清空已购</view>
     </view>
   </view>
 
   <scroll-view
     class="list-area"
     scroll-y
+    scroll-into-view="{{scrollTarget}}"
+    scroll-with-animation
     refresher-enabled
     refresher-triggered="{{refreshing}}"
     bindrefresherrefresh="onRefresherRefresh"
@@ -37,7 +39,7 @@
         </view>
 
         <block wx:if="{{pendingGroups.length > 0}}">
-          <view class="section">
+          <view class="section" id="sec-pending">
             <text class="section-title">待购买</text>
           </view>
           <view class="row" wx:for="{{pendingGroups}}" wx:key="key">
@@ -54,7 +56,7 @@
         </block>
 
         <block wx:if="{{purchasedGroups.length > 0}}">
-          <view class="section bought-section">
+          <view class="section bought-section" id="sec-purchased">
             <text class="section-title">已购买</text>
           </view>
           <view class="row bought" wx:for="{{purchasedGroups}}" wx:key="key">

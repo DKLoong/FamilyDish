@@ -41,8 +41,7 @@
   >
     <view class="list-inner">
       <view class="skeleton" wx:if="{{loading}}">
-        <view class="sk-card"></view>
-        <view class="sk-card"></view>
+        <view class="sk-card" wx:for="{{[1,2,3,4,5,6]}}" wx:key="*this"></view>
       </view>
 
       <view class="error-box" wx:elif="{{loadError}}">
@@ -77,4 +76,22 @@
       </view>
     </view>
   </scroll-view>
+
+  <view class="rnd-mask" wx:if="{{showRandom}}" bindtap="closeRandom">
+    <view class="rnd-card" catchtap="noop">
+      <view class="rnd-label">今天就吃这个</view>
+      <view class="rnd-art"><text class="rnd-art-text">{{randomDish.initial}}</text></view>
+      <view class="rnd-name">{{randomDish.name}}</view>
+      <view class="rnd-meta" wx:if="{{randomDish.time || randomDish.difficulty}}">
+        <text wx:if="{{randomDish.time}}">{{randomDish.time}} 分钟</text>
+        <text wx:if="{{randomDish.time && randomDish.difficulty}}"> · </text>
+        <text wx:if="{{randomDish.difficulty}}">{{randomDish.difficulty}}</text>
+      </view>
+      <view class="rnd-tag" wx:if="{{randomDish.category}}">{{randomDish.category}}</view>
+      <view class="rnd-ops">
+        <view class="rnd-btn ghost" bindtap="reroll">换一个</view>
+        <view class="rnd-btn primary" bindtap="viewPicked">看看菜谱</view>
+      </view>
+    </view>
+  </view>
 </view>

@@ -32,7 +32,11 @@ Page({
     categories: [ALL],
     activeCategory: ALL,
     dishes: [],
-    visible: []
+    visible: [],
+
+    // 随机选菜结果用卡片弹层展示，代替只显示菜名的系统弹窗
+    showRandom: false,
+    randomDish: null
   },
 
   onShow() {
@@ -168,17 +172,35 @@ Page({
       wx.showToast({ title: '没有可选的菜', icon: 'none' })
       return
     }
-    const pick = list[Math.floor(Math.random() * list.length)]
-    const that = this
-    wx.showModal({
-      title: '今天吃这个',
-      content: pick.name,
-      confirmText: '看看菜谱',
-      success: function (res) {
-        if (res.confirm) that.openDishById(pick.id)
-      }
-    })
+    this.setData({ showRandom: true, randomDish: this.pickOne(list, null) })
   },
+
+  // 多于一道菜时排除当前结果，避免「换一个」抽回同一道
+  pickOne(list, excludeId) {
+    const pool = (list.length > 1 && excludeId)
+      ? list.filter(function (item) { return item.id !== excludeId })
+      : list
+    return pool[Math.floor(Math.random() * pool.length)]
+  },
+
+  reroll() {
+    const list = this.data.visible
+    if (!list.length) return
+    const current = this.data.randomDish
+    this.setData({ randomDish: this.pickOne(list, current && current.id) })
+  },
+
+  closeRandom() {
+    this.setData({ showRandom: false })
+  },
+
+  viewPicked() {
+    const dish = this.data.randomDish
+    this.setData({ showRandom: false })
+    if (dish) this.openDishById(dish.id)
+  },
+
+  noop() {},
 
   openDish(e) {
     this.openDishById(e.currentTarget.dataset.id)

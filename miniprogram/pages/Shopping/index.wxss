@@ -43,14 +43,20 @@
   background: #E7D9CB;
 }
 
+/* 与记录页操作按钮同一套 btn-small：32 高、圆角 9、13 号字，危险语义 */
 .clear-btn {
   flex: 0 0 auto;
   margin-left: 12px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #F4E6D7;
-  color: #7A4E2D;
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  background: #F6E4DF;
+  color: #C94F3B;
+  font-size: 13px;
 }
 
 /* 分区标题 */
@@ -87,10 +93,7 @@
   min-height: 24px;
 }
 
-.row.bought {
-  background: #FBF7F1;
-}
-
+/* 已购行与待购同一底色，只靠文字弱化与删除线区分，避免整行像被禁用 */
 .check {
   flex: 0 0 auto;
   width: 22px;
@@ -126,7 +129,7 @@
 }
 
 .row.bought .row-name {
-  color: #A08E80;
+  color: #B9A99B;
   text-decoration: line-through;
 }
 
@@ -148,10 +151,15 @@
 .row-del {
   flex: 0 0 auto;
   margin-left: 10px;
-  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 10px;
+  box-sizing: border-box;
   font-size: 12px;
-  color: #B4453A;
-  background: #FBEBE9;
+  color: #C94F3B;
+  background: #F6E4DF;
   border-radius: 8px;
 }
 
@@ -338,4 +346,61 @@
 
 .btn.primary.disabled {
   background: #E3B7A3;
+}
+
+/* 删除与清空的确认弹层：与记录页完成/取消同一套规格 */
+.confirm-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 120;
+  padding: 0 32px;
+  box-sizing: border-box;
+  background: rgba(59, 43, 35, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-card {
+  width: 100%;
+  max-width: 300px;
+  padding: 20px 16px 16px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  background: #FFFFFF;
+}
+
+.confirm-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #3B2B23;
+  text-align: center;
+}
+
+.confirm-body {
+  margin-top: 10px;
+}
+
+.confirm-line {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #7B685C;
+  text-align: center;
+}
+
+.confirm-actions {
+  margin-top: 18px;
+  display: flex;
+}
+
+.confirm-actions .btn.ghost {
+  margin-right: 11px;
+}
+
+.btn.danger {
+  background: #C94F3B;
+  color: #FFFFFF;
 }

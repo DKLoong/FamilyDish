@@ -72,7 +72,6 @@
   <view class="sheet-mask" wx:if="{{showSheet}}" bindtap="closeSheet"></view>
   <view class="sheet" wx:if="{{showSheet}}" catchtap="noop">
     <view class="sheet-title">手动添加</view>
-
     <view class="field">
       <text class="field-label">食材名称</text>
       <input class="field-input" value="{{form.name}}" data-field="name" bindinput="onFormInput" placeholder="如：生抽" maxlength="20" />
@@ -97,6 +96,19 @@
     <view class="sheet-actions">
       <view class="btn ghost" bindtap="closeSheet">取消</view>
       <view class="btn primary {{submitting ? 'disabled' : ''}}" bindtap="submitManual">{{submitting ? '添加中' : '添加'}}</view>
+    </view>
+  </view>
+
+  <view class="confirm-mask" wx:if="{{showConfirm}}" bindtap="closeConfirm">
+    <view class="confirm-card" catchtap="noop">
+      <view class="confirm-title">{{confirmTitle}}</view>
+      <view class="confirm-body">
+        <view class="confirm-line" wx:for="{{confirmLines}}" wx:key="*this">{{item}}</view>
+      </view>
+      <view class="confirm-actions">
+        <view class="btn ghost" bindtap="closeConfirm">再想想</view>
+        <view class="btn danger" bindtap="submitConfirm">{{confirmText}}</view>
+      </view>
     </view>
   </view>
 </view>

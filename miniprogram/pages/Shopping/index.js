@@ -19,7 +19,15 @@ Page({
     canClearPurchased: false,
     showSheet: false,
     form: { name: '', quantity: '', unit: '', note: '' },
-    submitting: false
+    submitting: false,
+
+    // 删除与清空共用一套自定义确认弹层，替代样式不可控的 wx.showModal
+    showConfirm: false,
+    confirmTitle: '',
+    confirmLines: [],
+    confirmText: '',
+    confirmMode: '',
+    confirmTargetIds: []
   },
 
   onShow() {
@@ -116,19 +124,17 @@ Page({
     if (!group || !group.canRemove) return
 
     const ids = group.removableIds
-    const content = ids.length > 1
-      ? '这一行由 ' + ids.length + ' 条来源记录组成，将全部删除。'
-      : '删除「' + group.name + '」？'
+    const lines = ids.length > 1
+      ? ['这一行由 ' + ids.length + ' 条来源记录组成，将全部删除。']
+      : ['删除「' + group.name + '」？']
 
-    wx.showModal({
-      title: '删除项目',
-      content: content,
+    this.setData({
+      showConfirm: true,
+      confirmTitle: '删除项目',
+      confirmLines: lines,
       confirmText: '删除',
-      confirmColor: '#C9663B',
-      success: (res) => {
-        if (!res.confirm) return
-        this.doRemove(ids)
-      }
+      confirmMode: 'remove',
+      confirmTargetIds: ids
     })
   },
 
@@ -150,16 +156,26 @@ Page({
 
   clearPurchased() {
     if (!this.data.canClearPurchased || this.data.purchasedCount === 0) return
-    wx.showModal({
-      title: '清空已购项目',
-      content: '将删除 ' + this.data.purchasedCount + ' 条已购买记录，待购买项目不受影响。',
+    this.setData({
+      showConfirm: true,
+      confirmTitle: '清空已购项目',
+      confirmLines: ['将删除 ' + this.data.purchasedCount + ' 条已购买记录，待购买项目不受影响。'],
       confirmText: '清空',
-      confirmColor: '#C9663B',
-      success: (res) => {
-        if (!res.confirm) return
-        this.doClear()
-      }
+      confirmMode: 'clear',
+      confirmTargetIds: []
     })
+  },
+
+  closeConfirm() {
+    this.setData({ showConfirm: false, confirmTargetIds: [] })
+  },
+
+  submitConfirm() {
+    const mode = this.data.confirmMode
+    const ids = this.data.confirmTargetIds.slice()
+    this.setData({ showConfirm: false, confirmTargetIds: [] })
+    if (mode === 'remove') this.doRemove(ids)
+    else if (mode === 'clear') this.doClear()
   },
 
   async doClear() {

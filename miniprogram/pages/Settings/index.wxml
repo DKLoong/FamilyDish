@@ -1,8 +1,8 @@
 <view class="page">
   <view class="skeleton" wx:if="{{loading}}">
-    <view class="sk-card"></view>
-    <view class="sk-card"></view>
-    <view class="sk-card"></view>
+    <view class="sk-identity"></view>
+    <view class="sk-group-lg"></view>
+    <view class="sk-group-sm"></view>
   </view>
 
   <view class="error-box" wx:elif="{{loadError}}">
@@ -25,34 +25,46 @@
     <view class="card">
       <view class="row" bindtap="openInvite" hover-class="row-tap">
         <text class="row-label">邀请成员</text>
-        <text class="row-arrow">›</text>
+        <view class="row-right"><text class="row-arrow">›</text></view>
       </view>
       <view class="row" wx:if="{{canManage}}" bindtap="goDishManage" hover-class="row-tap">
         <text class="row-label">菜品管理</text>
-        <text class="row-arrow">›</text>
+        <view class="row-right"><text class="row-arrow">›</text></view>
       </view>
       <view class="row" wx:if="{{canManage}}" bindtap="goCategories" hover-class="row-tap">
         <text class="row-label">分类管理</text>
-        <text class="row-arrow">›</text>
+        <view class="row-right"><text class="row-arrow">›</text></view>
       </view>
       <view class="row" bindtap="goMembers" hover-class="row-tap">
         <text class="row-label">家庭成员</text>
-        <text class="row-value">{{memberCount}} 人 <text class="row-arrow">›</text></text>
+        <view class="row-right">
+          <text class="row-value">{{memberCount}} 人</text>
+          <text class="row-arrow">›</text>
+        </view>
       </view>
       <view class="row" bindtap="openNickname" hover-class="row-tap">
         <text class="row-label">修改昵称</text>
-        <text class="row-value">{{myNickname}} <text class="row-arrow">›</text></text>
+        <view class="row-right">
+          <text class="row-value">{{myNickname}}</text>
+          <text class="row-arrow">›</text>
+        </view>
       </view>
     </view>
 
     <view class="card" wx:if="{{canManage}}">
       <view class="row" bindtap="openRename" hover-class="row-tap">
         <text class="row-label">家庭名称</text>
-        <text class="row-value">{{familyName}} <text class="row-arrow">›</text></text>
+        <view class="row-right">
+          <text class="row-value">{{familyName}}</text>
+          <text class="row-arrow">›</text>
+        </view>
       </view>
       <view class="row" bindtap="openCapacity" hover-class="row-tap">
         <text class="row-label">家庭人数上限</text>
-        <text class="row-value">{{maxMembers}} 人 <text class="row-arrow">›</text></text>
+        <view class="row-right">
+          <text class="row-value">{{maxMembers}} 人</text>
+          <text class="row-arrow">›</text>
+        </view>
       </view>
     </view>
 
@@ -70,9 +82,13 @@
       </view>
       <view class="sheet-hint">3 天内有效，可多人使用</view>
       <view class="btn-row">
-        <button class="btn primary" open-type="share">分享给家人</button>
+        <button class="btn ghost" wx:if="{{canManage}}" bindtap="regenerate">重新生成</button>
+        <button
+          class="btn primary {{sharing ? 'is-pending' : ''}}"
+          open-type="share"
+          bindtap="onShareTap"
+        >{{sharing ? '打开中…' : '分享给家人'}}</button>
       </view>
-      <view class="invite-refresh" wx:if="{{canManage}}" bindtap="regenerate">重新生成邀请码</view>
     </view>
   </view>
 

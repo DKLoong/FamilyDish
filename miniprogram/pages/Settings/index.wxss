@@ -71,11 +71,14 @@
 }
 
 /* 功能组 / 设置组 */
+/* 必须显式覆盖 app.wxss 里全局 .card 的 margin: 20rpx 与绿色阴影，
+   否则功能组、设置组会比身份卡左右各窄 10px */
 .card {
   background: #FFFFFF;
   border-radius: 12px;
   padding: 0 16px;
-  margin-bottom: 12px;
+  margin: 0 0 12px;
+  box-shadow: none;
 }
 
 .row {
@@ -94,12 +97,24 @@
   opacity: 0.6;
 }
 
+/* 标签不参与收缩，右侧成组：昵称占可分配宽度并省略，箭头始终可见 */
 .row-label {
+  flex: 0 0 auto;
   font-size: 14px;
   color: #3B2B23;
+  white-space: nowrap;
+}
+
+.row-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .row-value {
+  min-width: 0;
   font-size: 14px;
   color: #7B685C;
   overflow: hidden;
@@ -108,6 +123,7 @@
 }
 
 .row-arrow {
+  flex: 0 0 auto;
   margin-left: 6px;
   color: #9A8A7C;
 }
@@ -233,14 +249,6 @@
   padding: 4px 6px;
 }
 
-.invite-refresh {
-  margin-top: 14px;
-  padding: 8px 0;
-  text-align: center;
-  font-size: 13px;
-  color: #7B685C;
-}
-
 /* 输入 */
 .input {
   margin-top: 20px;
@@ -328,15 +336,29 @@
 }
 
 /* 骨架与错误 */
+/* 骨架按实际区域高度铺：身份卡 80、功能组 5 行 ×54、设置组 2 行 ×54 */
 .skeleton {
-  padding-top: 4px;
+  padding-top: 0;
 }
 
-.sk-card {
-  height: 96px;
+.sk-identity,
+.sk-group-lg,
+.sk-group-sm {
   border-radius: 12px;
   background: #F1E8DC;
   margin-bottom: 12px;
+}
+
+.sk-identity {
+  height: 80px;
+}
+
+.sk-group-lg {
+  height: 270px;
+}
+
+.sk-group-sm {
+  height: 108px;
 }
 
 .error-box {

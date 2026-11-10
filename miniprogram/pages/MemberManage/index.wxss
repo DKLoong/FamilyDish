@@ -11,10 +11,13 @@
   color: #7B685C;
 }
 
+/* 覆盖 app.wxss 全局 .card 的 margin: 20rpx 与绿色阴影 */
 .card {
   background: #FFFFFF;
   border-radius: 12px;
   padding: 4px 16px;
+  margin: 0;
+  box-shadow: none;
 }
 
 .member {

@@ -22,6 +22,7 @@ Page({
     canManage: false,
 
     showInvite: false,
+    sharing: false,
     showCapacity: false,
     tempCapacity: 10,
     showNickname: false,
@@ -85,7 +86,18 @@ Page({
   },
 
   closeInvite() {
-    this.setData({ showInvite: false })
+    this.setData({ showInvite: false, sharing: false })
+  },
+
+  // open-type="share" 没有完成回调，只能在自己被点击时先切外观，
+  // 分享面板盖上来之后再把抽屉收起，用户返回时看到的就是已关闭状态
+  onShareTap() {
+    if (this.data.sharing) return
+    this.setData({ sharing: true })
+    const that = this
+    setTimeout(function () {
+      that.setData({ showInvite: false, sharing: false })
+    }, 600)
   },
 
   copyCode() {

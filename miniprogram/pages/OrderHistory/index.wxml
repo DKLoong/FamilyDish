@@ -10,8 +10,7 @@
   </view>
 
   <view class="skeleton" wx:if="{{loading}}">
-    <view class="sk-card"></view>
-    <view class="sk-card"></view>
+    <view class="sk-card" wx:for="{{[1,2,3,4,5]}}" wx:key="*this"></view>
   </view>
 
   <view class="error-box" wx:elif="{{loadError}}">
@@ -27,7 +26,7 @@
   <view class="list" wx:else>
     <view class="order-card" wx:for="{{orders}}" wx:key="id" data-id="{{item.id}}" bindtap="openSnapshot">
       <view class="order-top">
-        <view class="order-name">{{item.dishName}}</view>
+        <view class="order-name {{item.statusClass === 'cancelled' ? 'muted' : ''}}">{{item.dishName}}</view>
         <view class="status {{item.statusClass}}">{{item.statusLabel}}</view>
       </view>
 
@@ -76,6 +75,27 @@
       </scroll-view>
 
       <button class="close-btn" bindtap="closeSnapshot">关闭</button>
+    </view>
+  </view>
+
+  <view class="confirm-mask" wx:if="{{showConfirm}}" bindtap="closeConfirm">
+    <view class="confirm-card" catchtap="noop">
+      <view class="confirm-title">{{confirmTitle}}</view>
+      <view class="confirm-body">
+        <view class="confirm-line" wx:for="{{confirmLines}}" wx:key="*this">{{item}}</view>
+      </view>
+      <view class="confirm-actions">
+        <button
+          class="btn ghost {{confirming ? 'is-pending' : ''}}"
+          disabled="{{confirming}}"
+          bindtap="closeConfirm"
+        >再想想</button>
+        <button
+          class="btn {{confirmDanger ? 'danger' : 'primary'}} {{confirming ? 'is-pending' : ''}}"
+          disabled="{{confirming}}"
+          bindtap="submitConfirm"
+        >{{confirming ? '处理中…' : confirmText}}</button>
+      </view>
     </view>
   </view>
 </view>

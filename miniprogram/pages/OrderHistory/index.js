@@ -57,7 +57,17 @@ Page({
     orders: [],
     shareIcon: SHARE_ICON,
     showSnapshot: false,
-    detail: null
+    detail: null,
+
+    // 完成与取消共用一套自定义确认弹层，替代样式不可控的 wx.showModal
+    showConfirm: false,
+    confirmTitle: '',
+    confirmLines: [],
+    confirmText: '',
+    confirmDanger: false,
+    confirmAction: '',
+    confirmTargetId: '',
+    confirming: false
   },
 
   onShow() {
@@ -153,58 +163,63 @@ Page({
   },
 
   complete(e) {
-    const orderId = e.currentTarget.dataset.id
-    const that = this
-    wx.showModal({
-      title: '标记完成',
-      content: '确认这道菜已经做好了？完成之后状态不能再变更。',
-      success: async function (res) {
-        if (!res.confirm) return
-        try {
-          await api.withLoading('处理中', function () {
-            return api.action('completeOrder', { orderId: orderId })
-          })
-          wx.showToast({ title: '已完成', icon: 'success' })
-          that.load(true)
-        } catch (err) {
-          api.toastError(err)
-        }
-      }
+    this.setData({
+      showConfirm: true,
+      confirmTitle: '标记完成',
+      confirmLines: ['确认这道菜已经做好了？完成之后状态不能再变更。'],
+      confirmText: '确认完成',
+      confirmDanger: false,
+      confirmAction: 'complete',
+      confirmTargetId: e.currentTarget.dataset.id
     })
   },
 
   cancel(e) {
-    const orderId = e.currentTarget.dataset.id
     const count = Number(e.currentTarget.dataset.count || 0)
     const people = Number(e.currentTarget.dataset.people || 0)
 
     // 取消是整条取消：一道菜做不做，不拆成「退出自己那一份」。
     // 多人点过时必须说清会把别人的意愿一起去掉。
-    const parts = []
-    if (people > 1) parts.push('这道菜有 ' + people + ' 人点过，取消后一并移除。')
-    if (count > 0) parts.push('将同时移除本次点菜带入的 ' + count + ' 项购物清单项目，其他菜品不受影响。')
-    if (parts.length === 0) parts.push('取消后这条记录标记为已取消，历史仍保留。')
-    const content = parts.join('')
+    const lines = []
+    if (people > 1) lines.push('这道菜有 ' + people + ' 人点过，取消后一并移除。')
+    if (count > 0) lines.push('将同时移除本次点菜带入的 ' + count + ' 项购物清单项目，其他菜品不受影响。')
+    if (lines.length === 0) lines.push('取消后这条记录标记为已取消，历史仍保留。')
 
-    const that = this
-    wx.showModal({
-      title: '取消点菜',
-      content: content,
+    this.setData({
+      showConfirm: true,
+      confirmTitle: '取消点菜',
+      confirmLines: lines,
       confirmText: '取消点菜',
-      confirmColor: '#C9663B',
-      success: async function (res) {
-        if (!res.confirm) return
-        try {
-          await api.withLoading('处理中', function () {
-            return api.action('cancelOrder', { orderId: orderId })
-          })
-          wx.showToast({ title: '已取消', icon: 'success' })
-          that.load(true)
-        } catch (err) {
-          api.toastError(err)
-        }
-      }
+      confirmDanger: true,
+      confirmAction: 'cancel',
+      confirmTargetId: e.currentTarget.dataset.id
     })
+  },
+
+  closeConfirm() {
+    // 处理中不允许关闭，否则弹层消失但请求仍在跑
+    if (this.data.confirming) return
+    this.setData({ showConfirm: false, confirmTargetId: '' })
+  },
+
+  async submitConfirm() {
+    if (this.data.confirming) return
+    const action = this.data.confirmAction
+    const orderId = this.data.confirmTargetId
+    if (!action || !orderId) return
+
+    const isComplete = action === 'complete'
+    this.setData({ confirming: true })
+    try {
+      await api.action(isComplete ? 'completeOrder' : 'cancelOrder', { orderId: orderId })
+      this.setData({ showConfirm: false, confirmTargetId: '' })
+      wx.showToast({ title: isComplete ? '已完成' : '已取消', icon: 'success' })
+      this.load(true)
+    } catch (err) {
+      api.toastError(err)
+    } finally {
+      this.setData({ confirming: false })
+    }
   },
 
   onShareAppMessage() {

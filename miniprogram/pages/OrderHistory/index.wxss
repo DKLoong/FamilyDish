@@ -10,14 +10,14 @@
   margin-bottom: 12px;
 }
 
+/* 筛选胶囊按文字宽度排列，不是四等分；未选中用暖底、无边框 */
 .filter {
-  flex: 1;
-  text-align: center;
-  padding: 8px 0;
+  height: 32px;
+  line-height: 32px;
+  padding: 0 16px;
   margin-right: 8px;
-  border-radius: 999px;
-  background: #FFFFFF;
-  border: 1px solid #E7D9CB;
+  border-radius: 16px;
+  background: #F4E6D7;
   font-size: 13px;
   color: #7A4E2D;
 }
@@ -28,7 +28,6 @@
 
 .filter.active {
   background: #C9663B;
-  border-color: #C9663B;
   color: #FFFFFF;
 }
 
@@ -56,16 +55,22 @@
   white-space: nowrap;
 }
 
+.order-name.muted {
+  color: #7B685C;
+}
+
 .status {
   flex: 0 0 auto;
   margin-left: 10px;
-  font-size: 12px;
-  padding: 3px 10px;
+  height: 24px;
+  line-height: 24px;
+  padding: 0 10px;
+  font-size: 11px;
   border-radius: 999px;
 }
 
 .status.pending {
-  background: #F4E6D7;
+  background: #F8E8DC;
   color: #C9663B;
 }
 
@@ -75,8 +80,8 @@
 }
 
 .status.cancelled {
-  background: #F1EFE8;
-  color: #888780;
+  background: #F4E6D7;
+  color: #7B685C;
 }
 
 .order-meta {
@@ -252,7 +257,9 @@
   margin-bottom: 6px;
 }
 
+/* 抽屉是 flex 列容器，按钮必须显式不收缩，否则内容超高时会被压扁 */
 .close-btn {
+  flex: 0 0 auto;
   margin-top: 10px;
   height: 44px;
   line-height: 44px;
@@ -312,4 +319,103 @@
   background: #F4E6D7;
   color: #7A4E2D;
   font-size: 14px;
+}
+
+/* 完成与取消的确认弹层：替换 wx.showModal，视觉对齐「随机一下」弹层 */
+.confirm-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  padding: 0 32px;
+  box-sizing: border-box;
+  background: rgba(59, 43, 35, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-card {
+  width: 100%;
+  max-width: 300px;
+  padding: 20px 16px 16px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  background: #FFFFFF;
+}
+
+.confirm-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #3B2B23;
+  text-align: center;
+}
+
+.confirm-body {
+  margin-top: 10px;
+}
+
+.confirm-line {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #7B685C;
+  text-align: center;
+}
+
+.confirm-actions {
+  margin-top: 18px;
+  display: flex;
+}
+
+.btn {
+  flex: 1;
+  height: 44px;
+  line-height: 44px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 0;
+  margin: 0;
+}
+
+.btn::after {
+  border: none;
+}
+
+.btn + .btn {
+  margin-left: 11px;
+}
+
+.btn.ghost {
+  background: #F4E6D7;
+  color: #7A4E2D;
+}
+
+.btn.primary {
+  background: #C9663B;
+  color: #FFFFFF;
+}
+
+.btn.danger {
+  background: #C94F3B;
+  color: #FFFFFF;
+}
+
+/* 处理中：主色与危险色都退到浅档，次要按钮降透明度 */
+.btn.primary.is-pending {
+  background: #E2B39D;
+  color: #FFFFFF;
+  opacity: 1;
+}
+
+.btn.danger.is-pending {
+  background: #E0A79E;
+  color: #FFFFFF;
+  opacity: 1;
+}
+
+.btn.ghost.is-pending {
+  opacity: 0.45;
 }

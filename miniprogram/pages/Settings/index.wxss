@@ -70,9 +70,8 @@
   white-space: nowrap;
 }
 
-/* 功能组 / 设置组 */
-/* 必须显式覆盖 app.wxss 里全局 .card 的 margin: 20rpx 与绿色阴影，
-   否则功能组、设置组会比身份卡左右各窄 10px */
+/* 功能组 / 设置组 / 关于组 */
+/* 全局 app.wxss 已不再定义 .card，这里的白底圆角卡是本页唯一样式来源 */
 .card {
   background: #FFFFFF;
   border-radius: 12px;
@@ -288,14 +287,15 @@
 }
 
 /* 骨架与错误 */
-/* 骨架按实际区域高度铺：身份卡 80、功能组 5 行 ×54、设置组 2 行 ×54 */
+/* 骨架按实际区域高度铺：身份卡 80、功能组 5 行 ×54、设置组 2 行 ×54、关于组 1 行 ×54 */
 .skeleton {
   padding-top: 0;
 }
 
 .sk-identity,
 .sk-group-lg,
-.sk-group-sm {
+.sk-group-sm,
+.sk-group-xs {
   border-radius: 12px;
   background: #F1E8DC;
   margin-bottom: 12px;
@@ -311,6 +311,10 @@
 
 .sk-group-sm {
   height: 108px;
+}
+
+.sk-group-xs {
+  height: 54px;
 }
 
 .error-box {

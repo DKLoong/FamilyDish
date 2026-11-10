@@ -2,6 +2,7 @@
 // 成员的角色调整与移除已移入独立的家庭成员页。
 const app = getApp()
 const api = require('../../utils/api.js')
+const appInfo = require('../../utils/app-info.js')
 
 const ROLE_LABEL = { owner: '创建者', admin: '管理员', member: '成员' }
 
@@ -20,6 +21,7 @@ Page({
 
     isOwner: false,
     canManage: false,
+    appVersion: 'v' + appInfo.getVersion(),
 
     showInvite: false,
     sharing: false,
@@ -138,6 +140,10 @@ Page({
 
   goMembers() {
     wx.navigateTo({ url: '/pages/MemberManage/index' })
+  },
+
+  goAbout() {
+    wx.navigateTo({ url: '/pages/About/index' })
   },
 
   // —— 家庭名称 ——

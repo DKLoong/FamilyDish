@@ -9,6 +9,7 @@
     "pages/Bind/index",
     "pages/CategoryManage/index",
     "pages/MemberManage/index",
+    "pages/About/index",
     "pages/Shopping/index"
   ],
   "window": {

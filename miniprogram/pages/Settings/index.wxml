@@ -3,6 +3,7 @@
     <view class="sk-identity"></view>
     <view class="sk-group-lg"></view>
     <view class="sk-group-sm"></view>
+    <view class="sk-group-xs"></view>
   </view>
 
   <view class="error-box" wx:elif="{{loadError}}">
@@ -63,6 +64,16 @@
         <text class="row-label">家庭人数上限</text>
         <view class="row-right">
           <text class="row-value">{{maxMembers}} 人</text>
+          <text class="row-arrow">›</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="row" bindtap="goAbout" hover-class="row-tap">
+        <text class="row-label">关于</text>
+        <view class="row-right">
+          <text class="row-value">{{appVersion}}</text>
           <text class="row-arrow">›</text>
         </view>
       </view>

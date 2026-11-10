@@ -1,0 +1,38 @@
+<view class="page">
+  <view class="app-card">
+    <view class="app-logo">家</view>
+    <view class="app-name">家庭菜单</view>
+    <view class="app-sub">FamilyDish · 家庭点菜与购物清单</view>
+    <view class="app-chip">{{version}}</view>
+  </view>
+
+  <view class="card">
+    <view class="row">
+      <text class="row-label">当前版本</text>
+      <view class="row-right"><text class="row-value">{{version}}</text></view>
+    </view>
+    <view class="row">
+      <text class="row-label">版权信息</text>
+      <view class="row-right"><text class="row-value">{{copyright}}</text></view>
+    </view>
+    <view class="row">
+      <text class="row-label">开源许可</text>
+      <view class="row-right"><text class="row-value">CC BY-NC-SA 4.0</text></view>
+    </view>
+  </view>
+
+  <view class="card notice">
+    <view class="notice-title">开源说明</view>
+    <view class="notice-text">本小程序基于开源项目 PairBite 改造，原作者 630999Steven。</view>
+    <view class="notice-text">依 CC BY-NC-SA 4.0 许可：保留原作者署名，不得用于商业用途，本改造以相同协议共享。</view>
+    <view class="row repo-row" bindtap="copyRepo" hover-class="row-tap">
+      <text class="row-label">项目地址</text>
+      <view class="row-right">
+        <text class="row-value repo-value">630999Steven/PairBite</text>
+        <text class="row-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="footer">仅供家庭内部使用 · 非商业用途</view>
+</view>

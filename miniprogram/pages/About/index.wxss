@@ -1,0 +1,149 @@
+.page {
+  min-height: 100vh;
+  background: #FAF5EE;
+  padding: 24px 16px 40px;
+  box-sizing: border-box;
+}
+
+/* 应用头部 */
+.app-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 24px 16px 20px;
+  margin-bottom: 12px;
+}
+
+.app-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: #C9663B;
+  color: #FFFFFF;
+  font-size: 26px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.app-name {
+  font-size: 17px;
+  font-weight: 500;
+  color: #3B2B23;
+}
+
+.app-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #7B685C;
+}
+
+.app-chip {
+  margin-top: 12px;
+  height: 24px;
+  line-height: 24px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: #F8E8DC;
+  color: #C9663B;
+  font-size: 12px;
+}
+
+/* 信息组：与「我的」页同一套行规格（行高 54、分隔线 #F1E8DC） */
+.card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 0 16px;
+  margin-bottom: 12px;
+}
+
+.row {
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #F1E8DC;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row-tap {
+  opacity: 0.6;
+}
+
+.row-label {
+  flex: 0 0 auto;
+  font-size: 14px;
+  color: #3B2B23;
+  white-space: nowrap;
+}
+
+.row-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.row-value {
+  min-width: 0;
+  font-size: 14px;
+  color: #7B685C;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-arrow {
+  flex: 0 0 auto;
+  margin-left: 6px;
+  color: #9A8A7C;
+}
+
+/* 开源说明卡：正文上下留白，末行穿透卡片内边距做成通栏行 */
+.notice {
+  padding: 16px 16px 0;
+}
+
+.notice-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #3B2B23;
+  margin-bottom: 8px;
+}
+
+.notice-text {
+  font-size: 13px;
+  line-height: 21px;
+  color: #7B685C;
+}
+
+.notice-text + .notice-text {
+  margin-top: 6px;
+}
+
+.repo-row {
+  margin: 12px -16px 0;
+  padding: 0 16px;
+  border-bottom: none;
+  border-top: 1px solid #F1E8DC;
+}
+
+/* 仓库全名 21 字符，用 12px 保证与「项目地址」同处一行不省略 */
+.repo-value {
+  font-size: 12px;
+}
+
+.footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: #A99A8C;
+}

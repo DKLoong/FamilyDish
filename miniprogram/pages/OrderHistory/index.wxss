@@ -18,7 +18,7 @@
 }
 
 .list-inner {
-  padding: 0 16px 40px;
+  padding: 0 16px;
 }
 
 .filters {
@@ -150,8 +150,9 @@
   color: #C94F3B;
 }
 
+/* 与购物页同一套底距：只留这一个占位，不再叠加容器底部 padding */
 .share-space {
-  height: 92px;
+  height: 96px;
 }
 
 /* 微信 button 自带左右 padding 与 line-height，只给 width/height 会被撑成椭圆。

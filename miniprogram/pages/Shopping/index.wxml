@@ -2,12 +2,12 @@
   <view class="top-area">
     <view class="summary">
       <view class="summary-block" data-key="pending" bindtap="jumpToSection" hover-class="summary-block-tap">
-        <view class="summary-num">{{pendingGroups.length}}</view>
+        <view class="summary-num">{{(loading || loadError) ? '—' : pendingGroups.length}}</view>
         <view class="summary-label">待购买</view>
       </view>
       <view class="summary-split"></view>
       <view class="summary-block" data-key="purchased" bindtap="jumpToSection" hover-class="summary-block-tap">
-        <view class="summary-num muted">{{purchasedGroups.length}}</view>
+        <view class="summary-num muted">{{(loading || loadError) ? '—' : purchasedGroups.length}}</view>
         <view class="summary-label">已购买</view>
       </view>
       <view class="clear-btn" wx:if="{{canClearPurchased && purchasedGroups.length > 0}}" catchtap="clearPurchased">清空已购</view>

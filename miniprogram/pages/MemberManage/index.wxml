@@ -1,0 +1,59 @@
+<view class="page">
+  <view class="state" wx:if="{{loading}}">加载中…</view>
+
+  <view class="state" wx:elif="{{loadError}}">
+    <view class="state-text">{{loadError}}</view>
+    <view class="state-btn" bindtap="retry">重新加载</view>
+  </view>
+
+  <block wx:else>
+    <view class="summary">{{memberCount}} 位成员 · 上限 {{maxMembers}} 人</view>
+
+    <view class="card">
+      <view class="member" wx:for="{{members}}" wx:key="memberId">
+        <view class="member-main">
+          <view class="member-name">
+            {{item.nickname}}<text class="me" wx:if="{{item.isSelf}}">（我）</text>
+          </view>
+          <view class="member-role">{{item.roleLabel}}</view>
+        </view>
+        <view class="member-ops">
+          <view
+            class="op"
+            wx:if="{{item.canSetRole}}"
+            data-id="{{item.memberId}}"
+            data-role="{{item.nextRole}}"
+            bindtap="toggleRole"
+          >{{item.nextRoleLabel}}</view>
+          <view
+            class="op danger"
+            wx:if="{{item.canRemove}}"
+            data-id="{{item.memberId}}"
+            bindtap="removeMember"
+          >移除</view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <view class="confirm-mask" wx:if="{{showConfirm}}" bindtap="closeConfirm">
+    <view class="confirm-card" catchtap="noop">
+      <view class="confirm-title">{{confirmTitle}}</view>
+      <view class="confirm-body">
+        <view class="confirm-line" wx:for="{{confirmLines}}" wx:key="*this">{{item}}</view>
+      </view>
+      <view class="confirm-actions">
+        <button
+          class="btn ghost {{confirming ? 'is-pending' : ''}}"
+          disabled="{{confirming}}"
+          bindtap="closeConfirm"
+        >再想想</button>
+        <button
+          class="btn {{confirmDanger ? 'danger' : 'primary'}} {{confirming ? 'is-pending' : ''}}"
+          disabled="{{confirming}}"
+          bindtap="submitConfirm"
+        >{{confirming ? '处理中…' : confirmText}}</button>
+      </view>
+    </view>
+  </view>
+</view>

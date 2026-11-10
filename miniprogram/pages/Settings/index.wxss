@@ -5,90 +5,119 @@
   box-sizing: border-box;
 }
 
-.identity {
-  padding: 8px 4px 20px;
-}
-
-.family-name {
-  font-size: 22px;
-  font-weight: 500;
-  color: #3B2B23;
-}
-
-.identity-meta {
-  margin-top: 10px;
+/* 身份卡 */
+.identity-card {
   display: flex;
   align-items: center;
-}
-
-.chip {
-  font-size: 12px;
-  color: #7A4E2D;
-  background: #F4E6D7;
-  border-radius: 999px;
-  padding: 3px 10px;
-}
-
-.nick {
-  margin-left: 10px;
-  font-size: 12px;
-  color: #7B685C;
-}
-
-.card {
   background: #FFFFFF;
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 12px;
 }
 
-.card-title {
-  font-size: 15px;
+.avatar {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #E8B48F;
+  color: #FFFFFF;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 14px;
+}
+
+.identity-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.identity-top {
+  display: flex;
+  align-items: center;
+}
+
+.nickname {
+  max-width: 60%;
+  font-size: 18px;
   font-weight: 500;
   color: #3B2B23;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.count {
+.role-chip {
+  flex: 0 0 auto;
+  margin-left: 8px;
+  height: 22px;
+  line-height: 22px;
+  padding: 0 10px;
+  border-radius: 11px;
+  background: #F8E8DC;
+  color: #C9663B;
+  font-size: 11px;
+}
+
+.identity-sub {
+  margin-top: 6px;
   font-size: 12px;
   color: #7B685C;
-  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.invite-row {
-  margin-top: 14px;
+/* 功能组 / 设置组 */
+.card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 0 16px;
+  margin-bottom: 12px;
+}
+
+.row {
+  height: 54px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #FAF5EE;
-  border-radius: 10px;
-  padding: 12px 14px;
+  border-bottom: 1px solid #F1E8DC;
 }
 
-.invite-code {
-  font-size: 20px;
-  letter-spacing: 4px;
+.row:last-child {
+  border-bottom: none;
+}
+
+.row-tap {
+  opacity: 0.6;
+}
+
+.row-label {
+  font-size: 14px;
   color: #3B2B23;
 }
 
-.copy {
-  font-size: 13px;
-  color: #C9663B;
-}
-
-.hint {
-  margin-top: 8px;
-  font-size: 12px;
+.row-value {
+  font-size: 14px;
   color: #7B685C;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.btn-row {
-  margin-top: 14px;
-  display: flex;
+.row-arrow {
+  margin-left: 6px;
+  color: #9A8A7C;
 }
 
+/* 危险区 */
+.danger-zone {
+  margin-top: 20px;
+}
+
+/* 按钮 */
 .btn {
   flex: 1;
   height: 44px;
@@ -105,7 +134,7 @@
 }
 
 .btn + .btn {
-  margin-left: 10px;
+  margin-left: 11px;
 }
 
 .btn.primary {
@@ -118,99 +147,29 @@
   color: #7A4E2D;
 }
 
-/* 危险区按钮按 design-spec 的 btn-danger：实心 #C94F3B 配白字。
-   尺寸沿用 .btn 的 44 高与 12 圆角，与同组按钮保持一致。 */
 .btn.danger {
   background: #C94F3B;
   color: #FFFFFF;
   border: none;
 }
 
-.member {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid #F1E8DC;
+.btn.primary.is-pending {
+  background: #E2B39D;
+  color: #FFFFFF;
+  opacity: 1;
 }
 
-.member:last-of-type {
-  border-bottom: none;
+.btn.danger.is-pending {
+  background: #E0A79E;
+  color: #FFFFFF;
+  opacity: 1;
 }
 
-/* 昵称最长 20 字，操作按钮改为块状后占宽增加，
-   必须让主区可收缩，否则会把按钮挤出可视区。 */
-.member-main {
-  flex: 1;
-  min-width: 0;
+.btn.ghost.is-pending {
+  opacity: 0.45;
 }
 
-.member-name {
-  font-size: 15px;
-  color: #3B2B23;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.me {
-  font-size: 12px;
-  color: #7B685C;
-}
-
-.member-role {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #7B685C;
-}
-
-.member-ops {
-  display: flex;
-  align-items: center;
-}
-
-/* 成员行操作与菜品管理、记录页同一套 btn-small 规格：
-   改角色为次按钮暖底，移除为危险配色。 */
-.op {
-  flex: 0 0 auto;
-  margin-left: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-  padding: 0 14px;
-  box-sizing: border-box;
-  border-radius: 9px;
-  font-size: 13px;
-  background: #F4E6D7;
-  color: #7A4E2D;
-}
-
-.op.danger {
-  background: #F6E4DF;
-  color: #C94F3B;
-}
-
-.capacity-row {
-  margin-top: 8px;
-  padding-top: 14px;
-  border-top: 1px solid #F1E8DC;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 14px;
-  color: #3B2B23;
-}
-
-.capacity-value {
-  color: #7B685C;
-  font-size: 13px;
-}
-
-.danger-zone {
-  margin-top: 20px;
-}
-
+/* 底部抽屉 */
 .mask {
   position: fixed;
   left: 0;
@@ -238,8 +197,65 @@
   text-align: center;
 }
 
+.sheet-hint {
+  text-align: center;
+  font-size: 12px;
+  color: #7B685C;
+  margin-top: 10px;
+}
+
+.btn-row {
+  margin-top: 18px;
+  display: flex;
+}
+
+/* 邀请弹层 */
+.invite-box {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FAF5EE;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.invite-code {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 5px;
+  color: #3B2B23;
+}
+
+.invite-copy {
+  font-size: 13px;
+  color: #C9663B;
+  padding: 4px 6px;
+}
+
+.invite-refresh {
+  margin-top: 14px;
+  padding: 8px 0;
+  text-align: center;
+  font-size: 13px;
+  color: #7B685C;
+}
+
+/* 输入 */
+.input {
+  margin-top: 20px;
+  height: 44px;
+  background: #FAF5EE;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 15px;
+  color: #3B2B23;
+  box-sizing: border-box;
+}
+
+/* 步进器 */
 .stepper {
-  margin: 24px auto 8px;
+  margin: 24px auto 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -263,37 +279,61 @@
   color: #3B2B23;
 }
 
-.sheet-hint {
-  text-align: center;
-  font-size: 12px;
-  color: #7B685C;
-  margin-bottom: 8px;
+/* 确认弹层：与记录页、购物页同一套规格 */
+.confirm-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 110;
+  padding: 0 32px;
+  box-sizing: border-box;
+  background: rgba(59, 43, 35, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.input {
-  margin-top: 20px;
-  height: 44px;
-  background: #FAF5EE;
-  border-radius: 8px;
-  padding: 0 12px;
-  font-size: 15px;
+.confirm-card {
+  width: 100%;
+  max-width: 300px;
+  padding: 20px 16px 16px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  background: #FFFFFF;
+}
+
+.confirm-title {
+  font-size: 16px;
+  font-weight: 500;
   color: #3B2B23;
+  text-align: center;
 }
 
+.confirm-body {
+  margin-top: 10px;
+}
+
+.confirm-line {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #7B685C;
+  text-align: center;
+}
+
+.confirm-actions {
+  margin-top: 18px;
+  display: flex;
+}
+
+/* 骨架与错误 */
 .skeleton {
-  padding: 8px 4px;
-}
-
-.sk-line {
-  height: 22px;
-  width: 50%;
-  border-radius: 6px;
-  background: #F1E8DC;
-  margin-bottom: 20px;
+  padding-top: 4px;
 }
 
 .sk-card {
-  height: 100px;
+  height: 96px;
   border-radius: 12px;
   background: #F1E8DC;
   margin-bottom: 12px;

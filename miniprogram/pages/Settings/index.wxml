@@ -1,6 +1,6 @@
 <view class="page">
   <view class="skeleton" wx:if="{{loading}}">
-    <view class="sk-line"></view>
+    <view class="sk-card"></view>
     <view class="sk-card"></view>
     <view class="sk-card"></view>
   </view>
@@ -11,62 +11,48 @@
   </view>
 
   <block wx:else>
-    <view class="identity">
-      <view class="family-name">{{familyName}}</view>
-      <view class="identity-meta">
-        <text class="chip">{{roleLabel}}</text>
-        <text class="nick" bindtap="openNickname">{{myNickname}} · 修改昵称</text>
+    <view class="identity-card">
+      <view class="avatar">{{initial}}</view>
+      <view class="identity-main">
+        <view class="identity-top">
+          <text class="nickname">{{myNickname}}</text>
+          <text class="role-chip">{{roleLabel}}</text>
+        </view>
+        <view class="identity-sub">{{familyName}} · {{memberCount}} / {{maxMembers}} 人</view>
       </view>
     </view>
 
     <view class="card">
-      <view class="card-title">邀请家人</view>
-      <view class="invite-row">
-        <text class="invite-code">{{inviteCode}}</text>
-        <text class="copy" bindtap="copyCode">复制</text>
+      <view class="row" bindtap="openInvite" hover-class="row-tap">
+        <text class="row-label">邀请成员</text>
+        <text class="row-arrow">›</text>
       </view>
-      <view class="hint">{{inviteHint}}</view>
-      <view class="btn-row">
-        <button class="btn ghost" wx:if="{{canManage}}" bindtap="regenerate">重新生成</button>
-        <button class="btn primary" open-type="share">分享给家人</button>
+      <view class="row" wx:if="{{canManage}}" bindtap="goDishManage" hover-class="row-tap">
+        <text class="row-label">菜品管理</text>
+        <text class="row-arrow">›</text>
+      </view>
+      <view class="row" wx:if="{{canManage}}" bindtap="goCategories" hover-class="row-tap">
+        <text class="row-label">分类管理</text>
+        <text class="row-arrow">›</text>
+      </view>
+      <view class="row" bindtap="goMembers" hover-class="row-tap">
+        <text class="row-label">家庭成员</text>
+        <text class="row-value">{{memberCount}} 人 <text class="row-arrow">›</text></text>
+      </view>
+      <view class="row" bindtap="openNickname" hover-class="row-tap">
+        <text class="row-label">修改昵称</text>
+        <text class="row-value">{{myNickname}} <text class="row-arrow">›</text></text>
       </view>
     </view>
 
-    <view class="card">
-      <view class="card-title">成员<text class="count">{{memberCount}} / {{maxMembers}}</text></view>
-
-      <view class="member" wx:for="{{members}}" wx:key="memberId">
-        <view class="member-main">
-          <view class="member-name">
-            {{item.nickname}}<text class="me" wx:if="{{item.isSelf}}">（我）</text>
-          </view>
-          <view class="member-role">{{item.roleLabel}}</view>
-        </view>
-        <view class="member-ops">
-          <view
-            class="op"
-            wx:if="{{item.canSetRole}}"
-            data-id="{{item.memberId}}"
-            data-role="{{item.nextRole}}"
-            bindtap="toggleRole"
-          >{{item.nextRoleLabel}}</view>
-          <view
-            class="op danger"
-            wx:if="{{item.canRemove}}"
-            data-id="{{item.memberId}}"
-            bindtap="removeMember"
-          >移除</view>
-        </view>
+    <view class="card" wx:if="{{canManage}}">
+      <view class="row" bindtap="openRename" hover-class="row-tap">
+        <text class="row-label">家庭名称</text>
+        <text class="row-value">{{familyName}} <text class="row-arrow">›</text></text>
       </view>
-
-      <view class="capacity-row" wx:if="{{canManage}}" bindtap="goCategories">
-        <text>分类管理</text>
-        <text class="capacity-value">新增、改名与排序 ›</text>
-      </view>
-
-      <view class="capacity-row" wx:if="{{canManage}}" bindtap="openCapacity">
-        <text>家庭人数上限</text>
-        <text class="capacity-value">{{maxMembers}} 人 ›</text>
+      <view class="row" bindtap="openCapacity" hover-class="row-tap">
+        <text class="row-label">家庭人数上限</text>
+        <text class="row-value">{{maxMembers}} 人 <text class="row-arrow">›</text></text>
       </view>
     </view>
 
@@ -74,6 +60,43 @@
       <button class="btn danger" bindtap="leaveOrDissolve">{{isOwner ? '解散家庭' : '退出家庭'}}</button>
     </view>
   </block>
+
+  <view class="mask" wx:if="{{showInvite}}" bindtap="closeInvite">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet-title">邀请家人</view>
+      <view class="invite-box">
+        <text class="invite-code">{{inviteCode}}</text>
+        <text class="invite-copy" bindtap="copyCode">复制</text>
+      </view>
+      <view class="sheet-hint">3 天内有效，可多人使用</view>
+      <view class="btn-row">
+        <button class="btn primary" open-type="share">分享给家人</button>
+      </view>
+      <view class="invite-refresh" wx:if="{{canManage}}" bindtap="regenerate">重新生成邀请码</view>
+    </view>
+  </view>
+
+  <view class="mask" wx:if="{{showRename}}" bindtap="closeRename">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet-title">家庭名称</view>
+      <input class="input" value="{{tempFamilyName}}" maxlength="12" bindinput="onFamilyNameInput" placeholder="1–12 个字" />
+      <view class="btn-row">
+        <button class="btn ghost" bindtap="closeRename">取消</button>
+        <button class="btn primary" bindtap="saveRename">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="mask" wx:if="{{showNickname}}" bindtap="closeNickname">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet-title">修改家庭内昵称</view>
+      <input class="input" value="{{tempNickname}}" maxlength="20" bindinput="onNicknameInput" placeholder="1–20 个字符" />
+      <view class="btn-row">
+        <button class="btn ghost" bindtap="closeNickname">取消</button>
+        <button class="btn primary" bindtap="saveNickname">保存</button>
+      </view>
+    </view>
+  </view>
 
   <view class="mask" wx:if="{{showCapacity}}" bindtap="closeCapacity">
     <view class="sheet" catchtap="noop">
@@ -91,13 +114,23 @@
     </view>
   </view>
 
-  <view class="mask" wx:if="{{showNickname}}" bindtap="closeNickname">
-    <view class="sheet" catchtap="noop">
-      <view class="sheet-title">修改家庭内昵称</view>
-      <input class="input" value="{{tempNickname}}" maxlength="20" bindinput="onNicknameInput" placeholder="1–20 个字符" />
-      <view class="btn-row">
-        <button class="btn ghost" bindtap="closeNickname">取消</button>
-        <button class="btn primary" bindtap="saveNickname">保存</button>
+  <view class="confirm-mask" wx:if="{{showConfirm}}" bindtap="closeConfirm">
+    <view class="confirm-card" catchtap="noop">
+      <view class="confirm-title">{{confirmTitle}}</view>
+      <view class="confirm-body">
+        <view class="confirm-line" wx:for="{{confirmLines}}" wx:key="*this">{{item}}</view>
+      </view>
+      <view class="confirm-actions">
+        <button
+          class="btn ghost {{confirming ? 'is-pending' : ''}}"
+          disabled="{{confirming}}"
+          bindtap="closeConfirm"
+        >再想想</button>
+        <button
+          class="btn {{confirmDanger ? 'danger' : 'primary'}} {{confirming ? 'is-pending' : ''}}"
+          disabled="{{confirming}}"
+          bindtap="submitConfirm"
+        >{{confirming ? '处理中…' : confirmText}}</button>
       </view>
     </view>
   </view>

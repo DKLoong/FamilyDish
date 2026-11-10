@@ -1,0 +1,198 @@
+.page {
+  min-height: 100vh;
+  background: #FAF5EE;
+  padding: 12px 16px 40px;
+  box-sizing: border-box;
+}
+
+.summary {
+  padding: 4px 4px 10px;
+  font-size: 12px;
+  color: #7B685C;
+}
+
+.card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 4px 16px;
+}
+
+.member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid #F1E8DC;
+}
+
+.member:last-child {
+  border-bottom: none;
+}
+
+.member-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.member-name {
+  font-size: 15px;
+  color: #3B2B23;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.me {
+  font-size: 12px;
+  color: #7B685C;
+}
+
+.member-role {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #7B685C;
+}
+
+.member-ops {
+  display: flex;
+  align-items: center;
+}
+
+/* 与菜品管理、记录页同一套 btn-small */
+.op {
+  flex: 0 0 auto;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  font-size: 13px;
+  background: #F4E6D7;
+  color: #7A4E2D;
+}
+
+.op.danger {
+  background: #F6E4DF;
+  color: #C94F3B;
+}
+
+.state {
+  padding: 60px 0;
+  text-align: center;
+  font-size: 13px;
+  color: #7B685C;
+}
+
+.state-text {
+  margin-bottom: 14px;
+}
+
+.state-btn {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 999px;
+  background: #C9663B;
+  color: #FFFFFF;
+  font-size: 13px;
+}
+
+/* 确认弹层：与记录页、购物页同一套规格 */
+.confirm-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  padding: 0 32px;
+  box-sizing: border-box;
+  background: rgba(59, 43, 35, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-card {
+  width: 100%;
+  max-width: 300px;
+  padding: 20px 16px 16px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  background: #FFFFFF;
+}
+
+.confirm-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #3B2B23;
+  text-align: center;
+}
+
+.confirm-body {
+  margin-top: 10px;
+}
+
+.confirm-line {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #7B685C;
+  text-align: center;
+}
+
+.confirm-actions {
+  margin-top: 18px;
+  display: flex;
+}
+
+.btn {
+  flex: 1;
+  height: 44px;
+  line-height: 44px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 0;
+  margin: 0;
+}
+
+.btn::after {
+  border: none;
+}
+
+.btn + .btn {
+  margin-left: 11px;
+}
+
+.btn.ghost {
+  background: #F4E6D7;
+  color: #7A4E2D;
+}
+
+.btn.primary {
+  background: #C9663B;
+  color: #FFFFFF;
+}
+
+.btn.danger {
+  background: #C94F3B;
+  color: #FFFFFF;
+}
+
+.btn.primary.is-pending {
+  background: #E2B39D;
+  color: #FFFFFF;
+  opacity: 1;
+}
+
+.btn.danger.is-pending {
+  background: #E0A79E;
+  color: #FFFFFF;
+  opacity: 1;
+}
+
+.btn.ghost.is-pending {
+  opacity: 0.45;
+}

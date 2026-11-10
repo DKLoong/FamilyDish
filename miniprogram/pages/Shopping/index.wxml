@@ -24,7 +24,16 @@
     bindrefresherrefresh="onRefresherRefresh"
   >
     <view class="list-inner">
-      <view class="state" wx:if="{{loading}}">加载中…</view>
+      <view class="skeleton" wx:if="{{loading}}">
+        <view class="sk-section"></view>
+        <view class="sk-row" wx:for="{{[1,2,3,4,5,6]}}" wx:key="*this">
+          <view class="sk-check"></view>
+          <view class="sk-body">
+            <view class="sk-name"></view>
+            <view class="sk-meta"></view>
+          </view>
+        </view>
+      </view>
 
       <view class="state" wx:elif="{{loadError}}">
         <view class="state-text">{{loadError}}</view>

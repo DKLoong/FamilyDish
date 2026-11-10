@@ -52,6 +52,7 @@ Page({
   data: {
     loading: true,
     loadError: '',
+    refreshing: false,
     filters: FILTERS,
     activeFilter: 'pending',
     orders: [],
@@ -74,8 +75,12 @@ Page({
     this.load()
   },
 
-  onPullDownRefresh() {
-    this.load(true)
+  // 页面不滚动，下拉刷新由列表 scroll-view 承担
+  async onRefresherRefresh() {
+    if (this.data.refreshing) return
+    this.setData({ refreshing: true })
+    await this.load(true)
+    this.setData({ refreshing: false })
   },
 
   async load(force) {
@@ -96,8 +101,6 @@ Page({
       console.error('[OrderHistory] load failed', err)
       this.setData({ loading: false, loadError: err.message || '加载失败' })
     }
-
-    if (force === true) wx.stopPullDownRefresh()
   },
 
   decorate(order, openid, isManager) {

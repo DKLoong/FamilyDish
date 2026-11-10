@@ -1,13 +1,28 @@
+/* 页面固定高度，筛选标签不参与滚动，列表在 scroll-view 内滚动 */
 .page {
-  min-height: 100vh;
+  height: 100vh;
   background: #FAF5EE;
-  padding: 12px 16px 0;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
+}
+
+.top-area {
+  flex: 0 0 auto;
+  padding: 12px 16px;
+}
+
+.list-area {
+  flex: 1;
+  min-height: 0;
+}
+
+.list-inner {
+  padding: 0 16px 40px;
 }
 
 .filters {
   display: flex;
-  margin-bottom: 12px;
 }
 
 /* 筛选胶囊按文字宽度排列，不是四等分；未选中用暖底、无边框 */

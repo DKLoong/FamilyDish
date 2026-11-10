@@ -1,0 +1,20 @@
+<view class="mask" wx:if="{{visible}}" bindtap="onCancel">
+  <view class="card" catchtap="noop">
+    <view class="title">{{title}}</view>
+    <view class="body">
+      <view class="line" wx:for="{{lines}}" wx:key="*this">{{item}}</view>
+    </view>
+    <view class="actions">
+      <button
+        class="btn ghost {{pending ? 'is-pending' : ''}}"
+        disabled="{{pending}}"
+        bindtap="onCancel"
+      >再想想</button>
+      <button
+        class="btn {{danger ? 'danger' : 'primary'}} {{pending ? 'is-pending' : ''}}"
+        disabled="{{pending}}"
+        bindtap="onConfirm"
+      >{{pending ? '处理中…' : confirmText}}</button>
+    </view>
+  </view>
+</view>

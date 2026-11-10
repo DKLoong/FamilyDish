@@ -109,7 +109,11 @@
         </view>
 
         <view class="sheet-actions">
-          <button class="btn ghost" bindtap="closeOrderSheet">取消</button>
+          <button
+            class="btn ghost {{submitting ? 'is-pending' : ''}}"
+            disabled="{{submitting}}"
+            bindtap="closeOrderSheet"
+          >取消</button>
           <button
             class="btn primary {{submitting ? 'is-pending' : ''}}"
             disabled="{{submitting}}"

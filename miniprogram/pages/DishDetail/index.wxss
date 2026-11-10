@@ -405,6 +405,11 @@
   color: #7A4E2D;
 }
 
+/* 提交中取消一并置灰，避免「弹层关了但菜已点上」的误解 */
+.btn.ghost.is-pending {
+  opacity: 0.45;
+}
+
 .error-box {
   margin-top: 80px;
   text-align: center;

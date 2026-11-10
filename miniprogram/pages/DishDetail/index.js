@@ -349,6 +349,8 @@ Page({
   },
 
   closeOrderSheet() {
+    // 提交中不允许关闭：否则弹层消失但请求仍在跑，结果仍会弹出
+    if (this.data.submitting) return
     this.setData({ showOrderSheet: false })
   },
 

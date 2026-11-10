@@ -66,8 +66,8 @@
           <view class="dish-info">
             <view class="dish-name">{{item.name}}</view>
             <view class="dish-meta">
-              <text wx:if="{{item.time}}">{{item.time}} 分钟</text>
-              <text wx:if="{{item.time && item.difficulty}}"> · </text>
+              <text wx:if="{{item.timeText}}">{{item.timeText}}</text>
+              <text wx:if="{{item.timeText && item.difficulty}}"> · </text>
               <text wx:if="{{item.difficulty}}">{{item.difficulty}}</text>
             </view>
             <view class="dish-tag" wx:if="{{item.category}}">{{item.category}}</view>
@@ -82,9 +82,9 @@
       <view class="rnd-label">今天就吃这个</view>
       <view class="rnd-art"><text class="rnd-art-text">{{randomDish.initial}}</text></view>
       <view class="rnd-name">{{randomDish.name}}</view>
-      <view class="rnd-meta" wx:if="{{randomDish.time || randomDish.difficulty}}">
-        <text wx:if="{{randomDish.time}}">{{randomDish.time}} 分钟</text>
-        <text wx:if="{{randomDish.time && randomDish.difficulty}}"> · </text>
+      <view class="rnd-meta" wx:if="{{randomDish.timeText || randomDish.difficulty}}">
+        <text wx:if="{{randomDish.timeText}}">{{randomDish.timeText}}</text>
+        <text wx:if="{{randomDish.timeText && randomDish.difficulty}}"> · </text>
         <text wx:if="{{randomDish.difficulty}}">{{randomDish.difficulty}}</text>
       </view>
       <view class="rnd-tag" wx:if="{{randomDish.category}}">{{randomDish.category}}</view>

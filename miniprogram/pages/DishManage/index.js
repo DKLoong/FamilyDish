@@ -2,6 +2,7 @@
 // 归档是软删除，这里提供对称的恢复入口，避免误归档后无处可退。
 const app = getApp()
 const api = require('../../utils/api.js')
+const duration = require('../../utils/duration.js')
 
 Page({
   data: {
@@ -126,7 +127,8 @@ Page({
 function decorate(dish) {
   const meta = []
   if (dish.category) meta.push(dish.category)
-  if (dish.time) meta.push(dish.time + ' 分钟')
+  const timeText = duration.formatMinutes(dish.time)
+  if (timeText) meta.push(timeText)
   meta.push((dish.ingredients || []).length + ' 项食材')
 
   return {

@@ -2,14 +2,15 @@
 // 顶部区固定，页面本身不滚动，只有菜品列表在 scroll-view 内滚动。
 const app = getApp()
 const api = require('../../utils/api.js')
+const duration = require('../../utils/duration.js')
 
 const ALL = '全部'
 
 function greetingOf(hour) {
-  if (hour < 5) return '夜深了'
-  if (hour < 11) return '早上好'
-  if (hour < 14) return '中午好'
-  if (hour < 18) return '下午好'
+  if (hour < 6) return '夜深了'
+  if (hour < 9) return '早上好'
+  if (hour < 12) return '上午好'
+  if (hour < 17) return '下午好'
   return '晚上好'
 }
 
@@ -119,6 +120,7 @@ Page({
       name: dish.name,
       category: dish.category || '未分类',
       time: dish.time || 0,
+      timeText: duration.formatMinutes(dish.time),
       difficulty: dish.difficulty || '',
       ingredientCount: ingredients.length,
       // 搜索用：菜名与食材名拼接，菜名单独命中时排在前面

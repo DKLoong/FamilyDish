@@ -2,6 +2,7 @@
 // 点菜在 M4 接入，此处底部按钮先给提示。
 const app = getApp()
 const api = require('../../utils/api.js')
+const duration = require('../../utils/duration.js')
 
 // 全局只允许一个进行中的计时器，按菜品存本地
 const TIMER_KEY = 'dishTimer'
@@ -95,12 +96,19 @@ Page({
       })
 
       const steps = (dish.steps || []).map(function (item) {
-        return { text: item.text, minutes: item.minutes || 0 }
+        return {
+          text: item.text,
+          minutes: item.minutes || 0,
+          timeText: duration.formatMinutes(item.minutes)
+        }
       })
 
       this.setData({
         loading: false,
-        dish: Object.assign({}, dish, { imageUrl: imageUrl }),
+        dish: Object.assign({}, dish, {
+          imageUrl: imageUrl,
+          timeText: duration.formatMinutes(dish.time)
+        }),
         initial: String(dish.name || '?').slice(0, 1),
         ingredients: ingredients,
         steps: steps,

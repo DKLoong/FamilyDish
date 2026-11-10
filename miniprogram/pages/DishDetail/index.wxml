@@ -21,7 +21,7 @@
       <view class="meta-row">
         <text class="chip" wx:if="{{dish.category}}">{{dish.category}}</text>
         <text class="chip" wx:if="{{dish.difficulty}}">{{dish.difficulty}}</text>
-        <text class="chip" wx:if="{{dish.time}}">{{dish.time}} 分钟</text>
+        <text class="chip" wx:if="{{dish.timeText}}">{{dish.timeText}}</text>
       </view>
       <view class="desc" wx:if="{{dish.description}}">{{dish.description}}</view>
 
@@ -64,7 +64,7 @@
             data-index="{{index}}"
             data-minutes="{{item.minutes}}"
             bindtap="startTimer"
-          >{{timer && timer.stepIndex === index ? timer.text : item.minutes + ' 分钟'}}</view>
+          >{{timer && timer.stepIndex === index ? timer.text : item.timeText}}</view>
         </view>
       </view>
     </view>

@@ -52,17 +52,25 @@
   font-size: 14px;
 }
 
+/* 与菜品管理、记录页同一套 btn-small 规格 */
 .row-action {
   flex: 0 0 auto;
   margin-left: 6px;
-  padding: 7px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 10px;
+  box-sizing: border-box;
   border-radius: 8px;
   font-size: 12px;
-  color: #C9663B;
+  background: #F4E6D7;
+  color: #7A4E2D;
 }
 
 .row-action.danger {
-  color: #B4453A;
+  background: #F6E4DF;
+  color: #C94F3B;
 }
 
 .state {

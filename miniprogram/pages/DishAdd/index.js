@@ -8,6 +8,31 @@ function newKey() {
   return 'i' + Date.now() + Math.floor(Math.random() * 1000)
 }
 
+// 分秒输入统一归一化：秒满 60 进位到分，避免出现「1 分 80 秒」。
+function normalizeDuration(minRaw, secRaw) {
+  const min = Math.floor(Number(minRaw) || 0)
+  const sec = Math.round(Number(secRaw) || 0)
+  const total = Math.max(0, min) * 60 + Math.max(0, sec)
+  if (total <= 0) return { min: '', sec: '' }
+  return { min: String(Math.floor(total / 60)), sec: String(total % 60) }
+}
+
+// 分秒合成分钟数（保留到秒），未填写返回 null。
+function toMinutes(minRaw, secRaw) {
+  const min = Math.max(0, Number(minRaw) || 0)
+  const sec = Math.max(0, Number(secRaw) || 0)
+  const total = Math.round(min * 60 + sec)
+  return total > 0 ? total / 60 : null
+}
+
+// 已存储的分钟数（可能带小数）拆回分与秒两个输入框。
+function splitMinutes(value) {
+  const num = Number(value)
+  if (!Number.isFinite(num) || num <= 0) return { min: '', sec: '' }
+  const total = Math.round(num * 60)
+  return { min: String(Math.floor(total / 60)), sec: String(total % 60) }
+}
+
 Page({
   data: {
     id: '',
@@ -21,7 +46,9 @@ Page({
     name: '',
     category: '',
     difficultyIndex: 0,
-    time: '',
+    // 总耗时拆成分与秒两个输入，保存时合成分钟数
+    timeMin: '',
+    timeSec: '',
     description: '',
     tips: '',
     ingredients: [],
@@ -51,7 +78,7 @@ Page({
   },
 
   blankStep() {
-    return { id: newKey(), text: '', minutes: '' }
+    return { id: newKey(), text: '', min: '', sec: '' }
   },
 
   // 分类候选来自分类表（含排序），与首页、分类管理页同源
@@ -103,19 +130,24 @@ Page({
         }
       })
       const steps = (dish.steps || []).map(function (item) {
+        const parts = splitMinutes(item.minutes)
         return {
           id: newKey(),
           text: item.text || '',
-          minutes: typeof item.minutes === 'number' ? String(item.minutes) : ''
+          min: parts.min,
+          sec: parts.sec
         }
       })
+
+      const timeParts = splitMinutes(dish.time)
 
       this.setData({
         loading: false,
         name: dish.name || '',
         category: dish.category || '',
         difficultyIndex: Math.max(0, DIFFICULTIES.indexOf(dish.difficulty)),
-        time: dish.time ? String(dish.time) : '',
+        timeMin: timeParts.min,
+        timeSec: timeParts.sec,
         description: dish.description || '',
         tips: dish.tips || '',
         ingredients: ingredients.length ? ingredients : [this.blankIngredient()],
@@ -133,6 +165,23 @@ Page({
     const patch = {}
     patch[field] = e.detail.value
     this.setData(patch)
+  },
+
+  // 总耗时失焦：秒满 60 进位，如输入 80 秒变成 1 分 20 秒
+  onTimeBlur() {
+    const parts = normalizeDuration(this.data.timeMin, this.data.timeSec)
+    this.setData({ timeMin: parts.min, timeSec: parts.sec })
+  },
+
+  // 步骤耗时失焦：同一套进位规则
+  onStepDurationBlur(e) {
+    const index = Number(e.currentTarget.dataset.index)
+    const list = this.data.steps.slice()
+    if (!list[index]) return
+    const parts = normalizeDuration(list[index].min, list[index].sec)
+    list[index].min = parts.min
+    list[index].sec = parts.sec
+    this.setData({ steps: list })
   },
 
   pickCategory(e) {
@@ -207,11 +256,17 @@ Page({
       if (!name) continue
 
       const raw = String(row.quantity === undefined || row.quantity === null ? '' : row.quantity).trim()
+      const unit = String(row.unit || '').trim()
       let quantity = null
       if (raw !== '') {
         const num = Number(raw)
         if (!Number.isFinite(num) || num < 0) {
           wx.showToast({ title: '食材「' + name + '」的用量需为非负数字', icon: 'none' })
+          return null
+        }
+        // 有数量就必须有单位，否则「排骨 500」无法表达也无法参与合并
+        if (!unit) {
+          wx.showToast({ title: '食材「' + name + '」填写数量时需同时填写单位', icon: 'none' })
           return null
         }
         quantity = num
@@ -221,7 +276,7 @@ Page({
         key: row.key || newKey(),
         name: name,
         quantity: quantity,
-        unit: String(row.unit || '').trim(),
+        unit: unit,
         note: String(row.note || '').trim()
       })
     }
@@ -235,15 +290,10 @@ Page({
       const text = String(row.text || '').trim()
       if (!text) continue
 
-      let minutes = null
-      const raw = String(row.minutes === undefined || row.minutes === null ? '' : row.minutes).trim()
-      if (raw !== '') {
-        const num = Number(raw)
-        if (!Number.isFinite(num) || num < 0) {
-          wx.showToast({ title: '第 ' + (i + 1) + ' 步的时长需为非负数字', icon: 'none' })
-          return null
-        }
-        minutes = Math.round(num)
+      const minutes = toMinutes(row.min, row.sec)
+      if (minutes !== null && minutes > 600) {
+        wx.showToast({ title: '第 ' + (i + 1) + ' 步的时长不能超过 600 分钟', icon: 'none' })
+        return null
       }
 
       result.push({ text: text, minutes: minutes, image: '' })
@@ -265,16 +315,19 @@ Page({
     if (!steps) return
     if (steps.length === 0) return wx.showToast({ title: '至少填写一个步骤', icon: 'none' })
 
-    const time = Number(this.data.time)
-    if (!Number.isFinite(time) || time <= 0) {
-      return wx.showToast({ title: '请填写总耗时（分钟）', icon: 'none' })
+    const time = toMinutes(this.data.timeMin, this.data.timeSec)
+    if (time === null) {
+      return wx.showToast({ title: '请填写总耗时', icon: 'none' })
+    }
+    if (time > 600) {
+      return wx.showToast({ title: '总耗时不能超过 600 分钟', icon: 'none' })
     }
 
     const payload = {
       name: name,
       category: String(this.data.category || '').trim(),
       difficulty: DIFFICULTIES[this.data.difficultyIndex] || '简单',
-      time: Math.round(time),
+      time: time,
       description: String(this.data.description || '').trim(),
       tips: String(this.data.tips || '').trim(),
       ingredients: ingredients,

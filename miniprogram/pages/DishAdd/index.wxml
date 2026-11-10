@@ -30,16 +30,20 @@
         </scroll-view>
       </view>
 
-      <view class="row-2">
-        <view class="field half">
-          <view class="label">难度</view>
-          <picker range="{{difficulties}}" value="{{difficultyIndex}}" bindchange="onDifficultyChange">
-            <view class="input picker">{{difficulties[difficultyIndex]}}</view>
-          </picker>
-        </view>
-        <view class="field half">
-          <view class="label">总耗时（分钟）</view>
-          <input class="input" type="number" value="{{time}}" placeholder="如 20" data-field="time" bindinput="onFieldInput" />
+      <view class="field">
+        <view class="label">难度</view>
+        <picker range="{{difficulties}}" value="{{difficultyIndex}}" bindchange="onDifficultyChange">
+          <view class="input picker">{{difficulties[difficultyIndex]}}</view>
+        </picker>
+      </view>
+
+      <view class="field">
+        <view class="label">总耗时</view>
+        <view class="duration-row">
+          <input class="dur-input" type="number" value="{{timeMin}}" placeholder="0" data-field="timeMin" bindinput="onFieldInput" bindblur="onTimeBlur" />
+          <text class="dur-unit">分</text>
+          <input class="dur-input" type="number" value="{{timeSec}}" maxlength="2" placeholder="0" data-field="timeSec" bindinput="onFieldInput" bindblur="onTimeBlur" />
+          <text class="dur-unit">秒</text>
         </view>
       </view>
 
@@ -63,7 +67,7 @@
     </view>
 
     <view class="card">
-      <view class="card-title">步骤</view>
+      <view class="card-title">步骤<text class="sub">时长选填，用于步骤计时</text></view>
 
       <view class="step-row" wx:for="{{steps}}" wx:key="id">
         <view class="step-no">{{index + 1}}</view>
@@ -79,8 +83,10 @@
             bindinput="onStepInput"
           ></textarea>
           <view class="step-time">
-            <input class="step-min" type="number" value="{{item.minutes}}" maxlength="4" placeholder="分钟" data-index="{{index}}" data-field="minutes" bindinput="onStepInput" />
-            <text class="step-min-label">选填，用于步骤计时</text>
+            <input class="step-dur" type="number" value="{{item.min}}" placeholder="0" data-index="{{index}}" data-field="min" bindinput="onStepInput" bindblur="onStepDurationBlur" />
+            <text class="step-unit">分</text>
+            <input class="step-dur" type="number" value="{{item.sec}}" maxlength="2" placeholder="0" data-index="{{index}}" data-field="sec" bindinput="onStepInput" bindblur="onStepDurationBlur" />
+            <text class="step-unit">秒</text>
             <view class="del" data-index="{{index}}" bindtap="removeStep">×</view>
           </view>
         </view>

@@ -107,10 +107,20 @@ const validDish = {
   await expectCode('耗时为 0', () => validators.DishList(Object.assign({}, validDish, { time: 0 }), false), 'INVALID_PAYLOAD')
   await expectCode('耗时超过 600', () => validators.DishList(Object.assign({}, validDish, { time: 601 }), false), 'INVALID_PAYLOAD')
   await expectCode('步骤时长为负', () => validators.DishList(Object.assign({}, validDish, { steps: [{ text: 'x', minutes: -5 }] }), false), 'INVALID_PAYLOAD')
+  await expectCode('食材有数量但缺单位', () => validators.DishList(Object.assign({}, validDish, { ingredients: [{ name: '排骨', quantity: 500 }] }), false), 'INVALID_PAYLOAD')
+  await expectCode('食材有数量但单位为空串', () => validators.DishList(Object.assign({}, validDish, { ingredients: [{ name: '排骨', quantity: 500, unit: '   ' }] }), false), 'INVALID_PAYLOAD')
 
   console.log('3. 归一化行为')
   const withNull = validators.DishList(Object.assign({}, validDish, { ingredients: [{ name: '盐', quantity: null }] }), false)
   assert('无数量自动补「适量」', withNull.ingredients[0].note === '适量' && withNull.ingredients[0].quantity === null)
+  const withUnit = validators.DishList(Object.assign({}, validDish, { ingredients: [{ name: '排骨', quantity: 500, unit: 'g' }] }), false)
+  assert('有数量有单位通过', withUnit.ingredients[0].quantity === 500 && withUnit.ingredients[0].unit === 'g')
+  const withSeconds = validators.DishList(Object.assign({}, validDish, {
+    time: 80 / 60,
+    steps: [{ text: '腌制', minutes: 80 / 60 }]
+  }), false)
+  assert('总耗时保留到秒', Math.round(withSeconds.time * 60) === 80, 'got=' + withSeconds.time)
+  assert('步骤时长保留到秒', Math.round(withSeconds.steps[0].minutes * 60) === 80, 'got=' + withSeconds.steps[0].minutes)
   const noKey = validators.DishList(Object.assign({}, validDish, { ingredients: [{ name: '番茄', quantity: 300, unit: 'g' }] }), false)
   assert('缺 key 时自动生成', /^i\d+$/.test(noKey.ingredients[0].key))
   const trimmed = validators.DishList(Object.assign({}, validDish, { name: '  番茄炒蛋  ' }), false)

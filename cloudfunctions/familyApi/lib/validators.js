@@ -37,10 +37,15 @@ function normalizeIngredient(item, index) {
   const name = assertText(item.name, at + '名称', LIMITS.INGREDIENT_NAME)
 
   let quantity = null
+  const unit = optionalText(item.unit, LIMITS.INGREDIENT_UNIT)
   if (item.quantity !== undefined && item.quantity !== null && item.quantity !== '') {
     const num = Number(item.quantity)
     if (!Number.isFinite(num) || num < 0) {
       throw new ApiError(E.INVALID_PAYLOAD, '食材「' + name + '」的用量需为非负数字；不确定时请留空并填写备注')
+    }
+    // 有数量必须有单位：否则「排骨 500」既无法展示也无法参与购物清单合并
+    if (!unit) {
+      throw new ApiError(E.INVALID_PAYLOAD, '食材「' + name + '」填写数量时需同时填写单位')
     }
     quantity = num
   }
@@ -49,7 +54,7 @@ function normalizeIngredient(item, index) {
     key: typeof item.key === 'string' && item.key ? item.key.slice(0, 40) : 'i' + (index + 1),
     name: name,
     quantity: quantity,
-    unit: optionalText(item.unit, LIMITS.INGREDIENT_UNIT),
+    unit: unit,
     // 无数量的食材必须有说明（如「适量」），否则购物清单无法表达
     note: optionalText(item.note, LIMITS.INGREDIENT_NOTE) || (quantity === null ? '适量' : '')
   }
@@ -68,7 +73,8 @@ function normalizeStep(item, index) {
     if (!Number.isFinite(num) || num < 0 || num > LIMITS.MAX_MINUTES) {
       throw new ApiError(E.INVALID_PAYLOAD, at + '时长需在 0–' + LIMITS.MAX_MINUTES + ' 分钟之间')
     }
-    minutes = Math.round(num)
+    // 保留到秒：前端分秒输入会换算成小数分钟，四舍五入到整分钟会丢秒
+    minutes = Math.round(num * 60) / 60
   }
 
   return { text: text, minutes: minutes, image: item.image ? String(item.image) : '' }
@@ -118,7 +124,8 @@ function validateDish(data, isUpdate) {
     if (!Number.isFinite(minutes) || minutes <= 0 || minutes > LIMITS.MAX_MINUTES) {
       throw new ApiError(E.INVALID_PAYLOAD, '总耗时需在 1–' + LIMITS.MAX_MINUTES + ' 分钟之间')
     }
-    out.time = Math.round(minutes)
+    // 同上，保留到秒，避免用户填写的秒数被抹掉
+    out.time = Math.round(minutes * 60) / 60
   }
 
   if (out.description !== undefined) out.description = optionalText(out.description, LIMITS.DESCRIPTION)

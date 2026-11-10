@@ -216,17 +216,20 @@
 }
 
 .bottom-space {
-  height: 96px;
+  height: 110px;
 }
 
+/* 与编辑菜谱页保持一致：不透明底栏 + 独立层叠上下文。
+   点菜弹层 z-index 为 100，仍在其之上。 */
 .footer {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  background: #FFFFFF;
+  z-index: 30;
+  background: #FAF5EE;
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
-  box-shadow: 0 -1px 0 rgba(231, 217, 203, 0.8);
+  box-shadow: 0 -1px 0 #E7D9CB;
 }
 
 .cta {

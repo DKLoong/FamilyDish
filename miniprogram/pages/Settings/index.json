@@ -1,5 +1,7 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "confirm-modal": "/components/confirm-modal/index"
+  },
   "navigationBarTitleText": "我的",
   "enablePullDownRefresh": true,
   "backgroundColor": "#FAF5EE"

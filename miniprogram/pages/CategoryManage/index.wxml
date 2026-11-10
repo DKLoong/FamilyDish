@@ -47,4 +47,15 @@
       <view class="btn primary {{submitting ? 'disabled' : ''}}" bindtap="submitSheet">{{submitting ? '保存中' : '保存'}}</view>
     </view>
   </view>
+
+  <confirm-modal
+    visible="{{showConfirm}}"
+    title="{{confirmTitle}}"
+    lines="{{confirmLines}}"
+    confirm-text="{{confirmText}}"
+    danger="{{confirmDanger}}"
+    pending="{{confirming}}"
+    bind:cancel="closeConfirm"
+    bind:confirm="submitConfirm"
+  />
 </view>

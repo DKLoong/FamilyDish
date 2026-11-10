@@ -1,5 +1,7 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "confirm-modal": "/components/confirm-modal/index"
+  },
   "navigationBarTitleText": "记录",
   "backgroundColor": "#FAF5EE"
 }

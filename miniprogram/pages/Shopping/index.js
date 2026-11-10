@@ -25,8 +25,9 @@ Page({
     // 点击看板的分区可直接滚到对应标题
     scrollTarget: '',
 
-    // 删除与清空共用一套自定义确认弹层，替代样式不可控的 wx.showModal
+    // 删除与清空共用确认弹层组件，确认后由 doRemove / doClear 接管加载态
     showConfirm: false,
+    confirming: false,
     confirmTitle: '',
     confirmLines: [],
     confirmText: '',

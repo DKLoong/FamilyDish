@@ -2,5 +2,7 @@
   "navigationBarTitleText": "家庭成员",
   "enablePullDownRefresh": true,
   "backgroundColor": "#FAF5EE",
-  "usingComponents": {}
+  "usingComponents": {
+    "confirm-modal": "/components/confirm-modal/index"
+  }
 }

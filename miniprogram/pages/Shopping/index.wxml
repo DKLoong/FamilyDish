@@ -112,16 +112,14 @@
     </view>
   </view>
 
-  <view class="confirm-mask" wx:if="{{showConfirm}}" bindtap="closeConfirm">
-    <view class="confirm-card" catchtap="noop">
-      <view class="confirm-title">{{confirmTitle}}</view>
-      <view class="confirm-body">
-        <view class="confirm-line" wx:for="{{confirmLines}}" wx:key="*this">{{item}}</view>
-      </view>
-      <view class="confirm-actions">
-        <view class="btn ghost" bindtap="closeConfirm">再想想</view>
-        <view class="btn danger" bindtap="submitConfirm">{{confirmText}}</view>
-      </view>
-    </view>
-  </view>
+  <confirm-modal
+    visible="{{showConfirm}}"
+    title="{{confirmTitle}}"
+    lines="{{confirmLines}}"
+    confirm-text="{{confirmText}}"
+    danger="{{confirmDanger}}"
+    pending="{{confirming}}"
+    bind:cancel="closeConfirm"
+    bind:confirm="submitConfirm"
+  />
 </view>

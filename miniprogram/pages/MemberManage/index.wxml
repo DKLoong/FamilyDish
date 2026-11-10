@@ -36,24 +36,14 @@
     </view>
   </block>
 
-  <view class="confirm-mask" wx:if="{{showConfirm}}" bindtap="closeConfirm">
-    <view class="confirm-card" catchtap="noop">
-      <view class="confirm-title">{{confirmTitle}}</view>
-      <view class="confirm-body">
-        <view class="confirm-line" wx:for="{{confirmLines}}" wx:key="*this">{{item}}</view>
-      </view>
-      <view class="confirm-actions">
-        <button
-          class="btn ghost {{confirming ? 'is-pending' : ''}}"
-          disabled="{{confirming}}"
-          bindtap="closeConfirm"
-        >再想想</button>
-        <button
-          class="btn {{confirmDanger ? 'danger' : 'primary'}} {{confirming ? 'is-pending' : ''}}"
-          disabled="{{confirming}}"
-          bindtap="submitConfirm"
-        >{{confirming ? '处理中…' : confirmText}}</button>
-      </view>
-    </view>
-  </view>
+  <confirm-modal
+    visible="{{showConfirm}}"
+    title="{{confirmTitle}}"
+    lines="{{confirmLines}}"
+    confirm-text="{{confirmText}}"
+    danger="{{confirmDanger}}"
+    pending="{{confirming}}"
+    bind:cancel="closeConfirm"
+    bind:confirm="submitConfirm"
+  />
 </view>

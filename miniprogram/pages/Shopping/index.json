@@ -2,5 +2,7 @@
   "navigationBarTitleText": "购物清单",
   "backgroundColor": "#FAF5EE",
   "backgroundTextStyle": "dark",
-  "usingComponents": {}
+  "usingComponents": {
+    "confirm-modal": "/components/confirm-modal/index"
+  }
 }

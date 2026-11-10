@@ -1,7 +1,12 @@
-/* FamilyDish 全局样式：只保留页面底色与按钮重置。
+/* FamilyDish 全局样式：只保留页面底色、按钮重置与跨页共享的尺寸常量。
    卡片、表单、列表等具体样式由各页面自己定义，
    避免全局与页面级各写一半造成隐性覆盖（曾导致卡片宽度被全局 margin 撑窄、FAB 继承旧层级）。 */
 page {
+  /* 原生 tabBar 高度，不含底部安全区。
+     tabBar 页的悬浮按钮写 bottom: 16px，视觉上距屏底 = 16 + tabBar + 安全区；
+     进入型页面（分类管理、菜品管理）本身没有 tabBar，若只避让安全区，
+     返回转场时 tabBar 出现会把按钮切掉，故用同一常量对齐到 tabBar 页的视觉高度。 */
+  --tabbar-h: 50px;
   background: #FAF5EE;
   display: flex;
   flex-direction: column;

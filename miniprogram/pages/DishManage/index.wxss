@@ -149,16 +149,22 @@
   line-height: 20px;
 }
 
+/* 列表底部留白 = FAB 底距 16 + 直径 56 + 间隙 12 + tabBar + 安全区，
+   保证滚到底时最后一行不被 FAB 压住（tabBar 页的 96px 占位等效替换） */
 .bottom-space {
-  height: 96px;
+  height: 134px;
+  height: calc(84px + var(--tabbar-h) + env(safe-area-inset-bottom));
 }
 
-/* 与记录页分享按钮、购物页添加按钮同规格 */
+/* 与记录页分享按钮、购物页添加按钮同规格。
+   本页是进入型页面（无 tabBar），除安全区外还要避让 tabBar 高度，
+   否则返回转场时 tabBar 出现会把按钮切掉（见 app.wxss --tabbar-h 说明）。 */
 .fab {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(16px + env(safe-area-inset-bottom));
+  bottom: calc(66px + env(safe-area-inset-bottom));
+  bottom: calc(16px + var(--tabbar-h) + env(safe-area-inset-bottom));
   margin: 0 auto;
   width: 56px;
   height: 56px;

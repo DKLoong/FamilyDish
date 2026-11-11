@@ -43,4 +43,14 @@
     <view class="fab-h"></view>
     <view class="fab-v"></view>
   </view>
+
+  <confirm-modal
+    visible="{{showConfirm}}"
+    title="{{confirmTitle}}"
+    lines="{{confirmLines}}"
+    confirm-text="{{confirmText}}"
+    pending="{{confirming}}"
+    bind:cancel="closeConfirm"
+    bind:confirm="submitConfirm"
+  />
 </view>

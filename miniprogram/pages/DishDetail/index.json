@@ -1,5 +1,7 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "confirm-modal": "/components/confirm-modal/index"
+  },
   "navigationBarTitleText": "菜谱",
   "backgroundColor": "#FAF5EE"
 }

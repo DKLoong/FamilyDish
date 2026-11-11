@@ -129,4 +129,14 @@
       <button class="cta" bindtap="orderDish">我要点这道菜</button>
     </view>
   </block>
+
+  <confirm-modal
+    visible="{{showConfirm}}"
+    title="{{confirmTitle}}"
+    lines="{{confirmLines}}"
+    confirm-text="{{confirmText}}"
+    pending="{{confirming}}"
+    bind:cancel="closeConfirm"
+    bind:confirm="submitConfirm"
+  />
 </view>

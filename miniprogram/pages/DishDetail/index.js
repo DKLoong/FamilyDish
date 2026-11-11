@@ -45,7 +45,15 @@ Page({
     orderMeal: '',
     orderRemark: '',
     requestId: '',
-    pendingCount: 0
+    pendingCount: 0,
+
+    // 归档、清除已准备、切换计时共用一套确认弹层
+    showConfirm: false,
+    confirmTitle: '',
+    confirmLines: [],
+    confirmText: '',
+    confirmMode: '',
+    confirming: false
   },
 
   onLoad(options) {
@@ -161,27 +169,27 @@ Page({
   clearPrepared() {
     const count = this.data.preparedCount
     if (count === 0) return
-    const that = this
 
-    wx.showModal({
-      title: '清除已准备',
-      content: '将取消 ' + count + ' 项食材的勾选。已生成的购物清单不受影响。',
+    this.setData({
+      showConfirm: true,
+      confirmTitle: '清除已准备',
+      confirmLines: ['将取消 ' + count + ' 项食材的勾选。已生成的购物清单不受影响。'],
       confirmText: '清除',
-      confirmColor: '#C9663B',
-      success(res) {
-        if (!res.confirm) return
-        try {
-          wx.removeStorageSync(that.preparedStorageKey(that.data.dish))
-        } catch (err) {
-          console.error('[DishDetail] clear prepared failed', err)
-        }
-        const list = that.data.ingredients.map(function (row) {
-          return Object.assign({}, row, { prepared: false })
-        })
-        that.setData({ ingredients: list, preparedCount: 0 })
-        wx.showToast({ title: '已清除', icon: 'none' })
-      }
+      confirmMode: 'clearPrepared'
     })
+  },
+
+  doClearPrepared() {
+    try {
+      wx.removeStorageSync(this.preparedStorageKey(this.data.dish))
+    } catch (err) {
+      console.error('[DishDetail] clear prepared failed', err)
+    }
+    const list = this.data.ingredients.map(function (row) {
+      return Object.assign({}, row, { prepared: false })
+    })
+    this.setData({ ingredients: list, preparedCount: 0 })
+    wx.showToast({ title: '已清除', icon: 'none' })
   },
 
   // —— 计时器 ——
@@ -198,13 +206,14 @@ Page({
     }
 
     if (stored && stored.stepIndex !== index) {
-      const that = this
-      wx.showModal({
-        title: '切换计时',
-        content: '第 ' + (stored.stepIndex + 1) + ' 步正在计时，切换会重新开始。',
-        success: function (res) {
-          if (res.confirm) that.beginTimer(index, minutes)
-        }
+      // 确认后要用的参数放实例字段，弹层字段只负责渲染
+      this._pendingTimer = { index: index, minutes: minutes }
+      this.setData({
+        showConfirm: true,
+        confirmTitle: '切换计时',
+        confirmLines: ['第 ' + (stored.stepIndex + 1) + ' 步正在计时，切换会重新开始。'],
+        confirmText: '切换',
+        confirmMode: 'switchTimer'
       })
       return
     }
@@ -311,25 +320,45 @@ Page({
   },
 
   archiveDish() {
-    const that = this
-    wx.showModal({
-      title: '归档菜品',
-      content: '归档后不再出现在列表、随机和搜索结果中，历史点菜记录不受影响。',
+    this.setData({
+      showConfirm: true,
+      confirmTitle: '归档菜品',
+      confirmLines: ['归档后不再出现在列表、随机和搜索结果中，历史点菜记录不受影响。'],
       confirmText: '归档',
-      confirmColor: '#C9663B',
-      success: async function (res) {
-        if (!res.confirm) return
-        try {
-          await api.withLoading('归档中', function () {
-            return api.archive(that.data.dishId)
-          })
-          wx.showToast({ title: '已归档', icon: 'success' })
-          setTimeout(function () { wx.navigateBack() }, 600)
-        } catch (err) {
-          api.toastError(err)
-        }
-      }
+      confirmMode: 'archive'
     })
+  },
+
+  closeConfirm() {
+    if (this.data.confirming) return
+    this.setData({ showConfirm: false })
+  },
+
+  async submitConfirm() {
+    if (this.data.confirming) return
+    const mode = this.data.confirmMode
+    if (!mode) return
+
+    this.setData({ confirming: true })
+    try {
+      if (mode === 'archive') {
+        await api.archive(this.data.dishId)
+        this.setData({ showConfirm: false })
+        wx.showToast({ title: '已归档', icon: 'success' })
+        setTimeout(function () { wx.navigateBack() }, 600)
+      } else if (mode === 'clearPrepared') {
+        this.doClearPrepared()
+        this.setData({ showConfirm: false })
+      } else if (mode === 'switchTimer') {
+        const pending = this._pendingTimer || {}
+        this.setData({ showConfirm: false })
+        this.beginTimer(pending.index, pending.minutes)
+      }
+    } catch (err) {
+      api.toastError(err)
+    } finally {
+      this.setData({ confirming: false })
+    }
   },
 
   // —— 点菜 ——

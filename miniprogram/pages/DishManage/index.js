@@ -14,7 +14,15 @@ Page({
     archivedDishes: [],
     activeTotal: 0,
     archivedTotal: 0,
-    submitting: false
+
+    // 归档与恢复共用一套确认弹层
+    showConfirm: false,
+    confirmTitle: '',
+    confirmLines: [],
+    confirmText: '',
+    confirmAction: '',
+    confirmTargetId: '',
+    confirming: false
   },
 
   onShow() {
@@ -82,42 +90,50 @@ Page({
   },
 
   toggleArchive(e) {
-    if (this.data.submitting) return
     const id = e.currentTarget.dataset.id
     const name = e.currentTarget.dataset.name
     const isArchived = this.data.tab === 'archived'
-    const that = this
 
-    wx.showModal({
-      title: isArchived ? '恢复菜品' : '归档菜品',
-      content: isArchived
-        ? '「' + name + '」将重新出现在首页和搜索结果中。'
-        : '「' + name + '」将从首页、随机和搜索中消失。历史点菜记录不受影响，之后可以恢复。',
+    this.setData({
+      showConfirm: true,
+      confirmTitle: isArchived ? '恢复菜品' : '归档菜品',
+      confirmLines: [
+        isArchived
+          ? '「' + name + '」将重新出现在首页和搜索结果中。'
+          : '「' + name + '」将从首页、随机和搜索中消失。历史点菜记录不受影响，之后可以恢复。'
+      ],
       confirmText: isArchived ? '恢复' : '归档',
-      confirmColor: '#C9663B',
-      success(res) {
-        if (!res.confirm) return
-        that.doArchive(id, isArchived)
-      }
+      confirmAction: isArchived ? 'restore' : 'archive',
+      confirmTargetId: id
     })
   },
 
-  async doArchive(id, isArchived) {
-    this.setData({ submitting: true })
+  closeConfirm() {
+    if (this.data.confirming) return
+    this.setData({ showConfirm: false })
+  },
+
+  async submitConfirm() {
+    if (this.data.confirming) return
+    const action = this.data.confirmAction
+    const id = this.data.confirmTargetId
+    if (!action || !id) return
+    const isArchived = action === 'restore'
+
+    this.setData({ confirming: true })
     try {
-      await api.withLoading(isArchived ? '恢复中' : '归档中', async () => {
-        if (isArchived) {
-          await api.action('restoreDish', { dishId: id })
-        } else {
-          await api.archive(id)
-        }
-      })
+      if (isArchived) {
+        await api.action('restoreDish', { dishId: id })
+      } else {
+        await api.archive(id)
+      }
+      this.setData({ showConfirm: false })
       await this.load(true)
       wx.showToast({ title: isArchived ? '已恢复' : '已归档', icon: 'none' })
     } catch (err) {
       api.toastError(err)
     } finally {
-      this.setData({ submitting: false })
+      this.setData({ confirming: false })
     }
   },
 

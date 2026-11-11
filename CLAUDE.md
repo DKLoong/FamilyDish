@@ -8,7 +8,7 @@
 
 - 技术栈：微信原生小程序（WXML + WXSS + JS）+ 微信云开发（云函数、云数据库、云存储），无第三方后端。
 - 项目名 `FamilyDish`；分支 `family-v1`；上游基线提交 `99623ac`。
-- 当前阶段：**M0 之前**。需求、UI 与实施规划已定稿，**业务代码仍是上游 PairBite 基线，尚未实施改造**。
+- 当前阶段：**M0–M7 已实现**，代码即本章描述的能力，剩余工作为上线准备（名称、头像、类目、搜索收录）。
 
 > 下面「目标架构」描述的是改造后的状态，不是当前代码的状态。读到 `coupleId`、`sendNotify`、`bindPartner`、绿色主题等旧实现时，不要把它当成需要保留的设计。
 
@@ -28,7 +28,7 @@
 
 7 个集合 `User`、`Family`、`UserFamily`、`DishList`、`Category`、`OrderList`、`ShoppingItem` 的数据库权限**统一设为「仅管理端可读写」**，不保留客户端直连旁路。云存储同样保持「仅管理端可读写」，图片经 `getFileURL` 转临时链接展示。
 
-基线里 `pages/Order/index.js` 用 `app.database().add()` 前端直写 `OrderList`、各页用 `app.database()` 直连读取，这两类入口都要移除。代价是每个列表页多一次云函数调用，收益是权限判断只有一处、无客户端绕过路径。
+基线里 `pages/Order/index.js` 用 `app.database().add()` 前端直写 `OrderList`、各页用 `app.database()` 直连读取，这两类入口已全部移除。代价是每个列表页多一次云函数调用，收益是权限判断只有一处、无客户端绕过路径。
 
 ### 数据隔离与鉴权
 
@@ -60,7 +60,7 @@
 | `ensureUser` | 首次进入创建 `User`，返回家庭上下文 |
 | `getFileURL` | `cloud://` → 临时链接（原样保留） |
 
-改造完成后停用：`getCoupleData`、`updateCoupleData`、`manageCategory`、`bindPartner`、`unbindPartner`、`updateKitchenName`、`sendNotify`、`getOpenId`、`createUser`。停用不是删除目录，而是确保没有可调用的残留入口。
+上游 9 个云函数已停用：`getCoupleData`、`updateCoupleData`、`manageCategory`、`bindPartner`、`unbindPartner`、`updateKitchenName`、`sendNotify`、`getOpenId`、`createUser`。目录仍保留但**不得部署**，前端无任何调用；其中 `getCoupleData` / `updateCoupleData` 允许调用方传任意集合名与字段且无角色鉴权，是首要安全缺口。
 
 统一响应格式 `{ success, code, message, data }`。白名单 CRUD 与领域动作的清单见《实施方案》5.1 / 5.2。
 
@@ -70,7 +70,7 @@
 
 ### 设计规范
 
-暖木厨房风格：页面背景 `#FAF5EE`、卡片 `#FFFFFF`、主色 `#C9663B`、正文 `#3B2B23`、边框 `#E7D9CB`、辅助绿 `#708B57`。基线 `app.wxss` 的绿色主题 `--primary-color: #6FCF97` 需整体替换。尺寸、圆角、状态与 1pt = 2rpx 换算见 `docs/ui/design-spec.html`。
+暖木厨房风格：页面背景 `#FAF5EE`、卡片 `#FFFFFF`、主色 `#C9663B`、正文 `#3B2B23`、边框 `#E7D9CB`、辅助绿 `#708B57`。全局 `app.wxss` 只保留页面底色、按钮重置与骨架动画 `@keyframes`，卡片、表单等具体样式由各页面自定义，避免全局与页面级互相覆盖。尺寸、圆角、状态与 1pt = 2rpx 换算见 `docs/ui/design-spec.html`（当前 v1.6）。
 
 ### 页面数据加载约定
 

@@ -1,62 +1,82 @@
-# FamilyDish · Family Meal Ordering Mini Program
+# 家肴匣 · FamilyDish
 
 A WeChat Mini Program for families: multiple members share a dish library, order records, and a shopping list, so everyone can see what was ordered and which ingredients are still missing.
 
 Built on WeChat Cloud Development (CloudBase). No servers, no maintenance. Data is isolated between families.
 
-> This branch is derived from the upstream project [PairBite](https://github.com/630999Steven/PairBite) by **630999Steven**, licensed under [CC BY-NC-SA 4.0](LICENSE).
+> This repository is derived from the upstream project [PairBite](https://github.com/630999Steven/PairBite) by **630999Steven**, licensed under [CC BY-NC-SA 4.0](LICENSE). Mini Program name: **家肴匣**.
 
-**Current status**: the requirements document, UI spec v1.2, and implementation plan v1.1 are finalized, but **the business code is still the upstream PairBite baseline; the refactor has not started (pre-M0)**. Everything below describes the target state, not what the current code implements. See `../家庭点菜小程序实施方案.md` for the implementation plan.
+**Current status**: milestones M0–M7 are implemented; the code matches the features described below. The project is in pre-release preparation. The design baseline is [`docs/ui/design-spec.html`](docs/ui/design-spec.html) (v1.6); requirements and the implementation plan live in `docs/`.
 
-## Feature Overview (target state)
+## Feature Overview
 
 - **Family management**: create or join a family, family name, per-family nickname, 3-day invitation codes, member cap 10–50, three roles (owner / admin / member), leave / remove / dissolve.
-- **Shared dish library**: manual entry by owners and admins, structured ingredients (`name / quantity / unit / note`), steps with timers, categories, archiving, and 5 self-compiled sample dishes.
+- **Shared dish library**: entry by owners and admins, structured ingredients (`name / quantity / unit / note`), steps with timers, categories, archive and restore, and 5 self-compiled sample dishes.
 - **Explicit ordering**: opening a recipe creates no record; a record is created only after tapping "I want this dish" and confirming. One record holds one dish, with states pending / completed / cancelled. Dish and orderer-nickname snapshots are stored at order time.
-- **Family records**: state filters, secondary confirmation for completion and cancellation, read-only historical snapshots, immutable terminal states.
+- **Family records**: status filters, secondary confirmation for completion and cancellation, read-only historical snapshots, immutable terminal states.
 - **Shopping list**: ingredient sources stored per order, merged only for display; whole-group purchase, manual items, permission-controlled deletion, and cancellation removing only that order's sources.
-- **Random pick and ingredient search**: v1 searches ingredients, not dish names.
-- **Share notice**: a persistent round "Share" button on the records page uses native WeChat forwarding. A successful order shows "Order placed — share it with your family".
+- **Random pick and search**: matches both dish names and ingredient names; name matches rank first.
+- **About page**: version, copyright, and open-source attribution. The version comes from the number injected by WeChat at release, falling back to a local constant in development.
+- **Sharing**: two separate paths — inviting family members (carries an invitation code, lands on the bind page) and recommending to friends (lands on the home page). A successful order only shows "Order placed".
 
-**Not in v1**: subscription messages (no templates, no quota ledger), long-screenshot sharing, and collaborative editing. Planned for phase two: multi-family switching, real-time watchers, nutrition calculation, comments and likes, and third-party recipe import.
+**Not in v1**: subscription messages (no templates, no quota ledger), long-screenshot sharing, and collaborative editing. Planned for phase two: public recipe library, third-party recipe import, multi-family switching, and real-time watchers.
 
-Upstream UI screenshots remain under `docs/images/`. They show the old green couple-themed interface and **do not represent FamilyDish**. The current UI reference is `docs/ui/design-spec.html`.
+Upstream UI screenshots remain under `docs/images/`. They show the old green couple-themed interface and **do not represent the current UI**. The current UI reference is `docs/ui/design-spec.html`; the clickable prototype is `docs/ui/index.html`.
 
 ## Tech Stack
 
 | Layer | Technology | Description |
 |---|------|------|
-| Frontend | WeChat Mini Program Native | WXML + WXSS + JS |
-| UI | WeUI + Warm Wood Kitchen tokens | Primary `#C9663B`, replacing the upstream green theme |
-| Backend | WeChat Cloud Functions | Node.js + `wx-server-sdk ^2.6.3` |
+| Frontend | WeChat Mini Program Native | WXML + WXSS + JS, no third-party UI library |
+| UI | Custom WXSS + Warm Wood Kitchen tokens | Primary `#C9663B`, unrelated to the upstream green theme |
+| Backend | WeChat Cloud Functions | Node.js + `wx-server-sdk ~2.6.3` |
 | Database | WeChat Cloud Database | NoSQL document database, 7 collections |
 | Storage | WeChat Cloud Storage | Dish images; temporary links on the free tier |
 | Notification | Native WeChat sharing | No subscription messages in v1 |
 
-No third-party API dependencies; runs entirely inside the WeChat Cloud Development ecosystem. The visual style is "Warm Wood Kitchen": low-saturation cream background, white cards, warm accent color.
+No third-party API dependencies; everything runs inside the WeChat Cloud Development ecosystem.
 
-## Project Structure (target state)
+## Project Structure
 
 ```
 ├── miniprogram/
-│   ├── app.js                  # Global family guard and context
+│   ├── app.js                  # Global family guard and context cache
 │   ├── app.json                # 4-tab bar: Home / Records / Shopping / Mine
-│   ├── app.wxss                # Warm Wood Kitchen design tokens
+│   ├── app.wxss                # Page background, button reset, skeleton animation
+│   ├── sitemap.json            # Only Home and About are indexable by WeChat search
 │   ├── envList.js              # Cloud environment config
-│   ├── components/             # family-guard, dish-card, order-sheet, empty-state
-│   ├── utils/                  # api.js, dishSchema.js, shoppingGroup.js, timer.js
-│   └── pages/                  # Home / Recipe detail / Records / Shopping / Mine + admin and snapshot pages
+│   ├── components/confirm-modal/   # Single confirmation dialog used app-wide
+│   ├── utils/                  # api.js, app-info.js, duration.js, recipe.js, shopping.js
+│   ├── images/                 # Tab bar icons and app icon logo.jpg
+│   └── pages/                  # 11 pages, see the table below
 ├── cloudfunctions/
-│   ├── familyApi/              # Unified entry: whitelist CRUD + domain actions + auth + transactions + idempotency
+│   ├── familyApi/              # Unified entry: whitelist CRUD + domain actions + auth + transactions
+│   │   └── test/               # 6 suites, 210 cases; run directly with node
 │   ├── ensureUser/             # User registration and family context
-│   └── getFileURL/             # Cloud storage temporary links (retained from upstream)
-├── docs/images/                # Upstream baseline screenshots, historical reference only
-├── project.config.json         # WeChat DevTools config
+│   └── getFileURL/             # Cloud storage temporary links
+├── docs/
+│   ├── ui/                     # design-spec.html + clickable prototype index.html
+│   ├── brand/                  # Original app icon artwork
+│   ├── images/                 # Upstream baseline screenshots, historical reference only
+│   └── *.html / *.md           # Requirements, implementation plan, M0 guide, M6/M7 reports
+├── project.config.json
 ├── LICENSE
-└── NOTICE.md                  # Refactor notes (to be added)
+└── NOTICE.md                   # Attribution and refactor notes
 ```
 
-The baseline's 11 page directories and 10 cloud function directories will be retired or rewritten; the mapping is in section 7 of the implementation plan.
+| Page | Purpose |
+|------|---------|
+| `MainPage` | Home: greeting, search, categories, random pick, dish grid |
+| `DishDetail` | Recipe detail: prepared ingredients, step timers, order sheet |
+| `DishAdd` | Create or edit a dish |
+| `DishManage` | Dish management: active / archived tabs, sticky tabs |
+| `CategoryManage` | Category management: add, rename, reorder |
+| `OrderHistory` | Order records: state filters, complete / cancel, snapshots |
+| `Shopping` | Shopping list: merged display, check-off, manual items |
+| `Settings` | Mine: identity, entries, family settings, About |
+| `MemberManage` | Family members: roles, removal, leave / dissolve |
+| `Bind` | Create or join a family; also handles invitation links |
+| `About` | Version, copyright, open-source attribution |
 
 **Read/write channel**: the frontend never calls `wx.cloud.database()`. List reads, detail reads, and all writes go through `wx.cloud.callFunction` to `familyApi`. All 7 collections are set to "admin read/write only", with no client-side direct-access bypass.
 
@@ -65,7 +85,7 @@ The baseline's 11 page directories and 10 cloud function directories will be ret
 ### Prerequisites
 
 - Install [WeChat DevTools](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html).
-- Register a WeChat Mini Program account ([a personal account is sufficient](https://mp.weixin.qq.com/wxopen/waregister?action=step1&source=mpregister&token=&lang=zh_CN)) and complete the Mini Program Information and Category sections (Tools -> Notepad is fine as the primary category).
+- Register a WeChat Mini Program account and complete the Mini Program Information and Category sections. The category directly affects search matching — pick the closest matching category, not a generic one.
 - **A formally registered Mini Program AppID is required**. The "test account" inside DevTools does not support Cloud Development.
 
 > The screenshots below come from the upstream deployment guide and show WeChat DevTools; the interface may vary by tool version.
@@ -73,9 +93,8 @@ The baseline's 11 page directories and 10 cloud function directories will be ret
 ### Step 1: Get the source
 
 ```bash
-git clone https://github.com/630999Steven/PairBite.git
-cd PairBite
-git checkout -b family-v1
+git clone https://github.com/DKLoong/FamilyDish.git
+cd FamilyDish
 ```
 
 In DevTools choose **Import Project** and select the repository root (the level containing `project.config.json`). **Do not select the `miniprogram/` subdirectory**: `miniprogramRoot` and `cloudfunctionRoot` are resolved relative to the root, so choosing the subdirectory hides the cloud functions.
@@ -112,7 +131,7 @@ In the Cloud Development console, go to Database and add **7 collections**:
 6. `OrderList`
 7. `ShoppingItem`
 
-**Set all 7 collections to "admin read/write only"**. This is mandatory: the frontend never connects to the database directly; all reads and writes are authorized inside `familyApi`. Index definitions are in section 4.3 of the implementation plan.
+**Set all 7 collections to "admin read/write only"**. This is mandatory: the frontend never connects to the database directly; all reads and writes are authorized inside `familyApi`.
 
 ![image-20260426203835555](docs/images/image-20260426203835555.png)
 
@@ -120,7 +139,7 @@ In the Cloud Development console, go to Database and add **7 collections**:
 
 ### Step 4: Update Configuration
 
-AppID and environment ID are already configured locally for this project. When deploying to your own account, replace the values in these two files (this README does not record the concrete values):
+When deploying to your own account, replace the values in these two files (this README does not record the concrete values):
 
 **project.config.json** — Mini Program AppID:
 
@@ -147,15 +166,7 @@ const envList = [
 
 ### Step 5: Upload Cloud Functions
 
-In WeChat DevTools:
-
-1. Select your environment.
-
-   ![image-20260426202731252](docs/images/image-20260426202731252.png)
-
-2. For each cloud function directory, right-click → "Upload and Deploy: Install dependencies on cloud (do not upload node_modules)".
-
-Only **3 cloud functions** need deploying after the refactor:
+In WeChat DevTools, deploy **only these 3 cloud functions** (right-click the directory → "Upload and Deploy: install dependencies on cloud"):
 
 | Cloud Function | Purpose |
 |--------|------|
@@ -163,17 +174,15 @@ Only **3 cloud functions** need deploying after the refactor:
 | `ensureUser` | Create `User` on first visit, return family context |
 | `getFileURL` | Convert `cloud://` to temporary links |
 
-The upstream functions `getCoupleData`, `updateCoupleData`, `manageCategory`, `bindPartner`, `unbindPartner`, `updateKitchenName`, `sendNotify`, `getOpenId`, and `createUser` are all retired; make sure no callable entry remains. In particular, `getCoupleData` / `updateCoupleData` accept arbitrary collection names and arbitrary fields from the client with no role checks — the most serious security gap this refactor closes.
+> **Security note**: `cloudfunctions/` still contains 9 upstream directories (`getCoupleData`, `updateCoupleData`, `manageCategory`, `bindPartner`, `unbindPartner`, `updateKitchenName`, `sendNotify`, `getOpenId`, `createUser`). Nothing in the frontend calls them — **do not deploy them**. `getCoupleData` / `updateCoupleData` accept arbitrary collection names and fields with no role checks. If they were ever deployed, delete them in the Cloud Development console.
 
 ### Step 6: No Subscription Message Setup
 
 **V1 does not use subscription messages.** No template application, no field DATA IDs, no template environment variables.
 
-Family notification uses native WeChat sharing instead: a round "Share" button on the records page plus `onShareAppMessage`. It is purely frontend — no cloud function call, no database write. When a member opens the card, cloud functions resolve family membership from `openid + UserFamily`; users with no family are routed by the global guard into the create/join flow.
-
 > The "Message Push Configuration" page in the platform (which asks for URL / Token / EncodingAESKey) is a customer-service callback and is unrelated to subscription messages. This project does not need it either; leave it disabled.
 
-### Step 7: Invite Experience Members (required)
+### Step 7: Invite Experience Members
 
 Before formal release, other users must be added as **Experience Members**:
 
@@ -181,22 +190,32 @@ Before formal release, other users must be added as **Experience Members**:
 2. Click "Add" and enter the person's WeChat ID.
 3. After they confirm in WeChat, they can scan the experience QR code.
 
-> Personal accounts allow up to 15 experience members. Families are isolated by `familyId` + `UserFamily`. With only 2 accounts, the parallel "3 roles × 2 families" isolation test can be run serially by rotating roles.
+> Personal accounts allow up to 15 experience members. Families are isolated by `familyId` + `UserFamily`.
 
-### Step 8: Upload and Deploy
+### Step 8: Upload the Code
 
-1. Click "Upload" in the top right of DevTools to publish an Experience Version (any version number). **No official review is required.**
+1. Click "Upload" in the top right of DevTools to publish an Experience Version.
 2. In Management → Version Management, set it as the Experience Version. Members added in Step 7 can then scan the QR code.
+3. Formal release requires submitting for review; after approval, publish from the Mini Program backend.
 
    ![image-20260426202128523](docs/images/image-20260426202128523.png)
 
-## Usage Workflow (target state)
+### Step 9: Search Indexing (optional)
 
-1. **Owner** opens the app → enters a family name (1–12 characters) and a family nickname (1–20 characters) → creates the family.
+To make the Mini Program discoverable in WeChat search:
+
+1. Turn on "page indexing" in the Mini Program backend — without it, `sitemap.json` has no effect.
+2. Include core keywords naturally in the name and description; the description is limited to 120 characters (one Chinese character counts as two).
+3. `sitemap.json` only allows the Home and About pages; other pages hold private family data and stay blocked.
+
+## Usage Workflow
+
+1. **Owner** opens the Mini Program → enters a family name (1–12 characters) and a family nickname (1–20 characters) → creates the family.
 2. Generates an invitation code in "Mine" (6 alphanumeric characters, valid 3 days, reusable) → forwards it to family members.
 3. **Members** enter the code and a nickname to join → everyone shares the same dish library, records, and shopping list.
 4. Home → pick a dish → check ingredients already prepared on the recipe page → tap "I want this dish" → confirm in the bottom sheet (meal date / meal type / remark are all optional) → a pending record is created and unchecked ingredients enter the shopping list.
-5. Tap the round "Share" button on the records page to forward the Mini Program. Completing or cancelling an order requires secondary confirmation.
+5. Completing or cancelling an order requires secondary confirmation. The round button on the records page recommends the Mini Program to friends.
+6. "Mine → About" shows the version and attribution; leave / dissolve lives at the bottom of the family members page.
 
 ## Database Schema
 
@@ -212,10 +231,20 @@ Before formal release, other users must be added as **Experience Members**:
 
 Cloud functions read `openid` from `cloud.getWXContext()`, look up `UserFamily` for the active `familyId` and `role`, then check the permission table for the action. `familyId`, orderer, role, timestamps, and state transitions are always written server-side. `Family.memberOpenids` is display-only and must never be used for authorization.
 
+## Tests
+
+The cloud function ships with 6 self-contained suites:
+
+```bash
+cd cloudfunctions/familyApi
+node test/family.test.js
+# also: category / dish / order / shopping / schema
+```
+
 ## Cloud Development Free Tier
 
 | Resource | Free Limit |
-|------|---------|
+|------|------|
 | Database Storage | 2 GB |
 | Database Reads | 500k / day |
 | Cloud Storage | 5 GB |
@@ -226,34 +255,32 @@ Normal family use fits comfortably within the free tier. Note that routing all r
 ## FAQ
 
 **Q: Do I need multiple people?**
-A: No. A single user can create a family and use dishes, ordering, and the shopping list in full; there is simply nobody to share with yet.
+A: No. A single user can create a family and use dishes, ordering, and the shopping list in full.
 
 **Q: How do I leave or dissolve a family?**
-A: Members and admins can leave voluntarily. The owner cannot leave and can only dissolve the family (with secondary confirmation). Leaving, being removed, or dissolving revokes future access only; historical order records are kept. In v1, dissolving marks the family as dissolved and blocks access — no physical deletion.
+A: Open "Mine → Family members"; the button at the bottom of that page handles both. Members and admins see "Leave family"; the owner sees "Dissolve family" (with secondary confirmation). Access is revoked; historical order records are kept.
 
 **Q: My family cannot see the images I uploaded?**
-A: On the free tier, cloud storage cannot be set to "public read". The project uses the `getFileURL` cloud function to convert `cloud://` file IDs into temporary links, valid for about 2 hours (the frontend refreshes them every 1.5 hours). Images may expire on a long-open page; refresh to restore. On a paid plan, set storage to "public read" to simplify this.
+A: On the free tier, cloud storage cannot be set to "public read". The project uses the `getFileURL` cloud function to convert `cloud://` file IDs into temporary links, valid for about 2 hours (the frontend refreshes them every 1.5 hours). Refresh the page if images expire.
 
 **Q: Will my family receive a WeChat notification after an order?**
-A: No. V1 removed subscription messages in favor of manually forwarding the Mini Program card from the records page. This was a deliberate trade-off: one-time subscription quota is credited to the recipient, so the person placing the order cannot accumulate quota on behalf of others, making delivery unreliable.
+A: No. V1 does not use subscription messages; use the button on the records page to recommend the Mini Program instead.
+
+**Q: Why does content take a moment to appear when navigating back?**
+A: The WeChat client rebuilds the lower page's first frame on return: the native navigation bar updates immediately while the webview repaints slightly later. A control experiment (disabling the refresh on return) reproduced it, so it is a platform behaviour, not application code.
 
 **Q: Cloud function deployment fails?**
 A: Run `npm install` in the cloud function directory before uploading. If it still fails, check that your Node.js version matches the `wx-server-sdk` version.
 
-**Q: Why does the code still use `coupleId` and a green theme?**
-A: Because the refactor has not started. This README describes the finalized target state; a mismatch with the baseline code is expected. Follow milestones M0–M7 in the implementation plan.
-
 ## Contribution
 
-Issues and Pull Requests are welcome. Product rules are defined in `../家庭点菜小程序改造需求文稿.md` and `../家庭点菜小程序实施方案.md`.
+Issues and Pull Requests are welcome. Development conventions (read/write channel, page data loading, confirmation dialog, prohibitions) are documented in [CLAUDE.md](CLAUDE.md).
 
 ## License
 
-The upstream project [PairBite](https://github.com/630999Steven/PairBite) was created by **630999Steven** and is licensed under [CC BY-NC-SA 4.0](LICENSE). This branch is a derivative work and follows the same terms:
+The upstream project [PairBite](https://github.com/630999Steven/PairBite) was created by **630999Steven** and is licensed under [CC BY-NC-SA 4.0](LICENSE). This repository is a derivative work and follows the same terms:
 
 - Credit the original author and retain `LICENSE`
 - **Commercial use is prohibited**
 - Modified works must be shared under the same license
 - Refactor notes are recorded in `NOTICE.md`
-
-The intended use of this project has been confirmed compatible with the license.

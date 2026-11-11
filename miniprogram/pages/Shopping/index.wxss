@@ -179,8 +179,8 @@
 }
 
 /* 加载骨架：一条「待购买」标题条 + 六条食材行。
-   骨架行沿用真实行的 padding 与圆角，内部保留 42 高的文本区（22 + 2 + 18），
-   加载完成切到真实列表时高度不跳。 */
+   与首页、记录页、我的页同一套规格：纯色块占位，块高等于真实内容高度（行 70px）。
+   标题条保留，避免加载完成时列表整体下移。 */
 .skeleton {
   padding-top: 4px;
 }
@@ -193,46 +193,11 @@
   margin: 4px 2px 10px;
 }
 
-.sk-row {
-  display: flex;
-  align-items: center;
-  background: #FFFFFF;
+.sk-card {
+  height: 70px;
   border-radius: 12px;
-  padding: 14px 16px;
+  background: #F1E8DC;
   margin-bottom: 8px;
-}
-
-.sk-check {
-  flex: 0 0 auto;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #F1E8DC;
-  margin-right: 12px;
-}
-
-.sk-body {
-  flex: 1;
-  min-width: 0;
-  height: 42px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.sk-name {
-  width: 40%;
-  height: 16px;
-  border-radius: 5px;
-  background: #F1E8DC;
-}
-
-.sk-meta {
-  width: 26%;
-  height: 12px;
-  border-radius: 5px;
-  background: #EDE2D5;
-  margin-top: 6px;
 }
 
 /* 状态 */

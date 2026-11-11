@@ -73,6 +73,19 @@
   color: #C94F3B;
 }
 
+/* 加载骨架：块高等于分类行实际高度（12 + 28 + 12） */
+.skeleton {
+  padding-top: 4px;
+}
+
+.sk-row {
+  height: 52px;
+  border-radius: 12px;
+  background: #EFE6DC;
+  animation: skeleton-breath 1.4s ease-in-out infinite;
+  margin-bottom: 8px;
+}
+
 .state {
   padding: 60px 0;
   text-align: center;

@@ -1,43 +1,57 @@
 <view class="page">
-  <view class="tabs">
-    <view class="tab {{tab === 'active' ? 'on' : ''}}" data-tab="active" bindtap="switchTab">
-      在用<text class="tab-count">{{activeTotal}}</text>
-    </view>
-    <view class="tab {{tab === 'archived' ? 'on' : ''}}" data-tab="archived" bindtap="switchTab">
-      已归档<text class="tab-count">{{archivedTotal}}</text>
-    </view>
-  </view>
-
-  <view class="state" wx:if="{{loading}}">加载中…</view>
-
-  <view class="state" wx:elif="{{loadError}}">
-    <view class="state-text">{{loadError}}</view>
-    <view class="state-btn" bindtap="reload">重试</view>
-  </view>
-
-  <block wx:else>
-    <view class="empty" wx:if="{{dishes.length === 0}}">
-      <view class="empty-title">{{tab === 'archived' ? '没有已归档的菜品' : '还没有菜品'}}</view>
-      <view class="empty-desc">{{tab === 'archived' ? '归档的菜会出现在这里，可以恢复' : '点右下角按钮添加第一道菜'}}</view>
-    </view>
-
-    <view class="row" wx:for="{{dishes}}" wx:key="id" data-id="{{item.id}}" bindtap="openDish">
-      <view class="row-art">{{item.initial}}</view>
-      <view class="row-main">
-        <view class="row-name">{{item.name}}</view>
-        <view class="row-meta">{{item.meta}}</view>
+  <view class="top-area">
+    <view class="tabs">
+      <view class="tab {{tab === 'active' ? 'on' : ''}}" data-tab="active" bindtap="switchTab">
+        在用<text class="tab-count">{{activeTotal}}</text>
       </view>
-      <view class="row-op" data-id="{{item.id}}" catchtap="editDish">编辑</view>
-      <view
-        class="row-op {{tab === 'archived' ? 'restore' : 'danger'}}"
-        data-id="{{item.id}}"
-        data-name="{{item.name}}"
-        catchtap="toggleArchive"
-      >{{tab === 'archived' ? '恢复' : '归档'}}</view>
+      <view class="tab {{tab === 'archived' ? 'on' : ''}}" data-tab="archived" bindtap="switchTab">
+        已归档<text class="tab-count">{{archivedTotal}}</text>
+      </view>
     </view>
+  </view>
 
-    <view class="bottom-space"></view>
-  </block>
+  <scroll-view
+    class="list-area"
+    scroll-y
+    refresher-enabled
+    refresher-triggered="{{refreshing}}"
+    bindrefresherrefresh="onRefresherRefresh"
+  >
+    <view class="list-inner">
+      <view class="skeleton" wx:if="{{loading}}">
+        <view class="sk-row" wx:for="{{[1,2,3,4,5]}}" wx:key="*this"></view>
+      </view>
+
+      <view class="state" wx:elif="{{loadError}}">
+        <view class="state-text">{{loadError}}</view>
+        <view class="state-btn" bindtap="reload">重试</view>
+      </view>
+
+      <block wx:else>
+        <view class="empty" wx:if="{{dishes.length === 0}}">
+          <view class="empty-title">{{tab === 'archived' ? '没有已归档的菜品' : '还没有菜品'}}</view>
+          <view class="empty-desc">{{tab === 'archived' ? '归档的菜会出现在这里，可以恢复' : '点右下角按钮添加第一道菜'}}</view>
+        </view>
+
+        <view class="row" wx:for="{{dishes}}" wx:key="id" data-id="{{item.id}}" bindtap="openDish">
+          <view class="row-art">{{item.initial}}</view>
+          <view class="row-main">
+            <view class="row-name">{{item.name}}</view>
+            <view class="row-meta">{{item.meta}}</view>
+          </view>
+          <view class="row-op" data-id="{{item.id}}" catchtap="editDish">编辑</view>
+          <view
+            class="row-op {{tab === 'archived' ? 'restore' : 'danger'}}"
+            data-id="{{item.id}}"
+            data-name="{{item.name}}"
+            catchtap="toggleArchive"
+          >{{tab === 'archived' ? '恢复' : '归档'}}</view>
+        </view>
+
+        <view class="bottom-space"></view>
+      </block>
+    </view>
+  </scroll-view>
 
   <view class="fab" wx:if="{{!loading && !loadError}}" bindtap="createDish" aria-role="button" aria-label="新增菜品">
     <view class="fab-h"></view>

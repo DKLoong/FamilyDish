@@ -8,6 +8,7 @@ Page({
   data: {
     loading: true,
     loadError: '',
+    refreshing: false,
     tab: 'active',
     dishes: [],
     activeDishes: [],
@@ -29,15 +30,19 @@ Page({
     this.load()
   },
 
-  onPullDownRefresh() {
-    this.load(true)
+  // 页面不滚动，下拉刷新由列表 scroll-view 承担
+  async onRefresherRefresh() {
+    if (this.data.refreshing) return
+    this.setData({ refreshing: true })
+    await this.load()
+    this.setData({ refreshing: false })
   },
 
   reload() {
     this.load()
   },
 
-  async load(refresh) {
+  async load() {
     // 骨架只在首次进入时铺：从详情页、编辑页返回都保留现有列表原地替换
     if (!this._loaded) this.setData({ loading: true })
     this.setData({ loadError: '' })
@@ -75,8 +80,6 @@ Page({
       } else {
         this.setData({ loading: false, loadError: (err && err.message) || '加载失败' })
       }
-    } finally {
-      if (refresh === true) wx.stopPullDownRefresh()
     }
   },
 
@@ -142,7 +145,7 @@ Page({
         await api.archive(id)
       }
       this.setData({ showConfirm: false })
-      await this.load(true)
+      await this.load()
       wx.showToast({ title: isArchived ? '已恢复' : '已归档', icon: 'none' })
     } catch (err) {
       api.toastError(err)

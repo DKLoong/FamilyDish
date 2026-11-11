@@ -108,6 +108,18 @@
   border: none;
 }
 
+/* 加载骨架：整卡块，高度按 3 名成员 × 行高 72 估算 */
+.skeleton {
+  padding-top: 4px;
+}
+
+.sk-card {
+  height: 216px;
+  border-radius: 12px;
+  background: #EFE6DC;
+  animation: skeleton-breath 1.4s ease-in-out infinite;
+}
+
 .state {
   padding: 60px 0;
   text-align: center;

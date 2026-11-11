@@ -133,14 +133,17 @@
   min-width: 0;
 }
 
+/* 数量与单位是短输入，内容居中放置，与左侧名称左对齐形成对照 */
 .ing-qty {
   width: 72px;
   margin-left: 8px;
+  text-align: center;
 }
 
 .ing-unit {
   width: 64px;
   margin-left: 8px;
+  text-align: center;
 }
 
 .del {

@@ -112,7 +112,7 @@
 <div class="layout">
   <nav class="sidenav">
     <h1>FamilyDish</h1>
-    <div class="sub">UI 静态稿与开发标注 v1.4<br>基准宽度 375pt / 750rpx</div>
+    <div class="sub">UI 静态稿与开发标注 v1.5<br>基准宽度 375pt / 750rpx</div>
     <a href="#tokens">01 设计令牌</a>
     <a href="#components">02 核心组件</a>
     <a href="#global">03 全局规则</a>
@@ -237,6 +237,7 @@
       <tr><td>内容安全区</td><td>tabBar 页滚动内容底部预留 96，避免被导航遮挡；进入型页面同样预留 96</td></tr>
       <tr><td>进入型页面的悬浮按钮</td><td>分类管理、菜品管理、家庭成员、关于等非 tabBar 页没有底部导航占位，悬浮按钮要自行避让 tabBar 高度：<code>bottom = 16 + 50 + env(safe-area-inset-bottom)</code>。否则返回转场时 tabBar 一出现就会把按钮切掉一半</td></tr>
       <tr><td>返回导航</td><td>详情/快照/管理页左上返回箭头，返回来源页</td></tr>
+      <tr><td>导航栏标题</td><td>每页标题独立设置，并承担搜索关键词但不堆砌：首页「家庭菜单 · 菜谱与点菜」、记录「记录」、购物「购物清单」、菜谱详情「菜谱」、菜品编辑「菜品」。仅首页与「关于」页允许被微信搜索索引（见 <code>sitemap.json</code>），记录、购物、成员等含家庭私有数据的页面一律禁止收录</td></tr>
     </table>
   </section>
 
@@ -445,7 +446,7 @@
         <div class="callout-item"><span class="num">3</span><div><b>餐次</b>　4 个等宽 chip，高 36。<b>选填</b>：默认不预选任何项，未选也可直接提交，不写入餐次字段；已选中项可再次点击取消。已裁决 D1-A。</div></div>
         <div class="callout-item"><span class="num">4</span><div><b>备注</b>　多行输入，高 64，radius 12，placeholder「如：少辣、晚上六点吃」。选填，上限 100 字。</div></div>
         <div class="callout-item"><span class="num">5</span><div><b>购物提示条</b>　暖底，实时显示「N 项未准备食材将加入购物清单」。N=0 时文案改为「全部食材已准备，不会产生购物项」。</div></div>
-        <div class="callout-item"><span class="num">6</span><div><b>操作区</b>　两按钮各高 44、间距 11：取消（次，关闭弹层）/ 确认点菜（主）。确认后：生成记录 + 购物来源，按钮转提交中防重复，成功后轻提示「已点菜，可分享给家人」并关闭。</div></div>
+        <div class="callout-item"><span class="num">6</span><div><b>操作区</b>　两按钮各高 44、间距 11：取消（次，关闭弹层）/ 确认点菜（主）。确认后：生成记录 + 购物来源，按钮转提交中防重复，成功后轻提示「已点菜」并关闭。</div></div>
       </div>
     </div>
   </section>
@@ -506,7 +507,7 @@
         <div class="callout-item"><span class="num">3</span><div><b>记录卡副行</b>　12/18 secondary：「点菜人 · 日期 餐次 · 备注」。<b>首版不再显示通知汇总</b>；订阅通知已整体移除。</div></div>
         <div class="callout-item"><span class="num">4</span><div><b>操作按钮</b>　仅待做记录显示「完成」（绿）/「取消」（红），高 28。按权限显示：普通成员只见自己记录的按钮；管理员/创建者见全部。点击先弹二次确认，取消须注明移除几项购物食材。</div></div>
         <div class="callout-item"><span class="num">5</span><div><b>点击卡片</b>　整卡可点，进入菜品快照页（当时保存的名称、图片、食材、步骤），不可编辑。</div></div>
-        <div class="callout-item"><span class="num">6</span><div><b>常驻分享按钮</b>　56px 正圆（<code>border-radius: 28px</code>，不用 50%，避免宽高被撑开时变椭圆），主色 <code>#C9663B</code> 实心 + 白色 24px 分享图标（线宽 1.6），水平居中；<code>bottom = 16px</code>。列表 <code>padding-bottom</code> 不小于 88px 避开按钮。使用 <code>button</code> 组件时必须清除默认 <code>padding</code>/<code>line-height</code> 与 <code>::after</code> 边框，否则会被撑成椭圆；配 <code>aria-label</code>，视觉上纯图标。点击拉起微信「发送给」选择页。<br><span class="dim">注：本图为自绘导航的示意坐标（83 + 16）。真实小程序中原生 tabBar 不占页面坐标系，页面内 <code>fixed</code> 元素直接相对可视区定位，因此实现值为 <code>bottom: 16px</code>。</span></div></div>
+        <div class="callout-item"><span class="num">6</span><div><b>常驻分享按钮</b>　56px 正圆（<code>border-radius: 28px</code>，不用 50%，避免宽高被撑开时变椭圆），主色 <code>#C9663B</code> 实心 + 白色 24px 分享图标（线宽 1.6），水平居中；<code>bottom = 16px</code>。列表 <code>padding-bottom</code> 不小于 88px 避开按钮。使用 <code>button</code> 组件时必须清除默认 <code>padding</code>/<code>line-height</code> 与 <code>::after</code> 边框，否则会被撑成椭圆；配 <code>aria-label</code>，视觉上纯图标。点击拉起微信「发送给」选择页。<b>分享内容为「推荐给朋友」</b>：<code>title</code> 用产品介绍，<code>path</code> 固定指向首页、不带参数；「邀请家人加入」走「我的 &gt; 邀请成员」弹层，那条路径带邀请码，两条路径不混用。<br><span class="dim">注：本图为自绘导航的示意坐标（83 + 16）。真实小程序中原生 tabBar 不占页面坐标系，页面内 <code>fixed</code> 元素直接相对可视区定位，因此实现值为 <code>bottom: 16px</code>。</span></div></div>
       </div>
     </div>
   </section>
@@ -762,7 +763,7 @@
       <tr><td>D3</td><td><b>已作废</b>：首版不做订阅通知，订阅开关删除</td><td>09 我的与家庭管理 · 标注 ③</td></tr>
       <tr><td>D4</td><td>邀请码为 6 位字母数字（32 字符集），输入统一转大写</td><td>09 我的与家庭管理 · 标注 ③</td></tr>
     </table>
-    <div class="footer-note">本版为 v1.4。v1.0 中「餐次必选一项才能提交」的表述已作废；v1.1 中的订阅通知开关、通知汇总行已删除；v1.2 新增记录页常驻分享按钮规格（标注 ⑥）。v1.3 修正两处实现偏差：分享按钮改用具体半径并在真机按 bottom:16px 定位（原生 tabBar 不占页面坐标系），购物页与分类页的手工添加 FAB 由右下角改为水平居中、加号改用线条绘制以保证居中。v1.4 对齐近期实现：2.3 弹窗规格按 <code>confirm-modal</code> 组件重写（取消文案「再想想」、提交中「处理中…」、禁止 <code>wx.showModal</code>）；退出/解散由「我的」页移到家庭成员页，新增 9.1 家庭成员页与 9.2 关于页；「我的」页末组改为「关于」；03 节 tabBar 高度按 50 计并补进入型页面悬浮按钮避让规则；08 节补看板占位符与数字口径；10 节新增「刷新」规则与 10.1 骨架块对照（菜品管理、分类管理、家庭成员补骨架，菜品管理标签吸顶）；9.2 附关于页标注图。v1.4 起本文档与可点击原型一并纳入仓库 <code>docs/ui/</code>。项目名统一为 FamilyDish。</div>
+    <div class="footer-note">本版为 v1.5。v1.0 中「餐次必选一项才能提交」的表述已作废；v1.1 中的订阅通知开关、通知汇总行已删除；v1.2 新增记录页常驻分享按钮规格（标注 ⑥）。v1.3 修正两处实现偏差：分享按钮改用具体半径并在真机按 bottom:16px 定位（原生 tabBar 不占页面坐标系），购物页与分类页的手工添加 FAB 由右下角改为水平居中、加号改用线条绘制以保证居中。v1.4 对齐近期实现：2.3 弹窗规格按 <code>confirm-modal</code> 组件重写（取消文案「再想想」、提交中「处理中…」、禁止 <code>wx.showModal</code>）；退出/解散由「我的」页移到家庭成员页，新增 9.1 家庭成员页与 9.2 关于页；「我的」页末组改为「关于」；03 节 tabBar 高度按 50 计并补进入型页面悬浮按钮避让规则；08 节补看板占位符与数字口径；10 节新增「刷新」规则与 10.1 骨架块对照（菜品管理、分类管理、家庭成员补骨架，菜品管理标签吸顶）；9.2 附关于页标注图。v1.4 起本文档与可点击原型一并纳入仓库 <code>docs/ui/</code>。v1.5 为上线前搜索优化：<code>sitemap.json</code> 由全部禁止改为仅放开首页与关于页，首页标题改为「家庭菜单 · 菜谱与点菜」，分享拆成两条路径（记录页推荐给朋友、落地首页；「我的 &gt; 邀请成员」邀请家人、带邀请码），点菜成功提示去掉「可分享给家人」。项目名统一为 FamilyDish。</div>
   </section>
 
   </div>

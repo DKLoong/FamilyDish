@@ -431,7 +431,7 @@ Page({
 
       // 同菜同餐次不会再建一条记录，必须明确告诉用户发生了什么，
       // 否则「点了但记录没变」会被当成失败。
-      let title = '已点菜，可分享给家人'
+      let title = '已点菜'
       if (result.duplicated) title = '这笔点菜已提交过'
       else if (result.merged && result.alreadyJoined) title = '你已点过这道菜'
       else if (result.merged) title = '已合并，共 ' + result.ordererCount + ' 人点这道菜'

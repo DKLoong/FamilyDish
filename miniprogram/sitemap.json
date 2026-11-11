@@ -1,7 +1,17 @@
 {
-  "desc": "家庭私人应用，不参与微信搜索索引",
-  "rules": [{
-    "action": "disallow",
-    "page": "*"
-  }]
+  "desc": "家庭菜单：仅首页与关于页允许微信搜索索引；记录、购物、成员等页面含家庭私有数据，一律禁止收录",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "pages/MainPage/index"
+    },
+    {
+      "action": "allow",
+      "page": "pages/About/index"
+    },
+    {
+      "action": "disallow",
+      "page": "*"
+    }
+  ]
 }

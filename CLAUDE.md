@@ -60,7 +60,7 @@
 | `ensureUser` | 首次进入创建 `User`，返回家庭上下文 |
 | `getFileURL` | `cloud://` → 临时链接（原样保留） |
 
-上游 9 个云函数已停用：`getCoupleData`、`updateCoupleData`、`manageCategory`、`bindPartner`、`unbindPartner`、`updateKitchenName`、`sendNotify`、`getOpenId`、`createUser`。目录仍保留但**不得部署**，前端无任何调用；其中 `getCoupleData` / `updateCoupleData` 允许调用方传任意集合名与字段且无角色鉴权，是首要安全缺口。
+上游 9 个云函数（`getCoupleData`、`updateCoupleData`、`manageCategory`、`bindPartner`、`unbindPartner`、`updateKitchenName`、`sendNotify`、`getOpenId`、`createUser`）已从仓库删除，前端无任何调用。它们基于 `coupleId` 双人模型，其中 `getCoupleData` / `updateCoupleData` 允许调用方传任意集合名与字段、且能改 `coupleId` 本身，存在越权读取其他家庭数据的路径，**不要以任何形式恢复**。
 
 统一响应格式 `{ success, code, message, data }`。白名单 CRUD 与领域动作的清单见《实施方案》5.1 / 5.2。
 

@@ -174,7 +174,7 @@ const envList = [
 | `ensureUser` | 首次进入创建 `User`，返回家庭上下文 |
 | `getFileURL` | `cloud://` 转临时链接 |
 
-> **安全提醒**：`cloudfunctions/` 下仍有 9 个上游遗留目录（`getCoupleData`、`updateCoupleData`、`manageCategory`、`bindPartner`、`unbindPartner`、`updateKitchenName`、`sendNotify`、`getOpenId`、`createUser`）。前端已无任何调用，**切勿部署**——其中 `getCoupleData` / `updateCoupleData` 允许调用方传任意集合名与字段且无角色鉴权。若云端曾部署过，请在云开发控制台删除。
+> 上游遗留的 9 个云函数（`getCoupleData`、`updateCoupleData`、`manageCategory`、`bindPartner`、`unbindPartner`、`updateKitchenName`、`sendNotify`、`getOpenId`、`createUser`）已从仓库移除，`cloudfunctions/` 下只有上面这 3 个。它们属于旧的 `coupleId` 双人模型，其中 `getCoupleData` / `updateCoupleData` 允许客户端传任意集合名与字段、并能改 `coupleId` 本身，存在越权读取其他家庭数据的路径，**不要恢复**。若你的云端曾部署过这些函数，请在云开发控制台一并删除。
 
 ### 第六步：无需配置订阅消息
 

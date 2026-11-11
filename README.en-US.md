@@ -174,7 +174,7 @@ In WeChat DevTools, deploy **only these 3 cloud functions** (right-click the dir
 | `ensureUser` | Create `User` on first visit, return family context |
 | `getFileURL` | Convert `cloud://` to temporary links |
 
-> **Security note**: `cloudfunctions/` still contains 9 upstream directories (`getCoupleData`, `updateCoupleData`, `manageCategory`, `bindPartner`, `unbindPartner`, `updateKitchenName`, `sendNotify`, `getOpenId`, `createUser`). Nothing in the frontend calls them — **do not deploy them**. `getCoupleData` / `updateCoupleData` accept arbitrary collection names and fields with no role checks. If they were ever deployed, delete them in the Cloud Development console.
+> The 9 upstream cloud functions (`getCoupleData`, `updateCoupleData`, `manageCategory`, `bindPartner`, `unbindPartner`, `updateKitchenName`, `sendNotify`, `getOpenId`, `createUser`) have been removed from this repository; `cloudfunctions/` now holds only the 3 listed above. They belong to the old `coupleId` two-person model: `getCoupleData` / `updateCoupleData` accept arbitrary collection names and fields and can rewrite `coupleId` itself, which allows reading other families' data. **Do not restore them.** If your cloud environment still has them deployed, delete them in the Cloud Development console.
 
 ### Step 6: No Subscription Message Setup
 

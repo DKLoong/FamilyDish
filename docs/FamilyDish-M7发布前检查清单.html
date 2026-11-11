@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FamilyDish · M7 发布前检查清单</title>
+<style>
+  :root {
+    --bg: #FAF5EE; --card: #FFFFFF; --warm: #F4E6D7;
+    --primary: #C9663B; --ink: #3B2B23; --ink-2: #7B685C; --line: #E7D9CB;
+    --green: #708B57; --green-bg: #EEF3E7;
+    --amber: #B8862F; --amber-bg: #FBF1DE;
+    --red: #B4453A; --red-bg: #FBEBE9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 0 60px; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    font-size: 14px; line-height: 1.65;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+  header { padding: 28px 0 20px; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+  h1 { margin: 0 0 6px; font-size: 22px; font-weight: 600; }
+  .meta { font-size: 12px; color: var(--ink-2); }
+  .lead {
+    margin: 16px 0 0; padding: 14px 16px; background: var(--warm);
+    border-radius: 12px; font-size: 13px; color: #6B4A32;
+  }
+  h2 { margin: 32px 0 12px; font-size: 16px; font-weight: 600; display: flex; align-items: center; }
+  h2 .no {
+    display: inline-block; min-width: 26px; height: 26px; line-height: 26px; text-align: center;
+    margin-right: 10px; border-radius: 8px; background: var(--warm); color: var(--primary);
+    font-size: 12px; font-weight: 600;
+  }
+  .sub { margin: -6px 0 14px 36px; font-size: 12px; color: var(--ink-2); }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; font-size: 13px; }
+  th {
+    text-align: left; padding: 10px 12px; background: #FDF9F4; color: var(--ink-2);
+    font-weight: 500; font-size: 12px; border-bottom: 1px solid var(--line); white-space: nowrap;
+  }
+  td { padding: 10px 12px; border-bottom: 1px solid #F3EBE1; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.note { color: var(--ink-2); font-size: 12.5px; }
+  .tag { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 11px; white-space: nowrap; }
+  .tag.done { background: var(--green-bg); color: var(--green); }
+  .tag.todo { background: var(--amber-bg); color: var(--amber); }
+  .tag.risk { background: var(--red-bg); color: var(--red); }
+  code {
+    background: #F7F0E7; padding: 1px 5px; border-radius: 4px;
+    font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; color: #8A5A3B;
+  }
+  pre {
+    background: #2F2620; color: #F4E9DC; padding: 16px; border-radius: 12px;
+    overflow-x: auto; font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 12px; line-height: 1.6; margin: 12px 0;
+  }
+  pre .c { color: #9C8B7C; }
+  .note-box {
+    margin-top: 20px; padding: 14px 16px; background: var(--warm);
+    border-radius: 12px; font-size: 12.5px; color: #6B4A32;
+  }
+  .warn-box {
+    margin: 20px 0; padding: 14px 16px; background: var(--red-bg);
+    border-left: 3px solid var(--red); border-radius: 12px; font-size: 12.5px; color: #8A3A32;
+  }
+  ol, ul { margin: 8px 0; padding-left: 22px; }
+  li { margin-bottom: 5px; }
+  footer {
+    margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line);
+    font-size: 11.5px; color: var(--ink-2); line-height: 1.8;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>FamilyDish · M7 发布前检查清单</h1>
+    <div class="meta">2026-11-09 · 代码侧已完成，剩余项需在开发者工具、云控制台与公众平台操作</div>
+    <div class="lead">
+      本清单分成四块：<b>我已完成的代码侧清理</b>、<b>你需要在控制台确认的配置</b>、<b>并发实测脚本</b>、<b>真机回归清单</b>。
+      发布前必须完成的项已用红色标出。
+    </div>
+  </header>
+
+  <h2><span class="no">01</span>代码侧已完成</h2>
+  <table>
+    <tbody>
+      <tr><td style="width:34%">代码包体积</td><td><span class="tag done">已完成</span></td><td class="note">923 KB → 267 KB。删除未引用的 weui 组件包（648 KB）与 8 个图片素材</td></tr>
+      <tr><td>全局样式主题</td><td><span class="tag done">已完成</span></td><td class="note">app.wxss 原为帕恰狗绿色主题且 <code>@import</code> 已删除的 weui，会导致编译失败。已改为暖木令牌</td></tr>
+      <tr><td>死组件 removal</td><td><span class="tag done">已完成</span></td><td class="note">删除 bind-guard（文案仍是「还未绑定伴侣」，无页面引用）</td></tr>
+      <tr><td>搜索索引</td><td><span class="tag done">已完成</span></td><td class="note">sitemap 由 allow 改为 disallow，私人应用不被微信搜索收录</td></tr>
+      <tr><td>组件数</td><td><span class="tag done">已完成</span></td><td class="note">12 个页面 → 8 个，无未注册页面，无失效跳转</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="no">02</span>你需要在开发者工具完成</h2>
+
+  <div class="warn-box">
+    <b>云函数超时仍是 3 秒，必须改为 20 秒。</b><br>
+    <code>config.json</code> 中的 timeout 不会被 CLI 部署应用（已实测：部署后云端仍显示 3）。分类重命名、示例菜导入这类批量操作需要逐条更新文档，
+    菜品较多时可能贴近 3 秒上限。3 秒一旦超时，用户会看到「云函数执行失败」，而数据可能只改了一半。
+  </div>
+
+  <table>
+    <thead><tr><th style="width:34%">操作</th><th style="width:12%">状态</th><th>方法</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>familyApi 超时改为 20 秒</td>
+        <td><span class="tag risk">必须</span></td>
+        <td class="note">开发者工具 → 云开发控制台 → 云函数 → familyApi → 配置 → 超时时间 → 20 → 保存</td>
+      </tr>
+      <tr>
+        <td>确认两个云函数都是最新代码</td>
+        <td><span class="tag todo">建议</span></td>
+        <td class="note">函数代码里打开 <code>lib/actions/category.js</code>，能看到 <code>deleteCategory</code> 即为最新</td>
+      </tr>
+      <tr>
+        <td>重新编译并走一遍主流程</td>
+        <td><span class="tag todo">必做</span></td>
+        <td class="note">本次删除了 weui 与 bind-guard，需确认 8 个页面都能正常打开、底部导航图标为新样式</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2><span class="no">03</span>你需要在云控制台确认</h2>
+  <table>
+    <thead><tr><th style="width:30%">项</th><th style="width:16%">应有状态</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>7 个集合</td>
+        <td class="note"><code>User</code>、<code>Family</code>、<code>UserFamily</code>、<code>DishList</code>、<code>Category</code>、<code>OrderList</code>、<code>ShoppingItem</code></td>
+        <td class="note">全部权限为「所有用户不可读写」</td>
+      </tr>
+      <tr>
+        <td>13 条索引</td>
+        <td class="note">Family 2 · UserFamily 2 · DishList 2 · Category 1 · OrderList 2 · ShoppingItem 3</td>
+        <td class="note">其中 <code>uniq_invite_code</code>、<code>uniq_request_id</code> 为唯一索引；<code>idx_family_dish_meal</code> 为同菜去重查询用</td>
+      </tr>
+      <tr>
+        <td>数据库存数据</td>
+        <td class="note">1 个家庭、若干菜品与点菜记录</td>
+        <td class="note">若准备正式使用，可先清空测试数据再让家人加入</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2><span class="no">04</span>你需要在公众平台完成</h2>
+  <table>
+    <thead><tr><th style="width:26%">项</th><th style="width:12%">状态</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>用户隐私保护指引</td>
+        <td><span class="tag risk">必须</span></td>
+        <td class="note">本项目收集：微信 openid（用于识别成员）、用户填写的家庭内昵称、用户录入的菜品内容。不收集手机号、位置、相册。<br>入口：公众平台 → 设置 → 服务内容声明 → 用户隐私保护指引</td>
+      </tr>
+      <tr>
+        <td>服务类目</td>
+        <td><span class="tag risk">必须</span></td>
+        <td class="note">个人主体可选「工具 → 备忘录」或「生活服务 → 其他」。类目影响审核，选错会被驳回</td>
+      </tr>
+      <tr>
+        <td>体验版 → 正式版</td>
+        <td><span class="tag todo">发布前</span></td>
+        <td class="note">开发者工具「上传」→ 公众平台「版本管理」→ 提交审核 → 审核通过后发布</td>
+      </tr>
+      <tr>
+        <td>免费基础版配额</td>
+        <td><span class="tag todo">留意</span></td>
+        <td class="note">家庭规模每天调用量极低，正常使用不会触顶。若长期使用后提示配额不足，再考虑升级</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2><span class="no">05</span>并发实测</h2>
+  <div class="sub">CLI 无法调用云函数，需要你在小程序 Console 执行。目的：确认「同菜同餐次去重」的先查后写窗口是否真的会被撞破。</div>
+
+  <p>进任意页面，打开 Console，粘贴执行：</p>
+  <pre><span class="c">// 同菜同餐次并发点菜测试：两个请求同时发出</span>
+(async () => {
+  const call = (data) => wx.cloud.callFunction({ name: 'familyApi', data })
+
+  const list = await call({ collection: 'DishList', op: 'list', limit: 1 })
+  const dish = list.result.data.items[0]
+  if (!dish) return console.warn('没有菜品，先在首页导入示例菜')
+
+  const stamp = Date.now()
+  const mk = (tag) => call({
+    action: 'placeOrder',
+    payload: {
+      dishId: dish._id,
+      requestId: 'race' + tag + stamp,
+      mealDate: '2026-11-09',
+      mealType: '其他'
+    }
+  })
+
+  const [a, b] = await Promise.all([mk('A'), mk('B')])
+  console.log('A', a.result)
+  console.log('B', b.result)
+
+  const check = await call({
+    collection: 'OrderList', op: 'list',
+    filters: { status: 'pending' }, limit: 20
+  })
+  const same = check.result.data.items.filter(o =>
+    o.dishId === dish._id &amp;&amp; o.mealDate === '2026-11-09' &amp;&amp; o.mealType === '其他')
+
+  console.log('同键待做记录：', same.length, '条')
+  console.log(same.length === 1
+    ? '✅ 未触发竞态，两个请求合并为一条'
+    : '⚠️ 竞态发生，生成 ' + same.length + ' 条重复记录')
+})()</pre>
+
+  <table>
+    <thead><tr><th style="width:20%">结果</th><th>含义与下一步</th></tr></thead>
+    <tbody>
+      <tr><td class="note">1 条</td><td class="note">两个请求被正确合并（第二个读到第一个写入的记录并追加点菜人）。窗口存在但极难触发，维持现状，二期再做 <code>dedupeKey</code></td></tr>
+      <tr><td class="note">2 条</td><td class="note">竞态确认。需要加 <code>dedupeKey</code>：待做时写固定键、终态时写唯一随机值，配合唯一索引。这会新增一个索引，需你在控制台建</td></tr>
+      <tr><td class="note">报错</td><td class="note">把 <code>a.result</code> / <code>b.result</code> 的完整内容发我</td></tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:14px">
+    <b>并发加入家庭不提供脚本。</b>触发条件太苛刻：需要两个未加入的微信号，且家庭只剩 1 个名额，还要在同一秒内提交。
+    实际操作成本远高于收益，建议按「已知限制」记录，二期用计数字段或事务一并解决。
+  </p>
+
+  <h2><span class="no">06</span>真机回归</h2>
+  <div class="sub">以下 6 条必须在手机上走，开发者工具通过不算数。</div>
+  <ol>
+    <li>记录页圆形分享按钮 → 弹出微信「发送给」选择页，卡片标题为「家庭名 + 的点菜记录」</li>
+    <li>家人点开分享卡片 → 进入他自己的家庭，看不到你家菜单与记录</li>
+    <li>菜谱详情开始步骤计时 → 退到微信等 20 秒 → 回来，剩余时间正确减少</li>
+    <li>开飞行模式点菜 → 提示失败，不得假成功；恢复网络后可重试</li>
+    <li>三个角色分别登录 → 普通成员看不到「分类管理」「+ 新增」「成员角色」按钮</li>
+    <li>首页分类胶囊、菜谱表单候选、分类管理页 → 三者名称与顺序完全一致</li>
+  </ol>
+
+  <h2><span class="no">07</span>已知限制</h2>
+  <table>
+    <thead><tr><th style="width:26%">限制</th><th style="width:12%">影响</th><th>处理计划</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>加入家庭名额校验非原子</td>
+        <td class="note">极低</td>
+        <td class="note">需两人同时加入且只剩 1 名额。二期用计数字段或事务收紧</td>
+      </tr>
+      <tr>
+        <td>同菜同餐次并发点菜可能重复建单</td>
+        <td class="note">极低</td>
+        <td class="note">见第 05 节实测。若实测为 1 条则维持现状，二期做 <code>dedupeKey</code></td>
+      </tr>
+      <tr>
+        <td>分类重命名单次最多同步 100 道菜</td>
+        <td class="note">很低</td>
+        <td class="note">受云开发单次查询上限限制。家庭菜品通常远低于此，超出部分下次进分类页同步时不会自动改名，需手动调整</td>
+      </tr>
+      <tr>
+        <td>首版不支持份数与采购量缩放</td>
+        <td class="note">设计内</td>
+        <td class="note">二期按份数缩放，提示语方案已定稿（见需求文稿二期章节）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note-box">
+    <b>发布顺序建议</b><br>
+    ① 开发者工具改超时 20 秒 → ② 重新编译走一遍主流程 → ③ Console 跑并发脚本 → ④ 真机回归 6 条 → ⑤ 公众平台填隐私协议与类目 → ⑥ 上传体验版给家人试 → ⑦ 提交审核。
+  </div>
+
+  <footer>
+    FamilyDish · M7 发布前检查清单 · 2026-11-09<br>
+    代码侧：8 页面 / 22 个云函数动作 / 7 集合 / 233 项自动化测试通过<br>
+    配套文档：《M6 验收走查报告》《需求实现对照表》《需求文稿》《实施方案》
+  </footer>
+
+</div>
+</body>
+</html>

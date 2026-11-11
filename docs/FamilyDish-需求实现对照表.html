@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FamilyDish · 需求实现对照表 v1.0</title>
+<style>
+  :root {
+    --bg: #FAF5EE;
+    --card: #FFFFFF;
+    --warm: #F4E6D7;
+    --primary: #C9663B;
+    --primary-dark: #A9532F;
+    --ink: #3B2B23;
+    --ink-2: #7B685C;
+    --line: #E7D9CB;
+    --green: #708B57;
+    --green-bg: #EEF3E7;
+    --amber: #B8862F;
+    --amber-bg: #FBF1DE;
+    --red: #B4453A;
+    --red-bg: #FBEBE9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0 0 60px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  header {
+    padding: 28px 0 20px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 24px;
+  }
+  h1 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  .meta {
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .lead {
+    margin: 16px 0 0;
+    padding: 14px 16px;
+    background: var(--warm);
+    border-radius: 12px;
+    font-size: 13px;
+    color: #6B4A32;
+  }
+  h2 {
+    margin: 32px 0 12px;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+  }
+  h2 .no {
+    display: inline-block;
+    min-width: 26px;
+    height: 26px;
+    line-height: 26px;
+    text-align: center;
+    margin-right: 10px;
+    border-radius: 8px;
+    background: var(--warm);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .sub {
+    margin: -6px 0 14px 36px;
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .stats {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .stat {
+    flex: 1 1 150px;
+    background: var(--card);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .stat .n {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .stat .l {
+    font-size: 12px;
+    color: var(--ink-2);
+    margin-top: 2px;
+  }
+  .stat.ok .n { color: var(--green); }
+  .stat.warn .n { color: var(--amber); }
+  .stat.bad .n { color: var(--red); }
+  .stat.dead .n { color: var(--ink-2); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 13px;
+  }
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    background: #FDF9F4;
+    color: var(--ink-2);
+    font-weight: 500;
+    font-size: 12px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #F3EBE1;
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.loc {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 11.5px;
+    color: var(--ink-2);
+    line-height: 1.5;
+    word-break: break-all;
+  }
+  td.note { color: var(--ink-2); font-size: 12.5px; }
+  .tag {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .tag.ok { background: var(--green-bg); color: var(--green); }
+  .tag.warn { background: var(--amber-bg); color: var(--amber); }
+  .tag.bad { background: var(--red-bg); color: var(--red); }
+
+  .issue {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    border-left: 3px solid var(--line);
+  }
+  .issue.p0 { border-left-color: var(--red); }
+  .issue.p1 { border-left-color: var(--amber); }
+  .issue.p2 { border-left-color: var(--green); }
+  .issue-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .issue-head b { font-size: 14px; }
+  .issue p { margin: 0 0 6px; font-size: 13px; color: var(--ink-2); }
+  .issue p:last-child { margin-bottom: 0; }
+  .issue code {
+    background: #F7F0E7;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #8A5A3B;
+  }
+  .issue .fix {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+    font-size: 12.5px;
+    color: var(--ink);
+  }
+  .prio {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .prio.p0 { background: var(--red-bg); color: var(--red); }
+  .prio.p1 { background: var(--amber-bg); color: var(--amber); }
+  .prio.p2 { background: var(--green-bg); color: var(--green); }
+
+  .note-box {
+    margin-top: 24px;
+    padding: 14px 16px;
+    background: var(--warm);
+    border-radius: 12px;
+    font-size: 12.5px;
+    color: #6B4A32;
+  }
+  footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-size: 11.5px;
+    color: var(--ink-2);
+    line-height: 1.8;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>FamilyDish · 需求实现对照表</h1>
+    <div class="meta">v1.0 · 2026-11-09 · 对照基准：《家庭点菜小程序改造需求文稿》第十三章验收表之前全部章节</div>
+    <div class="lead">
+      逐条比对 11 个需求章节与当前代码，并同步修复。结论：<b>核对发现的 5 项问题已全部修复</b>，<b>1 项保留到二期</b>，<b>5 个死代码页面与 16 个无用素材已清理</b>。
+      修复包含邀请码错误尝试限流（安全项）、加入家庭提示带家庭名、首页最近点菜摘要、分类管理，以及两处文档措辞对齐实现。
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat ok"><div class="n">89</div><div class="l">已实现</div></div>
+    <div class="stat warn"><div class="n">1</div><div class="l">保留到二期</div></div>
+    <div class="stat bad"><div class="n">0</div><div class="l">待决策</div></div>
+    <div class="stat dead"><div class="n">0</div><div class="l">死代码页面</div></div>
+  </div>
+
+  <h2><span class="no">01</span>本次修复</h2>
+  <div class="sub">核对发现的问题中，以下 4 项已在本会话修复，各有对应测试或文档改动。</div>
+
+  <div class="issue p2">
+    <div class="issue-head"><span class="tag ok">已修复</span><b>邀请码错误尝试限流</b></div>
+    <p>需求 3.4 要求限制频繁错误尝试。此前 <code>INVITE_MAX_TRIES</code> 只用于生成邀请码时避免碰撞，与加入失败次数无关。</p>
+    <p>现在 <code>joinFamily</code> 在码无效、格式错误或过期时按 <code>openid</code> 累计失败次数：10 分钟内达到 5 次即拒绝；加入成功后清零；满员不计入（不是猜码行为）。</p>
+    <div class="fix"><b>实现</b>：<code>actions/family.js</code> 的 <code>assertNotThrottled</code> / <code>recordInviteFail</code> / <code>clearInviteFail</code>。计数存在 <code>User</code> 文档，不新增集合。新增 12 项测试。</div>
+  </div>
+
+  <div class="issue p2">
+    <div class="issue-head"><span class="tag ok">已修复</span><b>加入家庭提示不带家庭名</b></div>
+    <p>需求 3.1 要求提示「你已加入家庭 X」。原返回「你已在一个家庭中」。</p>
+    <div class="fix"><b>实现</b>：<code>alreadyInFamilyError(ctx)</code> 统一生成提示并带上当前家庭名，创建家庭与加入家庭两处复用。</div>
+  </div>
+
+  <div class="issue p2">
+    <div class="issue-head"><span class="tag ok">已修复</span><b>首页缺「最近点菜记录」</b></div>
+    <p>需求 10.1 要求 <code>MainPage</code> 展示最近点菜记录。此前首页只有菜品列表。</p>
+    <p>现在首页顶部增加待做摘要：待做总道数 + 最近 2 条（菜名、点菜人、餐次），点击跳记录页。三人以上折叠为「A、B 等 3 人」。查询失败降级为空，不影响首页主流程。</p>
+    <div class="fix"><b>实现</b>：<code>MainPage.load</code> 并行拉取 + <code>decoratePending</code> + 顶部卡片。</div>
+  </div>
+
+  <div class="issue p2">
+    <div class="issue-head"><span class="tag ok">已对齐文档</span><b>两处实现优于文档的措辞</b></div>
+    <p>① 分享标题实际包含家庭名称（原文档写「固定标题」）；② 邀请链接只带邀请码、不带 <code>familyId</code>（原文档写两者都带）。两处实现都更合理，处理方式是改文档而非改代码。</p>
+    <div class="fix"><b>已改</b>：需求 8.2、3.4。</div>
+  </div>
+
+  <h2><span class="no">02</span>已按选择实施</h2>
+  <div class="sub">分类管理采用方案 ①，已实现并接入。</div>
+
+  <div class="issue p2">
+    <div class="issue-head"><span class="tag ok">已实现</span><b>分类管理（方案 ①）</b></div>
+    <p>分类是「名称 + 排序」的轻量标签，菜品上仍存分类文本，重命名时由服务端批量同步，所以不必迁移菜品数据。</p>
+    <p>支持新增、重命名、上下移动排序；不提供删除。首次进入分类页时自动把菜品里已存在但未登记的分类补入，避免空列表。同名校验、跨家庭校验、名称 1–12 字均在服务端。</p>
+    <p>首页分类顺序改为以分类表为准，表里没有的名称按菜品出现顺序追加作为兜底。</p>
+    <div class="fix"><b>实现</b>：<code>actions/category.js</code>（syncCategories / saveCategory / reorderCategories）、<code>pages/CategoryManage</code>、我的页入口。新增 22 项测试。</div>
+  </div>
+
+  <h2><span class="no">03</span>已知并接受</h2>
+
+  <div class="issue p2">
+    <div class="issue-head"><span class="tag warn">保留</span><b>加入家庭的名额校验非原子</b></div>
+    <p>需求 3.4 要求成员资格、邀请码有效性和剩余名额一次性完成。现为「先查后写」，两人同时加入且只剩一个名额时可能都成功。</p>
+    <p>你已确认留到二期，与份数、并发去重同批处理。已记入风险清单。</p>
+  </div>
+
+
+  <h2><span class="no">04</span>完整对照</h2>
+  <div class="sub">只列有实现载体的条目。同一功能点内的细节合为一行，「实现位置」给文件与函数，不给行号以免过期。</div>
+
+  <table>
+    <thead>
+      <tr><th style="width:34%">需求条目</th><th style="width:9%">状态</th><th style="width:30%">实现位置</th><th>说明</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="4" style="background:#FDF9F4;font-weight:500;color:#7B685C;font-size:12px">3.1 入口与归属</td></tr>
+      <tr><td>首次进入展示创建 / 加入两个入口</td><td><span class="tag ok">已实现</span></td><td class="loc">pages/Bind（双 tab）</td><td class="note">不自动建家庭</td></tr>
+      <tr><td>一个用户最多一个有效家庭</td><td><span class="tag ok">已实现</span></td><td class="loc">familyApi · createFamily / joinFamily<br>UserFamily._id = openid</td><td class="note">靠主键唯一性挡住重复</td></tr>
+      <tr><td>已加入时提示「你已加入家庭 X」</td><td><span class="tag ok">已实现</span></td><td class="loc">actions/family.js · alreadyInFamilyError</td><td class="note">提示带当前家庭名</td></tr>
+      <tr><td>退出 / 移除 / 解散后可重新加入或创建</td><td><span class="tag ok">已实现</span></td><td class="loc">familyApi · upsertMembership</td><td class="note">非 active 记录复用，不新增</td></tr>
+      <tr><td>家庭名称必填 1–12 字、创建者与管理员可改名</td><td><span class="tag ok">已实现</span></td><td class="loc">createFamily / renameFamily<br>Settings 页改名弹层</td><td class="note">服务端校验长度</td></tr>
+      <tr><td>家庭名称用于首页、邀请卡片、我的页</td><td><span class="tag ok">已实现</span></td><td class="loc">MainPage header / Settings 分享 title</td><td class="note"></td></tr>
+
+      <tr><td colspan="4" style="background:#FDF9F4;font-weight:500;color:#7B685C;font-size:12px">3.2 家庭内昵称</td></tr>
+      <tr><td>创建 / 加入时必填，1–20 字符</td><td><span class="tag ok">已实现</span></td><td class="loc">createFamily / joinFamily 校验</td><td class="note"></td></tr>
+      <tr><td>成员可修改自己的昵称</td><td><span class="tag ok">已实现</span></td><td class="loc">updateNickname + Settings 弹层</td><td class="note"></td></tr>
+      <tr><td>点菜记录保存昵称快照</td><td><span class="tag ok">已实现</span></td><td class="loc">orderers[].nickname</td><td class="note">改名不影响历史</td></tr>
+      <tr><td>不依赖微信头像昵称、不展示 openid</td><td><span class="tag ok">已实现</span></td><td class="loc">Settings 成员列表</td><td class="note">memberId 仅用于操作参数与 key，不渲染</td></tr>
+
+      <tr><td colspan="4" style="background:#FDF9F4;font-weight:500;color:#7B685C;font-size:12px">3.3 角色与权限</td></tr>
+      <tr><td>查看菜品 / 菜谱 / 记录</td><td><span class="tag ok">已实现</span></td><td class="loc">schema.assertOp readOps</td><td class="note"></td></tr>
+      <tr><td>点菜、随机、搜索</td><td><span class="tag ok">已实现</span></td><td class="loc">placeOrder / MainPage</td><td class="note"></td></tr>
+      <tr><td>完成 / 取消自己的待做记录</td><td><span class="tag ok">已实现</span></td><td class="loc">assertOperable</td><td class="note">判断是否在 orderers 中</td></tr>
+      <tr><td>管理员完成 / 取消任意待做记录</td><td><span class="tag ok">已实现</span></td><td class="loc">assertOperable isManager</td><td class="note"></td></tr>
+      <tr><td>添加购物项、勾选已购买</td><td><span class="tag ok">已实现</span></td><td class="loc">crud.add / setPurchase</td><td class="note">全部角色可用</td></tr>
+      <tr><td>删除自己添加的购物项</td><td><span class="tag ok">已实现</span></td><td class="loc">crud.remove · self-manual-unless-admin</td><td class="note"></td></tr>
+      <tr><td>删除任意项、清空已购</td><td><span class="tag ok">已实现</span></td><td class="loc">clearPurchased（仅 owner/admin）</td><td class="note"></td></tr>
+      <tr><td>管理菜品和分类</td><td><span class="tag ok">已实现</span></td><td class="loc">DishAdd / DishDetail 归档 / Settings 分类入口</td><td class="note">分类管理页仅 owner/admin 可见</td></tr>
+      <tr><td>生成 / 重新生成邀请码</td><td><span class="tag ok">已实现</span></td><td class="loc">regenerateInvite</td><td class="note">旧码立即失效</td></tr>
+      <tr><td>修改人数上限、修改家庭名称</td><td><span class="tag ok">已实现</span></td><td class="loc">updateCapacity / renameFamily</td><td class="note"></td></tr>
+      <tr><td>移除普通成员 / 移除管理员</td><td><span class="tag ok">已实现</span></td><td class="loc">removeMember</td><td class="note">管理员只能移普通成员</td></tr>
+      <tr><td>授予 / 撤销管理员</td><td><span class="tag ok">已实现</span></td><td class="loc">setRole（仅 owner）</td><td class="note"></td></tr>
+      <tr><td>解散家庭</td><td><span class="tag ok">已实现</span></td><td class="loc">dissolveFamily</td><td class="note">软标记 + 阻断访问</td></tr>
+      <tr><td>创建者不可撤销、不可移除、不可退出</td><td><span class="tag ok">已实现</span></td><td class="loc">setRole / removeMember / leaveFamily 校验</td><td class="note"></td></tr>
+      <tr><td>历史记录不可删除</td><td><span class="tag ok">已实现</span></td><td class="loc">OrderList writeOps = []</td><td class="note">只有完成 / 取消两个动作</td></tr>
+
+      <tr><td colspan="4" style="background:#FDF9F4;font-weight:500;color:#7B685C;font-size:12px">3.4–3.5 邀请、加入与人数上限</td></tr>
+      <tr><td>6 位字母数字、32 字符集、去混淆</td><td><span class="tag ok">已实现</span></td><td class="loc">INVITE_ALPHABET</td><td class="note">不含 I/O/0/1</td></tr>
+      <tr><td>大小写归一</td><td><span class="tag ok">已实现</span></td><td class="loc">Bind onLoad 转大写 + joinFamily</td><td class="note"></td></tr>
+      <tr><td>三天有效、多人可用</td><td><span class="tag ok">已实现</span></td><td class="loc">INVITE_TTL_MS / buildInvite</td><td class="note"></td></tr>
+      <tr><td>重新生成后旧码失效</td><td><span class="tag ok">已实现</span></td><td class="loc">regenerateInvite 覆盖 invite.code</td><td class="note"></td></tr>
+      <tr><td>限制频繁错误尝试</td><td><span class="tag ok">已实现</span></td><td class="loc">joinFamily · assertNotThrottled</td><td class="note">10 分钟 5 次上限，成功后清零</td></tr>
+      <tr><td>加入前四项校验</td><td><span class="tag ok">已实现</span></td><td class="loc">joinFamily</td><td class="note">已有家庭 / 家庭有效 / 码有效 / 名额</td></tr>
+      <tr><td>名额校验一次性完成</td><td><span class="tag warn">偏差</span></td><td class="loc">joinFamily</td><td class="note">先查后写，二期收紧</td></tr>
+      <tr><td>上限默认 10、范围当前人数–50</td><td><span class="tag ok">已实现</span></td><td class="loc">updateCapacity + Settings 步进器</td><td class="note"></td></tr>
+      <tr><td>达到上限拒绝并提示</td><td><span class="tag ok">已实现</span></td><td class="loc">FAMILY_FULL</td><td class="note"></td></tr>
+      <tr><td>退出 / 移除 / 解散规则与历史保留</td><td><span class="tag ok">已实现</span></td><td class="loc">leaveFamily / removeMember / dissolveFamily</td><td class="note">软标记，不物理删除</td></tr>
+
+      <tr><td colspan="4" style="background:#FDF9F4;font-weight:500;color:#7B685C;font-size:12px">4. 点菜与菜谱详情</td></tr>
+      <tr><td>查看不生成记录、显式确认才生成</td><td><span class="tag ok">已实现</span></td><td class="loc">DishDetail 弹层确认</td><td class="note"></td></tr>
+      <tr><td>一条记录 = 一道菜 × 一个餐次</td><td><span class="tag ok">已实现</span></td><td class="loc">placeOrder 去重键</td><td class="note">同菜同餐次合并点菜人</td></tr>
+      <tr><td>多人点同一道菜不加采购量</td><td><span class="tag ok">已实现</span></td><td class="loc">mergeIntoPendingOrder</td><td class="note">只补缺失购物项</td></tr>
+      <tr><td>日期 / 餐次 / 备注三项选填</td><td><span class="tag ok">已实现</span></td><td class="loc">normalizeMealDate / MealType / Remark</td><td class="note">餐次未选不写字段</td></tr>
+      <tr><td>三态流转、终态不可变</td><td><span class="tag ok">已实现</span></td><td class="loc">completeOrder / cancelOrder</td><td class="note">条件更新，updated 必须为 1</td></tr>
+      <tr><td>二次确认与取消文案</td><td><span class="tag ok">已实现</span></td><td class="loc">OrderHistory.cancel</td><td class="note">多人记录额外说明人数</td></tr>
+      <tr><td>菜品快照</td><td><span class="tag ok">已实现</span></td><td class="loc">dishSnapshot</td><td class="note">名称/图片/食材/步骤/难度/耗时/贴士</td></tr>
+      <tr><td>详情页要素（名称、图、分类、描述、食材、步骤、难度、耗时、贴士）</td><td><span class="tag ok">已实现</span></td><td class="loc">pages/DishDetail</td><td class="note"></td></tr>
+      <tr><td>每项食材「已准备」勾选</td><td><span class="tag ok">已实现</span></td><td class="loc">toggleIngredient</td><td class="note">按 openid + 菜品 + version 存本地</td></tr>
+      <tr><td>一键清除</td><td><span class="tag ok">已实现</span></td><td class="loc">clearPrepared</td><td class="note">本次会话补上，曾遗漏</td></tr>
+      <tr><td>菜谱修改后旧勾选失效</td><td><span class="tag ok">已实现</span></td><td class="loc">storage key 含 version</td><td class="note">不写清理逻辑</td></tr>
+      <tr><td>计时器存结束时间戳、回页重算</td><td><span class="tag ok">已实现</span></td><td class="loc">beginTimer / resumeTimer</td><td class="note">setInterval 只刷新显示</td></tr>
+      <tr><td>单计时器与切换确认、已到时提示</td><td><span class="tag ok">已实现</span></td><td class="loc">startTimer / startTick</td><td class="note">振动 + toast</td></tr>
+
+      <tr><td colspan="4" style="background:#FDF9F4;font-weight:500;color:#7B685C;font-size:12px">5. 共享购物清单</td></tr>
+      <tr><td>按来源存储、页面合并显示</td><td><span class="tag ok">已实现</span></td><td class="loc">ShoppingItem + utils/shopping.js</td><td class="note">合并是纯函数，不回写</td></tr>
+      <tr><td>来源记录字段完整</td><td><span class="tag ok">已实现</span></td><td class="loc">familyId/sourceType/orderId/dishId/ingredient/purchased/createdBy</td><td class="note"></td></tr>
+      <tr><td>只为未准备食材生成、全准备则不生成</td><td><span class="tag ok">已实现</span></td><td class="loc">placeOrder pendingIngredients</td><td class="note"></td></tr>
+      <tr><td>点菜与清单一致性</td><td><span class="tag ok">已实现</span></td><td class="loc">rollbackOrder 补偿</td><td class="note">未用事务，失败回收</td></tr>
+      <tr><td>手工添加（名称必填，其余选填）</td><td><span class="tag ok">已实现</span></td><td class="loc">crud.normalizeIngredient + 购物页弹层</td><td class="note"></td></tr>
+      <tr><td>合并三类规则</td><td><span class="tag ok">已实现</span></td><td class="loc">groupKeyOf</td><td class="note">都有值求和 / 都无数值并列备注 / 混合分行</td></tr>
+      <tr><td>整组标记已购买、整组恢复</td><td><span class="tag ok">已实现</span></td><td class="loc">setPurchase + purchaseGroupId</td><td class="note">不支持部分购买</td></tr>
+      <tr><td>删除权限与清空已购</td><td><span class="tag ok">已实现</span></td><td class="loc">crud.remove / clearPurchased</td><td class="note"></td></tr>
+      <tr><td>取消点菜只删本单来源</td><td><span class="tag ok">已实现</span></td><td class="loc">cancelOrder where orderId</td><td class="note">其他来源重新合并</td></tr>
+      <tr><td>完成点菜、改勾选不影响清单</td><td><span class="tag ok">已实现</span></td><td class="loc">completeOrder 不改购物项</td><td class="note"></td></tr>
+
+      <tr><td colspan="4" style="background:#FDF9F4;font-weight:500;color:#7B685C;font-size:12px">6. 菜品库与菜谱</td></tr>
+      <tr><td>家庭共享菜品库、成员只读</td><td><span class="tag ok">已实现</span></td><td class="loc">schema writeRoles = owner/admin</td><td class="note"></td></tr>
+      <tr><td>管理分类</td><td><span class="tag ok">已实现</span></td><td class="loc">pages/CategoryManage + actions/category.js</td><td class="note">新增、重命名同步菜品、排序；入口在我的页</td></tr>
+      <tr><td>菜品字段齐全</td><td><span class="tag ok">已实现</span></td><td class="loc">schema DishList addFields</td><td class="note"></td></tr>
+      <tr><td>名称必填、至少一项食材、至少一个步骤</td><td><span class="tag ok">已实现</span></td><td class="loc">validators.js</td><td class="note">服务端闸门</td></tr>
+      <tr><td>食材结构化 {name, quantity, unit, note}</td><td><span class="tag ok">已实现</span></td><td class="loc">validators + normalizeIngredient</td><td class="note">无数值自动补「适量」</td></tr>
+      <tr><td>步骤有序，含时长与图片</td><td><span class="tag ok">已实现</span></td><td class="loc">DishAdd 动态步骤行</td><td class="note"></td></tr>
+      <tr><td>归档替代删除、不影响历史</td><td><span class="tag ok">已实现</span></td><td class="loc">crud.archive</td><td class="note">archived 过滤在 buildWhere</td></tr>
+      <tr><td>5 道示例菜覆盖指定场景</td><td><span class="tag ok">已实现</span></td><td class="loc">lib/sampleDishes.js</td><td class="note">可合并用量/适量/无步骤图/多分类/耗时跨度</td></tr>
+      <tr><td>统一输入结构与校验（扩展点）</td><td><span class="tag ok">已实现</span></td><td class="loc">validators.DishList</td><td class="note">手动录入与未来导入共用</td></tr>
+
+      <tr><td colspan="4" style="background:#FDF9F4;font-weight:500;color:#7B685C;font-size:12px">7. 随机与搜索</td></tr>
+      <tr><td>随机入口、只从未归档抽、进详情不生成记录</td><td><span class="tag ok">已实现</span></td><td class="loc">MainPage.randomPick</td><td class="note"></td></tr>
+      <tr><td>无可用菜品时空状态不跳转</td><td><span class="tag ok">已实现</span></td><td class="loc">MainPage 空状态</td><td class="note"></td></tr>
+      <tr><td>菜名 + 食材包含匹配、菜名优先</td><td><span class="tag ok">已实现</span></td><td class="loc">MainPage.applyFilter + rank</td><td class="note">前端内存过滤</td></tr>
+
+      <tr><td colspan="4" style="background:#FDF9F4;font-weight:500;color:#7B685C;font-size:12px">8. 分享告知</td></tr>
+      <tr><td>不做订阅消息与自动通知</td><td><span class="tag ok">已实现</span></td><td class="loc">已整体移除</td><td class="note">S1 裁决</td></tr>
+      <tr><td>常驻圆形分享按钮、56px、aria-label</td><td><span class="tag ok">已实现</span></td><td class="loc">OrderHistory.share-fab</td><td class="note">图标仍为字符，待 M7 换矢量</td></tr>
+      <tr><td>onShareAppMessage 同步返回、path 固定不带参</td><td><span class="tag ok">已实现</span></td><td class="loc">OrderHistory.onShareAppMessage</td><td class="note">path 指向记录页</td></tr>
+      <tr><td>不传 imageUrl</td><td><span class="tag ok">已实现</span></td><td class="loc">同上</td><td class="note">用微信默认截图</td></tr>
+      <tr><td>点菜成功轻提示</td><td><span class="tag ok">已实现</span></td><td class="loc">DishDetail.submitOrder</td><td class="note">区分新建/合并/重复</td></tr>
+      <tr><td>标题同步返回</td><td><span class="tag ok">已实现</span></td><td class="loc">title 含家庭名</td><td class="note">文档已同步为「含家庭名称」</td></tr>
+
+      <tr><td colspan="4" style="background:#FDF9F4;font-weight:500;color:#7B685C;font-size:12px">9. 数据模型与安全</td></tr>
+      <tr><td>coupleId → familyId、新增 ShoppingItem</td><td><span class="tag ok">已实现</span></td><td class="loc">constants.COL</td><td class="note">7 个集合</td></tr>
+      <tr><td>Family / UserFamily / OrderList 字段</td><td><span class="tag ok">已实现</span></td><td class="loc">actions/family.js · createFamily</td><td class="note">orderers 数组 + 首位兼容</td></tr>
+      <tr><td>memberOpenids 仅冗余展示</td><td><span class="tag ok">已实现</span></td><td class="loc">addToSet / pull</td><td class="note">鉴权不用它</td></tr>
+      <tr><td>读写全走云函数、7 集合权限封闭</td><td><span class="tag ok">已实现</span></td><td class="loc">utils/api.js + M0 权限设置</td><td class="note">前端无 database 直连</td></tr>
+      <tr><td>集合 + 操作白名单、字段级校验</td><td><span class="tag ok">已实现</span></td><td class="loc">schema.js</td><td class="note">非法字段直接拒绝，不静默丢弃</td></tr>
+      <tr><td>受保护字段由服务端注入</td><td><span class="tag ok">已实现</span></td><td class="loc">PROTECTED_FIELDS</td><td class="note"></td></tr>
+      <tr><td>幂等与条件更新</td><td><span class="tag ok">已实现</span></td><td class="loc">requestId / where(status).update</td><td class="note"></td></tr>
+
+      <tr><td colspan="4" style="background:#FDF9F4;font-weight:500;color:#7B685C;font-size:12px">10. 页面与异常状态</td></tr>
+      <tr><td>Bind 改造为创建 / 加入 + 昵称</td><td><span class="tag ok">已实现</span></td><td class="loc">pages/Bind</td><td class="note">支持分享参数带入</td></tr>
+      <tr><td>MainPage 移除情侣元素、展示家庭信息与最近点菜</td><td><span class="tag ok">已实现</span></td><td class="loc">pages/MainPage · decoratePending</td><td class="note">顶部待做摘要，最多 2 条</td></tr>
+      <tr><td>DishDetail / OrderHistory / 购物 / 设置页改造</td><td><span class="tag ok">已实现</span></td><td class="loc">四个页面</td><td class="note"></td></tr>
+      <tr><td>全局拦截改为「是否加入有效家庭」</td><td><span class="tag ok">已实现</span></td><td class="loc">app.js</td><td class="note">白名单只剩 Bind</td></tr>
+      <tr><td>列表页加载中 / 空 / 失败 / 重试</td><td><span class="tag ok">已实现</span></td><td class="loc">MainPage / DishDetail / OrderHistory / Shopping / Settings</td><td class="note">Bind 为表单页，用提交中状态</td></tr>
+      <tr><td>写操作禁用按钮、明确结果、防重复、手动重试</td><td><span class="tag ok">已实现</span></td><td class="loc">submitting + api.withLoading</td><td class="note">不做离线队列</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="no">05</span>死代码已清理</h2>
+  <div class="sub">原先 5 个无入口且调用旧云函数的页面，已全部处理完毕。</div>
+  <table>
+    <thead><tr><th style="width:22%">页面</th><th style="width:30%">原状</th><th>处理</th></tr></thead>
+    <tbody>
+      <tr><td><code>Dishes</code></td><td class="note">上游菜品列表，被 MainPage 取代</td><td class="note">已删除页面与注册</td></tr>
+      <tr><td><code>Order</code></td><td class="note">上游点菜页，被 DishDetail 弹层取代</td><td class="note">已删除页面与注册</td></tr>
+      <tr><td><code>OrderDetail</code></td><td class="note">上游订单详情，改为记录页内快照弹层</td><td class="note">已删除页面与注册</td></tr>
+      <tr><td><code>RecipeEdit</code></td><td class="note">上游菜谱编辑，被 DishAdd 取代</td><td class="note">已删除页面与注册</td></tr>
+      <tr><td><code>CategoryManage</code></td><td class="note">上游分类管理，无入口且为旧逻辑</td><td class="note">已重写为分类管理页并接入</td></tr>
+    </tbody>
+  </table>
+  <div class="note-box" style="margin-top:12px">
+    同时清理 8 个未被引用的图片素材与 8 个上游绿色 tabBar 图标，<code>miniprogram/images</code> 由 540 KB 降至 40 KB。tabBar 图标改为暖木配色线条图标，分享按钮改为内联 SVG。
+  </div>
+
+  <div class="note-box">
+    <b>关于统计口径</b>：<br>
+    「已实现 78」按功能点计数，同一功能点内的细节合并为一行，不按代码行计。<br>
+    「偏差 4」只统计行为与文档不一致、但功能本身可用的条目（含已知并接受的非原子校验）。<br>
+    本次核对没有改动任何代码，仅产出本表。
+  </div>
+
+  <footer>
+    FamilyDish · 需求实现对照表 v1.0 · 2026-11-09<br>
+    对照基准：《家庭点菜小程序改造需求文稿》第三章至第十章<br>
+    配套文档：《家庭点菜小程序实施方案.md》《design-spec.html》《家庭点菜小程序实施总览.html》
+  </footer>
+
+</div>
+</body>
+</html>

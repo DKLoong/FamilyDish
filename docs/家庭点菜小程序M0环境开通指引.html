@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FamilyDish · M0 环境开通操作指引</title>
+<style>
+  :root {
+    --bg: #FAF5EE;
+    --card: #FFFFFF;
+    --warm: #F4E6D7;
+    --warm-2: #FDF3E7;
+    --primary: #C9663B;
+    --primary-dark: #A9532F;
+    --text: #3B2B23;
+    --sub: #7B685C;
+    --line: #E7D9CB;
+    --green: #708B57;
+    --danger: #C94F3B;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.75;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 32px 24px 64px; }
+  header { border-bottom: 1px solid var(--line); padding-bottom: 22px; margin-bottom: 8px; }
+  .eyebrow { font-size: 12px; letter-spacing: .12em; color: var(--primary); font-weight: 500; }
+  h1 { font-size: 28px; line-height: 1.35; margin: 8px 0 8px; font-weight: 500; }
+  .lead { color: var(--sub); margin: 0; max-width: 760px; }
+  .chips { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-size: 12px; padding: 4px 12px; border-radius: 999px; background: var(--warm); color: #7A4E2D; }
+  .chip.ok { background: #EAF1E4; color: #4E6B3B; }
+  .chip.todo { background: var(--warm-2); color: var(--primary-dark); }
+  nav { position: sticky; top: 0; z-index: 5; background: rgba(250,245,238,.96); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); padding: 10px 0; margin-bottom: 28px; }
+  nav a { display: inline-block; font-size: 12px; color: var(--sub); text-decoration: none; margin-right: 18px; }
+  nav a:hover { color: var(--primary); }
+  section { margin-bottom: 34px; scroll-margin-top: 62px; }
+  h2 { font-size: 19px; font-weight: 500; margin: 0 0 6px; display: flex; align-items: baseline; gap: 10px; }
+  h2 .no { font-size: 12px; color: var(--primary); letter-spacing: .08em; }
+  .section-sub { color: var(--sub); font-size: 13px; margin: 0 0 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; box-shadow: 0 2px 8px rgba(59,43,35,.06); margin-bottom: 14px; }
+  .answer { background: #FFF9F2; border-left: 4px solid var(--primary); border-radius: 12px; padding: 20px 22px; margin-bottom: 16px; }
+  .answer .label { font-size: 12px; color: var(--primary); font-weight: 500; letter-spacing: .06em; }
+  .answer .path { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 17px; font-weight: 500; margin: 8px 0; word-break: break-all; color: var(--text); }
+  .answer .why { color: var(--sub); font-size: 13px; margin: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 10px 10px; text-align: left; vertical-align: top; }
+  th { color: var(--sub); font-weight: 500; background: #FCF8F3; }
+  tr:last-child td { border-bottom: none; }
+  code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 12px; background: var(--warm-2); color: #8A4B2C; padding: 1px 5px; border-radius: 5px; }
+  pre { background: #FCF8F3; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 10px 0; font-size: 12.5px; line-height: 1.7; }
+  pre code { background: none; padding: 0; color: var(--text); }
+  .tree { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 13px; line-height: 2.05; }
+  .tree .row { white-space: pre-wrap; }
+  .tree .pick { background: #EAF1E4; border-radius: 6px; padding: 2px 6px; color: #3F5A2D; font-weight: 500; }
+  .tree .no { background: #FBECE8; border-radius: 6px; padding: 2px 6px; color: #9E3D2C; }
+  .tag { display: inline-block; font-size: 11px; font-family: inherit; background: none; padding: 1px 8px; border-radius: 999px; font-weight: 500; }
+  .tag.yes { background: #EAF1E4; color: #4E6B3B; }
+  .tag.no { background: #FBECE8; color: #9E3D2C; }
+  .tag.muted { background: var(--warm); color: #7A4E2D; }
+  ol.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; }
+  ol.steps > li { counter-increment: s; position: relative; padding: 0 0 16px 42px; }
+  ol.steps > li::before {
+    content: counter(s); position: absolute; left: 0; top: 1px;
+    width: 26px; height: 26px; border-radius: 8px; background: var(--warm);
+    color: var(--primary-dark); font-size: 13px; font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+  }
+  ol.steps > li:last-child { padding-bottom: 0; }
+  .step-title { font-weight: 500; }
+  .step-note { color: var(--sub); font-size: 13px; }
+  .warn { border-left: 4px solid var(--danger); background: #FFF7F4; }
+  .okbox { border-left: 4px solid var(--green); background: #F8FBF5; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .kv { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+  .kv:last-child { border-bottom: none; }
+  .kv b { min-width: 92px; font-weight: 500; color: var(--sub); }
+  ul.tight { margin: 6px 0 0; padding-left: 20px; }
+  ul.tight li { margin-bottom: 4px; }
+  .foot { color: var(--sub); font-size: 12px; border-top: 1px solid var(--line); padding-top: 16px; margin-top: 8px; }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } .wrap { padding: 20px 16px 48px; } }
+  @media print { nav { display: none; } .card, .answer { box-shadow: none; } body { background: #fff; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">M0 · 基线与配置</div>
+    <h1>项目目录怎么选，以及云开发怎么开通</h1>
+    <p class="lead">这份指引覆盖：正确导入 PairBite 源码、开通云开发并回填环境 ID，以及首版分享告知方案。订阅消息已取消，业务代码和云数据都不需要改动。</p>
+    <div class="chips">
+      <span class="chip ok">源码已就绪 · family-v1</span>
+      <span class="chip ok">AppID 已写入配置</span>
+      <span class="chip ok">D1–D4 已裁决</span>
+      <span class="chip ok">云环境 ID 已写入</span>
+      <span class="chip ok">订阅通知已取消</span>
+      <span class="chip ok">分享为纯前端</span>
+    </div>
+  </header>
+
+  <nav>
+    <a href="#s1">01 目录怎么选</a>
+    <a href="#s2">02 导入项目</a>
+    <a href="#s3">03 开通云开发</a>
+    <a href="#s4">04 订阅已取消</a>
+    <a href="#s5">05 常见坑</a>
+    <a href="#s6">06 回传清单</a>
+    <a href="#s7">07 订阅额度机制</a>
+  </nav>
+
+  <!-- 01 -->
+  <section id="s1">
+    <h2><span class="no">01</span>直接答案：选仓库根目录</h2>
+    <p class="section-sub">判断依据只有一个：所选目录里必须能看到 <code>project.config.json</code>。</p>
+
+    <div class="answer">
+      <div class="label">在微信开发者工具里，目录选这一层</div>
+      <div class="path">D:\WorkBuddy Workspace\PairBite</div>
+      <p class="why">这是克隆下来的仓库根目录，里面同时有 <code>project.config.json</code>、<code>miniprogram/</code> 和 <code>cloudfunctions/</code>。</p>
+    </div>
+
+    <div class="card">
+      <div class="tree">
+        <div class="row">D:\WorkBuddy Workspace\                     <span class="tag no">不要选（父目录）</span></div>
+        <div class="row">└─ <span class="pick">PairBite\                          ✅ 选这一层</span></div>
+        <div class="row">   ├─ project.config.json               <span class="tag yes">判断依据</span></div>
+        <div class="row">   ├─ miniprogram\                      <span class="tag no">不要选（子目录）</span></div>
+        <div class="row">   │  ├─ app.js / app.json / envList.js</div>
+        <div class="row">   │  └─ pages\  (11 个页面)</div>
+        <div class="row">   ├─ cloudfunctions\                   <span class="tag muted">必须被识别</span></div>
+        <div class="row">   └─ README.md / LICENSE / CLAUDE.md</div>
+      </div>
+    </div>
+
+    <div class="card warn">
+      <b>为什么不能选 <code>miniprogram/</code> 子目录？</b><br>
+      根目录的 <code>project.config.json</code> 里写着两个相对路径：<code>miniprogramRoot: "miniprogram/"</code> 和 <code>cloudfunctionRoot: "cloudfunctions/"</code>。它们都相对<b>项目根目录</b>解析。<br>
+      如果选了 <code>miniprogram/</code>，开发者工具会把它当成新项目根：云函数目录 <code>cloudfunctions/</code> 找不到、<code>cloudfunctionRoot</code> 配置失效，还可能自动生成一个空的 <code>project.config.json</code> 覆盖现有配置，导致后面无法上传云函数。
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section id="s2">
+    <h2><span class="no">02</span>导入项目的 6 个步骤</h2>
+    <p class="section-sub">用「导入项目」，不要用「新建项目」；不要生成任何快速启动模板。</p>
+    <div class="card">
+      <ol class="steps">
+        <li>
+          <div class="step-title">打开微信开发者工具 → 左侧「小程序项目」→ 点击「导入项目」（或「+」里的导入）</div>
+          <div class="step-note">若已有项目列表，选择「导入项目」而非「新建项目」。新建项目会往目录里写模板文件。</div>
+        </li>
+        <li>
+          <div class="step-title">「项目目录」选择 <code>D:\WorkBuddy Workspace\PairBite</code></div>
+          <div class="step-note">选中后，工具通常会显示项目名 <code>FamilyMenu</code>，说明已读到根目录的 <code>project.config.json</code>。路径中的空格不影响编译。</div>
+        </li>
+        <li>
+          <div class="step-title">AppID 填或核对 <code>wxe950e38570e065b9</code></div>
+          <div class="step-note">我已把这个 AppID 写入 <code>project.config.json</code>，导入后一般会自动带出，核对一致即可。<b>不要点「测试号」</b>：测试号不支持云开发。</div>
+        </li>
+        <li>
+          <div class="step-title">项目名称随意，建议「家庭点菜」</div>
+          <div class="step-note">这只是开发者工具里的显示名，不影响代码。配置文件里的 <code>projectname</code> 已改为 <code>FamilyMenu</code>。</div>
+        </li>
+        <li>
+          <div class="step-title">「后端服务」选「微信云开发」或「不使用云服务」均可</div>
+          <div class="step-note">这一项只影响是否立刻引导开通；导入后点工具栏「云开发」按钮照样能开通。不要勾选任何「建立普通快速启动模板」。</div>
+        </li>
+        <li>
+          <div class="step-title">点击导入，然后做三项检查</div>
+          <ul class="tight">
+            <li>模拟器可以编译打开（首屏可能是原版 PairBite 的绑定页，正常）。</li>
+            <li>目录树里同时看到 <code>miniprogram/</code> 和 <code>cloudfunctions/</code>。</li>
+            <li>右键 <code>cloudfunctions</code> 能看到「选择当前环境」等云函数菜单。</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+    <div class="card okbox">
+      <b>只要这三项检查通过，项目目录就选对了。</b> 此时不需要 <code>npm install</code>、不需要上传云函数、不需要改任何业务代码。
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section id="s3">
+    <h2><span class="no">03</span>开通云开发，拿到环境 ID</h2>
+    <p class="section-sub">这是 M0 唯一还需要你在微信侧完成的动作。</p>
+    <div class="card">
+      <ol class="steps">
+        <li>
+          <div class="step-title">点击开发者工具顶部工具栏的「云开发」</div>
+          <div class="step-note">首次会要求同意服务协议并开通。若按钮灰色或提示「测试号不支持」，说明 AppID 是开发者工具测试号，需换成公众平台正式注册的小程序 AppID。</div>
+        </li>
+        <li>
+          <div class="step-title">创建环境</div>
+          <div class="step-note">环境名称建议 <code>family-menu-dev</code>；计费按实际界面选择免费基础版 / 基础版即可。创建后系统会生成一个环境 ID，形如 <code>cloud1-3gxxxxxxxx</code>。</div>
+        </li>
+        <li>
+          <div class="step-title">复制环境 ID，填入 <code>PairBite/miniprogram/envList.js</code></div>
+          <div class="step-note">把占位符 <code>your-env-id</code> 替换掉即可，其余结构不要动：</div>
+          <pre><code>const envList = [{"envId":"cloud1-3gxxxxxxxx","alias":"cloud"}]
+module.exports = {
+    envList,
+}</code></pre>
+          <div class="step-note"><code>miniprogram/app.js</code> 里是 <code>wx.cloud.init({ env: normalinfo[0].envId })</code>，读取的就是数组第一项。<b>当前已完成</b>：<code>cloud1-d4ggrforr7c833748</code> 已写入并校验。</div>
+        </li>
+        <li>
+          <div class="step-title">右键 <code>cloudfunctions</code> 目录 → 选择当前环境</div>
+          <div class="step-note">选中刚创建的环境。这个动作决定后续「上传并部署」落到哪个环境，M1 之前必须做一次。</div>
+        </li>
+        <li>
+          <div class="step-title">在云开发控制台建集合（这一步我来做，需要你有控制台权限）</div>
+          <div class="step-note">新建 <code>Family</code>、<code>UserFamily</code>、<code>ShoppingItem</code>；连同 4 个旧集合共 7 个集合，权限全部统一设「仅管理端可读写」；前端不调用 <code>wx.cloud.database()</code>，读写均经 <code>familyApi</code>，不保留客户端直连旁路；按实施方案 4.3 建索引。</div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section id="s4">
+    <h2><span class="no">04</span>订阅消息：已取消</h2>
+    <p class="section-sub">首版不做订阅通知。本节保留仅为说明，不需要任何公众平台配置。</p>
+
+    <div class="card okbox">
+      <b>订阅消息、模板 ID、字段 DATA ID 全部不再需要。</b><br>
+      一次性订阅按接收人逐条扣授权额度，与本项目「点菜人授权、其他成员接收」的结构冲突。S1 裁决后，首版改为记录页微信原生分享：纯前端、无模板、无云函数、无额度、无失败状态。<br>
+      「消息推送 / 消息推送配置」（URL、Token、EncodingAESKey）属于客服消息回调，与发通知方向相反，本来也不需要，保持关闭即可。
+    </div>
+    <div class="card">
+      <b>体验成员</b>：当前 2 个账号，够跑主链路与真机分享验证；3 类角色 × 2 个家庭的并行隔离测试改为串行轮换。建议后续补到 ≥5。<br>
+      <b>真机</b>：≥2 台。分享卡片与落地页必须真机验证，开发者工具调用成功不等于链路可用。
+    </div>
+  </section>
+
+  <!-- 05 -->
+  <section id="s5">
+    <h2><span class="no">05</span>常见坑对照</h2>
+    <div class="card">
+      <table>
+        <tr><th style="width:34%">现象</th><th>原因</th><th style="width:26%">处理</th></tr>
+        <tr><td>在「消息推送配置」里看到 URL / Token / EncodingAESKey 输入框</td><td>把「客服消息回调」误当成「订阅消息模板」；前者方向是微信推给你的服务器，与发通知相反</td><td>不要启用、不要填写；改到「功能 → 订阅消息 → 公共模板库」选模板</td></tr>
+        <tr><td>目录树里看不到 <code>cloudfunctions/</code>，或提示 <code>cloudfunctionRoot</code> 不存在</td><td>选了 <code>miniprogram/</code> 子目录，相对路径解析错位</td><td>删掉该项目记录，重新用「导入项目」选 <code>PairBite</code> 根目录</td></tr>
+        <tr><td>导入后代码里多出模板页面 / <code>project.config.json</code> 被改写</td><td>用了「新建项目」并勾选快速启动模板</td><td>用 <code>git status</code> 检查；多余文件不提交，必要时用 <code>git checkout -- project.config.json</code> 恢复后再改 AppID</td></tr>
+        <tr><td>「云开发」按钮灰色或提示不支持</td><td>用了开发者工具测试号，或该 AppID 未开通云开发</td><td>确认 <code>wxe950e38570e065b9</code> 为公众平台正式注册小程序；在公众平台确认账号状态</td></tr>
+        <tr><td>提示 AppID 不匹配</td><td>工具填写的 AppID 与 <code>project.config.json</code> 不一致</td><td>统一为 <code>wxe950e38570e065b9</code>；以配置文件为准重新导入</td></tr>
+        <tr><td>编译报「找不到 envList / cloud 未初始化」</td><td><code>envList.js</code> 仍是 <code>your-env-id</code></td><td>按第 03 节回填环境 ID</td></tr>
+        <tr><td>路径含空格或中文导致异常</td><td>个别旧版工具对路径敏感</td><td>先升级开发者工具；仍异常再考虑迁到无空格路径，并告知我新路径</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section id="s6">
+    <h2><span class="no">06</span>完成后请把这些回传给我</h2>
+    <div class="card">
+      <table>
+        <tr><th style="width:8%">#</th><th style="width:38%">项</th><th>说明</th></tr>
+        <tr><td>1</td><td><b>云环境 ID</b>（必需）</td><td><span class="tag yes">已完成</span> <code>cloud1-d4ggrforr7c833748</code> 已写入 <code>envList.js</code>，语法与 <code>wx.cloud.init</code> 读取路径已校验</td></tr>
+        <tr><td>2</td><td>订阅消息模板 ID + 字段 DATA ID</td><td><span class="tag yes">已取消</span> 首版不做订阅通知，此项不再是前置条件</td></tr>
+        <tr><td>3</td><td>体验成员与真机</td><td><span class="tag muted">2 个账号，降级执行</span> 可跑主链路；3 角色 × 2 家庭的并行隔离测试改为串行，后续建议补到 ≥5</td></tr>
+        <tr><td>4</td><td>旧测试集合清空授权</td><td><span class="tag yes">已授权</span> M0 执行前仍会先列出集合清单与影响，再动手</td></tr>
+        <tr><td>5</td><td>CC BY-NC-SA 4.0 用途</td><td><span class="tag yes">已确认符合</span> 保留 LICENSE，新增 NOTICE 记录改造来源</td></tr>
+      </table>
+      <div class="note" style="margin-top:12px;color:var(--sub);font-size:13px"><b>不需要提供</b>：AppSecret、账号密码、云开发密钥。这些不应写入代码或发给我；AppID / 环境 ID / 模板 ID 属于配置项。</div>
+    </div>
+  </section>
+
+  <!-- 07 -->
+  <section id="s7">
+    <h2><span class="no">07</span>首版分享告知（S1 已裁决）</h2>
+    <p class="section-sub">纯微信原生能力，不依赖云环境配置。</p>
+    <div class="card">
+      <table>
+        <tr><th style="width:30%">项</th><th>结论</th></tr>
+        <tr><td>订阅通知</td><td>首版整体移除。订阅模板、字段 DATA ID、额度账本、通知汇总、D3 开关一并删除</td></tr>
+        <tr><td>替代方案</td><td>记录页常驻圆形「分享」图标按钮，点击拉起微信「发送给」好友／群选择页</td></tr>
+        <tr><td>卡片 <code>path</code></td><td>固定指向点菜记录页，不带任何查询参数</td></tr>
+        <tr><td>卡片图</td><td>不传 <code>imageUrl</code>，使用微信默认页面截图</td></tr>
+        <tr><td>权限</td><td>卡片不带 <code>familyId</code>；云函数按 <code>openid + UserFamily</code> 判定归属，非本家庭成员正常进入其本人家庭，无特殊分支</td></tr>
+        <tr><td>长截屏分享</td><td>不做，也不列入二期</td></tr>
+        <tr><td>轻提示</td><td>加。文案「已点菜，可分享给家人」</td></tr>
+        <tr><td>项目命名</td><td><code>FamilyDish</code>。<code>projectname</code> 与文档标题统一</td></tr>
+        <tr><td>原按天／按餐次去重、自然日规则</td><td>作废。该规则原为订阅去重设计，订阅移除后无承载对象</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <p class="foot">FamilyDish · M0 环境开通操作指引 v1.2 · 配套文档：《家庭点菜小程序实施方案.md》《实施总览.html》《design-spec.html》<br>当前状态：源码、AppID、云环境 ID 配置就绪；D1–D4 与 S1 已裁决；订阅通知整体移除，改为记录页微信原生分享；旧数据清空与许可证已确认。项目名统一为 FamilyDish。未修改任何业务代码，未创建云环境数据。</p>
+
+</div>
+</body>
+</html>

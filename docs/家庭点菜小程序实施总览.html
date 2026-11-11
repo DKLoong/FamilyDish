@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FamilyDish · 实施总览</title>
+<style>
+  :root {
+    --bg: #F1EAE0; --card: #FFFFFF; --warm: #F4E6D7; --soft: #F8E8DC;
+    --primary: #C9663B; --pressed: #A9532F; --text: #3B2B23;
+    --sub: #7B685C; --border: #E7D9CB; --green: #708B57; --danger: #C94F3B;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.65;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 36px 28px 80px; }
+  header { margin-bottom: 32px; }
+  h1 { font-size: 28px; letter-spacing: -0.5px; }
+  .lead { color: var(--sub); font-size: 14px; margin-top: 6px; }
+  .badge { display: inline-block; background: var(--soft); color: var(--primary); font-size: 12px; padding: 3px 10px; border-radius: 12px; margin-bottom: 12px; }
+  section { margin-bottom: 44px; }
+  h2 { font-size: 19px; margin-bottom: 4px; }
+  h2 .no { color: var(--primary); margin-right: 8px; }
+  .sub { color: var(--sub); font-size: 13px; margin-bottom: 18px; }
+  .card { background: var(--card); border-radius: 14px; padding: 22px; border: 1px solid var(--border); }
+  .card + .card { margin-top: 16px; }
+  svg { display: block; width: 100%; height: auto; }
+  /* 概览数字 */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .stat .n { font-size: 28px; font-weight: 600; color: var(--primary); line-height: 1.2; }
+  .stat .l { font-size: 12px; color: var(--sub); margin-top: 4px; }
+  /* 表格 */
+  table { border-collapse: collapse; width: 100%; font-size: 13px; background: var(--card); border-radius: 12px; overflow: hidden; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--warm); font-weight: 500; }
+  tr:last-child td { border-bottom: none; }
+  code { font-family: Consolas, monospace; font-size: 12px; background: #F6EFE6; padding: 1px 5px; border-radius: 4px; }
+  /* 冲突卡 */
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .issue { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 0 12px 12px 0; padding: 16px 18px; }
+  .issue .id { font-size: 12px; color: var(--primary); font-weight: 600; }
+  .issue b { display: block; font-size: 14px; margin: 4px 0 6px; font-weight: 500; }
+  .issue p { font-size: 13px; color: var(--sub); }
+  .issue .fix { font-size: 13px; margin-top: 8px; color: var(--green); }
+  .note { background: #FDF3E7; border-left: 3px solid var(--primary); padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 13px; margin-top: 16px; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; color: var(--sub); margin-top: 14px; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; }
+  .foot { color: var(--sub); font-size: 12px; margin-top: 36px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="badge">规划稿 · 未开始编码</div>
+    <h1>FamilyDish · 实施总览</h1>
+    <p class="lead">依据《家庭点菜小程序改造需求文稿.md》与 UI 静态稿，结合 PairBite 源码基线的实测审计结果编制。详细方案见同目录《家庭点菜小程序实施方案.md》。</p>
+  </header>
+
+  <!-- 概览 -->
+  <section>
+    <div class="stats">
+      <div class="stat"><div class="n">8</div><div class="l">里程碑 M0–M7</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">目标云函数</div></div>
+      <div class="stat"><div class="n">7</div><div class="l">数据集合</div></div>
+      <div class="stat"><div class="n">36</div><div class="l">验收用例</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">最高优先风险</div></div>
+      <div class="stat"><div class="n">4</div><div class="l">已裁决文档差异</div></div>
+    </div>
+  </section>
+
+  <!-- 架构 -->
+  <section>
+    <h2><span class="no">01</span>目标架构</h2>
+    <div class="sub">前端不直连数据库。7 个集合权限统一为「仅管理端可读写」，读写全部经 familyApi，无客户端旁路。</div>
+    <div class="card">
+      <svg viewBox="0 0 960 400" role="img" aria-label="目标架构分层图">
+        <rect width="960" height="400" fill="#FFFFFF"/>
+        <!-- 前端层 -->
+        <rect x="30" y="24" width="900" height="94" rx="12" fill="#FAF5EE" stroke="#E7D9CB"/>
+        <text x="46" y="48" font-size="14" font-weight="600" fill="#C9663B">小程序前端</text>
+        <text x="46" y="68" font-size="12" fill="#7B685C">WXML + WXSS + JS · 4 个 TabBar 入口</text>
+        <g font-size="12" fill="#3B2B23" text-anchor="middle">
+          <rect x="180" y="46" width="120" height="48" rx="9" fill="#FFFFFF" stroke="#E7D9CB"/><text x="240" y="75">首页</text>
+          <rect x="312" y="46" width="120" height="48" rx="9" fill="#FFFFFF" stroke="#E7D9CB"/><text x="372" y="75">记录</text>
+          <rect x="444" y="46" width="120" height="48" rx="9" fill="#FFFFFF" stroke="#E7D9CB"/><text x="504" y="75">购物</text>
+          <rect x="576" y="46" width="120" height="48" rx="9" fill="#FFFFFF" stroke="#E7D9CB"/><text x="636" y="75">我的</text>
+          <rect x="708" y="46" width="200" height="48" rx="9" fill="#F4E6D7" stroke="#E7D9CB"/><text x="808" y="75">utils / components</text>
+        </g>
+        <!-- 箭头 -->
+        <line x1="480" y1="118" x2="480" y2="148" stroke="#C9663B" stroke-width="2"/>
+        <polygon points="474,148 486,148 480,156" fill="#C9663B"/>
+        <text x="496" y="140" font-size="12" fill="#7B685C">wx.cloud.callFunction</text>
+        <!-- 云函数层 -->
+        <rect x="30" y="158" width="900" height="112" rx="12" fill="#FDF3E7" stroke="#E7D9CB"/>
+        <text x="46" y="182" font-size="14" font-weight="600" fill="#C9663B">云函数层</text>
+        <text x="46" y="202" font-size="12" fill="#7B685C">鉴权中间件：openid → UserFamily → familyId + role → 权限表</text>
+        <g font-size="12" fill="#3B2B23" text-anchor="middle">
+          <rect x="46" y="216" width="380" height="40" rx="9" fill="#C9663B"/><text x="236" y="241" fill="#FFFFFF">familyApi · 白名单 CRUD + 领域动作</text>
+          <rect x="438" y="216" width="150" height="40" rx="9" fill="#FFFFFF" stroke="#E7D9CB"/><text x="513" y="241">ensureUser</text>
+          <rect x="600" y="216" width="308" height="40" rx="9" fill="#FFFFFF" stroke="#E7D9CB"/><text x="754" y="241">getFileURL（保留）　·　分享为前端能力，无通知云函数</text>
+        </g>
+        <!-- 箭头 -->
+        <line x1="480" y1="270" x2="480" y2="298" stroke="#C9663B" stroke-width="2"/>
+        <polygon points="474,298 486,298 480,306" fill="#C9663B"/>
+        <!-- 数据层 -->
+        <rect x="30" y="308" width="900" height="72" rx="12" fill="#FAF5EE" stroke="#E7D9CB"/>
+        <text x="46" y="332" font-size="14" font-weight="600" fill="#C9663B">云数据库 / 云存储</text>
+        <g font-size="12" fill="#3B2B23" text-anchor="middle">
+          <rect x="180" y="318" width="96" height="44" rx="8" fill="#FFFFFF" stroke="#E7D9CB"/><text x="228" y="345">User</text>
+          <rect x="284" y="318" width="96" height="44" rx="8" fill="#FFFFFF" stroke="#E7D9CB"/><text x="332" y="345">Family</text>
+          <rect x="388" y="318" width="108" height="44" rx="8" fill="#F8E8DC" stroke="#E7D9CB"/><text x="442" y="345">UserFamily</text>
+          <rect x="504" y="318" width="96" height="44" rx="8" fill="#FFFFFF" stroke="#E7D9CB"/><text x="552" y="345">DishList</text>
+          <rect x="608" y="318" width="96" height="44" rx="8" fill="#FFFFFF" stroke="#E7D9CB"/><text x="656" y="345">OrderList</text>
+          <rect x="712" y="318" width="118" height="44" rx="8" fill="#F8E8DC" stroke="#E7D9CB"/><text x="771" y="345">ShoppingItem</text>
+          <rect x="838" y="318" width="72" height="44" rx="8" fill="#FFFFFF" stroke="#E7D9CB"/><text x="874" y="345">Category</text>
+        </g>
+      </svg>
+      <div class="legend">
+        <span><i style="background:#C9663B"></i>服务端强制</span>
+        <span><i style="background:#F8E8DC"></i>本次新增集合</span>
+        <span><i style="background:#FFFFFF;border:1px solid #E7D9CB"></i>改造或保留</span>
+      </div>
+    </div>
+    <div class="note"><b>最高优先改造</b>：现有 <code>getCoupleData</code> / <code>updateCoupleData</code> 允许前端传任意集合名与任意字段，且无角色鉴权。M1 必须在任何业务功能之前重写为白名单入口。</div>
+  </section>
+
+  <!-- 数据模型 -->
+  <section>
+    <h2><span class="no">02</span>数据模型关系</h2>
+    <div class="sub"><code>UserFamily</code> 是权威成员关系。<code>Family.memberOpenids</code> 只作展示，不能作为鉴权依据。</div>
+    <div class="card">
+      <svg viewBox="0 0 960 380" role="img" aria-label="数据集合关系图">
+        <rect width="960" height="380" fill="#FFFFFF"/>
+        <!-- UserFamily 中心 -->
+        <rect x="370" y="140" width="220" height="96" rx="12" fill="#C9663B"/>
+        <text x="480" y="170" font-size="16" font-weight="600" fill="#FFFFFF" text-anchor="middle">UserFamily</text>
+        <text x="480" y="194" font-size="12" fill="#F8E8DC" text-anchor="middle">openid · familyId · role</text>
+        <text x="480" y="214" font-size="12" fill="#F8E8DC" text-anchor="middle">nickname · status</text>
+        <!-- User -->
+        <rect x="40" y="150" width="180" height="76" rx="12" fill="#FAF5EE" stroke="#E7D9CB"/>
+        <text x="130" y="178" font-size="14" font-weight="600" fill="#3B2B23" text-anchor="middle">User</text>
+        <text x="130" y="200" font-size="12" fill="#7B685C" text-anchor="middle">_id = openid</text>
+        <!-- Family -->
+        <rect x="740" y="140" width="180" height="96" rx="12" fill="#F8E8DC" stroke="#E7D9CB"/>
+        <text x="830" y="170" font-size="14" font-weight="600" fill="#3B2B23" text-anchor="middle">Family</text>
+        <text x="830" y="192" font-size="12" fill="#7B685C" text-anchor="middle">name · status</text>
+        <text x="830" y="212" font-size="12" fill="#7B685C" text-anchor="middle">maxMembers · invite</text>
+        <!-- 业务集合 -->
+        <g font-size="13" fill="#3B2B23" text-anchor="middle">
+          <rect x="40" y="286" width="180" height="60" rx="10" fill="#FFFFFF" stroke="#E7D9CB"/><text x="130" y="312">DishList</text><text x="130" y="332" font-size="11" fill="#7B685C">菜品 + 菜谱 + 归档</text>
+          <rect x="248" y="286" width="180" height="60" rx="10" fill="#FFFFFF" stroke="#E7D9CB"/><text x="338" y="312">Category</text><text x="338" y="332" font-size="11" fill="#7B685C">分类</text>
+          <rect x="456" y="286" width="180" height="60" rx="10" fill="#FFFFFF" stroke="#E7D9CB"/><text x="546" y="312">OrderList</text><text x="546" y="332" font-size="11" fill="#7B685C">点菜 + 菜品快照</text>
+          <rect x="664" y="286" width="180" height="60" rx="10" fill="#FFFFFF" stroke="#E7D9CB"/><text x="754" y="312">ShoppingItem</text><text x="754" y="332" font-size="11" fill="#7B685C">购物来源记录</text>
+        </g>
+        <!-- 关系线 -->
+        <g stroke="#C9663B" stroke-width="1.6" fill="none">
+          <line x1="220" y1="188" x2="368" y2="188"/>
+          <line x1="592" y1="188" x2="738" y2="188"/>
+          <path d="M480 236 L480 262 L130 262 L130 284"/>
+          <path d="M480 236 L480 262 L338 262 L338 284"/>
+          <path d="M480 236 L480 262 L546 262 L546 284"/>
+          <path d="M480 236 L480 262 L754 262 L754 284"/>
+          <path d="M546 286 L546 276 L754 276 L754 346" stroke-dasharray="4 3"/>
+        </g>
+        <g font-size="11" fill="#7B685C">
+          <text x="238" y="180">openid</text>
+          <text x="640" y="180">familyId</text>
+          <text x="150" y="256">familyId 隔离</text>
+          <text x="690" y="272">orderId 关联来源</text>
+        </g>
+        <!-- 顶部说明 -->
+        <rect x="40" y="28" width="880" height="72" rx="10" fill="#FAF5EE" stroke="#E7D9CB"/>
+        <text x="58" y="54" font-size="13" font-weight="600" fill="#C9663B">鉴权链路</text>
+        <text x="58" y="78" font-size="12" fill="#3B2B23">cloud.getWXContext() → openid → UserFamily(active) → familyId + role → Family.status → 动作权限表 → 服务端生成受保护字段</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 点菜事务 -->
+  <section>
+    <h2><span class="no">03</span>点菜主链路事务</h2>
+    <div class="sub">点菜记录与购物来源在同一事务内写入。分享是独立的纯前端动作，不进事务、不写库。</div>
+    <div class="card">
+      <svg viewBox="0 0 960 300" role="img" aria-label="点菜事务时序图">
+        <rect width="960" height="300" fill="#FFFFFF"/>
+        <g font-size="13" fill="#3B2B23" text-anchor="middle">
+          <rect x="40" y="24" width="140" height="40" rx="9" fill="#F4E6D7"/><text x="110" y="49">前端</text>
+          <rect x="240" y="24" width="180" height="40" rx="9" fill="#C9663B"/><text x="330" y="49" fill="#FFFFFF">familyApi</text>
+          <rect x="480" y="24" width="180" height="40" rx="9" fill="#F4E6D7"/><text x="570" y="49">云数据库</text>
+          <rect x="720" y="24" width="200" height="40" rx="9" fill="#F4E6D7"/><text x="820" y="49">微信分享（前端）</text>
+        </g>
+        <g stroke="#E7D9CB" stroke-width="1" stroke-dasharray="4 4">
+          <line x1="110" y1="64" x2="110" y2="270"/><line x1="330" y1="64" x2="330" y2="270"/>
+          <line x1="570" y1="64" x2="570" y2="270"/><line x1="820" y1="64" x2="820" y2="270"/>
+        </g>
+        <!-- 步骤 -->
+        <g font-size="12" fill="#3B2B23">
+          <text x="40" y="96" fill="#C9663B" font-weight="600">1 授权</text>
+          <line x1="110" y1="104" x2="110" y2="104" stroke="#C9663B"/>
+          <text x="126" y="96">wx.requestSubscribeMessage</text>
+
+          <text x="40" y="132" fill="#C9663B" font-weight="600">2 提交</text>
+          <line x1="110" y1="140" x2="326" y2="140" stroke="#C9663B" stroke-width="1.6"/>
+          <polygon points="326,136 334,140 326,144" fill="#C9663B"/>
+          <text x="150" y="132">dishId + requestId + preparedKeys</text>
+
+          <text x="40" y="168" fill="#C9663B" font-weight="600">3 事务</text>
+          <rect x="248" y="156" width="410" height="52" rx="9" fill="#F8E8DC" stroke="#C9663B" stroke-dasharray="4 3"/>
+          <text x="262" y="178">写 OrderList（含快照，status = pending）</text>
+          <text x="262" y="198">批量写 ShoppingItem（未准备食材，关联 orderId）</text>
+
+          <text x="40" y="230" fill="#C9663B" font-weight="600">4 用户动作</text>
+          <line x1="110" y1="238" x2="816" y2="238" stroke="#C9663B" stroke-width="1.6"/>
+          <polygon points="816,234 824,238 816,242" fill="#C9663B"/>
+          <text x="300" y="230">记录页点分享 → 微信转发（不进事务、不写库）</text>
+
+          <text x="40" y="268" fill="#C9663B" font-weight="600">5 返回</text>
+          <line x1="330" y1="276" x2="114" y2="276" stroke="#708B57" stroke-width="1.6"/>
+          <polygon points="114,272 106,276 114,280" fill="#708B57"/>
+          <text x="150" y="268" fill="#708B57">成功 → 轻提示「已点菜，可分享给家人」</text>
+        </g>
+      </svg>
+      <div class="note"><b>关键约束</b>：客户端只提交 <code>preparedKeys</code>。服务端从菜品快照推导未准备食材，不接受客户端传来的食材内容。取消点菜时，同事务删除该 <code>orderId</code> 的全部来源记录。</div>
+    </div>
+  </section>
+
+  <!-- 里程碑 -->
+  <section>
+    <h2><span class="no">04</span>里程碑与依赖</h2>
+    <div class="sub">每个里程碑设出口门禁。未通过对应验收用例，不进入下一阶段。</div>
+    <div class="card">
+      <svg viewBox="0 0 960 330" role="img" aria-label="里程碑依赖图">
+        <rect width="960" height="330" fill="#FFFFFF"/>
+        <!-- 主线 -->
+        <g font-size="12" text-anchor="middle">
+          <rect x="24" y="40" width="104" height="66" rx="10" fill="#FAF5EE" stroke="#E7D9CB"/>
+          <text x="76" y="66" font-size="14" font-weight="600" fill="#C9663B">M0</text><text x="76" y="86" fill="#3B2B23">基线配置</text>
+
+          <rect x="144" y="40" width="104" height="66" rx="10" fill="#C9663B"/>
+          <text x="196" y="66" font-size="14" font-weight="600" fill="#FFFFFF">M1</text><text x="196" y="86" fill="#F8E8DC">安全底座</text>
+
+          <rect x="264" y="40" width="104" height="66" rx="10" fill="#F4E6D7" stroke="#E7D9CB"/>
+          <text x="316" y="66" font-size="14" font-weight="600" fill="#C9663B">M2</text><text x="316" y="86" fill="#3B2B23">家庭权限</text>
+
+          <rect x="384" y="40" width="104" height="66" rx="10" fill="#F4E6D7" stroke="#E7D9CB"/>
+          <text x="436" y="66" font-size="14" font-weight="600" fill="#C9663B">M3</text><text x="436" y="86" fill="#3B2B23">菜品菜谱</text>
+
+          <rect x="504" y="40" width="104" height="66" rx="10" fill="#C9663B"/>
+          <text x="556" y="66" font-size="14" font-weight="600" fill="#FFFFFF">M4</text><text x="556" y="86" fill="#F8E8DC">点菜主链路</text>
+
+          <rect x="624" y="40" width="104" height="66" rx="10" fill="#F4E6D7" stroke="#E7D9CB"/>
+          <text x="676" y="66" font-size="14" font-weight="600" fill="#C9663B">M5</text><text x="676" y="86" fill="#3B2B23">购物清单</text>
+
+          <rect x="744" y="40" width="104" height="66" rx="10" fill="#F4E6D7" stroke="#E7D9CB"/>
+          <text x="796" y="66" font-size="14" font-weight="600" fill="#C9663B">M6</text><text x="796" y="86" fill="#3B2B23">通知内容</text>
+
+          <rect x="864" y="40" width="80" height="66" rx="10" fill="#E9EFE2" stroke="#708B57"/>
+          <text x="904" y="66" font-size="14" font-weight="600" fill="#708B57">M7</text><text x="904" y="86" fill="#708B57">交付</text>
+        </g>
+        <!-- 箭头 -->
+        <g stroke="#C9663B" stroke-width="1.8" fill="none">
+          <path d="M128 73 L140 73"/><path d="M248 73 L260 73"/><path d="M368 73 L380 73"/>
+          <path d="M488 73 L500 73"/><path d="M608 73 L620 73"/><path d="M728 73 L740 73"/>
+          <path d="M848 73 L860 73"/>
+          <path d="M676 106 L676 138 L904 138 L904 110" stroke-dasharray="4 3"/>
+          <path d="M796 106 L796 158 L904 158 L904 110" stroke-dasharray="4 3"/>
+        </g>
+        <g fill="#C9663B">
+          <polygon points="140,69 148,73 140,77"/><polygon points="260,69 268,73 260,77"/>
+          <polygon points="380,69 388,73 380,77"/><polygon points="500,69 508,73 500,77"/>
+          <polygon points="620,69 628,73 620,77"/><polygon points="740,69 748,73 740,77"/>
+          <polygon points="860,69 868,73 860,77"/>
+        </g>
+        <!-- 门禁 -->
+        <text x="24" y="190" font-size="13" font-weight="600" fill="#C9663B">出口门禁（验收用例）</text>
+        <g font-size="12" fill="#3B2B23">
+          <rect x="24" y="202" width="176" height="40" rx="8" fill="#FAF5EE"/><text x="36" y="227">M1 · A03 D03</text>
+          <rect x="212" y="202" width="176" height="40" rx="8" fill="#FAF5EE"/><text x="224" y="227">M2 · A01–A09</text>
+          <rect x="400" y="202" width="176" height="40" rx="8" fill="#FAF5EE"/><text x="412" y="227">M3 · B01 B07 B08 E</text>
+          <rect x="588" y="202" width="176" height="40" rx="8" fill="#FAF5EE"/><text x="600" y="227">M4 · B02–B06</text>
+          <rect x="776" y="202" width="168" height="40" rx="8" fill="#FAF5EE"/><text x="788" y="227">M5 · C01–C10</text>
+          <rect x="24" y="252" width="280" height="40" rx="8" fill="#FAF5EE"/><text x="36" y="277">M6 · D01–D03 F01–F03（真机）</text>
+          <rect x="316" y="252" width="220" height="40" rx="8" fill="#E9EFE2"/><text x="328" y="277" fill="#708B57">M7 · 全量 36 项回归</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 冲突与风险 -->
+  <section>
+    <h2><span class="no">05</span>冲突裁决（已确认）</h2>
+    <div class="sub">2026-11-08 确认，4 项全部采用方案 A。需求文稿、UI 标注稿与可点击原型已同步，以下为实施约束。</div>
+    <div class="grid2">
+      <div class="issue"><div class="id">D1</div><b>餐次是否必选 · A 已确认</b><p>需求 4.2：日期、餐次、备注均为选填。UI 标注稿 06：餐次必选一项才能提交。</p><div class="fix">裁决：餐次选填，默认不选中，未选不写入字段，不阻断提交。标注稿 v1.0 的「必选」表述已作废。</div></div>
+      <div class="issue"><div class="id">D2</div><b>家庭名称规则缺失 · A 已确认</b><p>需求未定义家庭名称的创建与改名规则，UI「我的」页展示家庭名。</p><div class="fix">裁决：创建必填 1–12 字；创建者、管理员可改名；新增 renameFamily 动作。</div></div>
+      <div class="issue"><div class="id">D3</div><b>订阅开关语义 · A 已确认</b><p>需求未定义通知开关，UI「我的」页有开关控件。</p><div class="fix">裁决：只控制授权弹窗；本地布尔，不上传、不过滤接收人、不阻断发送，不提供服务端静默。</div></div>
+      <div class="issue"><div class="id">D4</div><b>邀请码字符集 · A 已确认</b><p>基线为 6 位字母数字（32 字符集），原型展示 6 位纯数字。</p><div class="fix">裁决：保留基线字符集 ABCDEFGHJKLMNPQRSTUVWXYZ23456789，输入统一转大写。</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="no">06</span>前置阻塞与风险</h2>
+    <div class="card">
+      <table>
+        <tr><th>项</th><th>当前状态</th><th>影响 / 缓解</th></tr>
+        <tr><td>源码基线</td><td>已解决：克隆到 <code>D:\WorkBuddy Workspace\PairBite</code>，分支 <code>family-v1</code></td><td>已核对 11 个页面、10 个云函数；AppID 与云环境 ID 均已写入配置</td></tr>
+        <tr><td>通用 CRUD 越权</td><td>无集合白名单、无字段白名单、无角色鉴权</td><td>M1 前置重写；7 个集合权限统一设仅管理端，读写全走 <code>familyApi</code></td></tr>
+        <tr><td>云函数事务</td><td><code>wx-server-sdk ^2.6.3</code>；事务批量写能力未实测</td><td>M4 前实测 <code>runTransaction</code>；预留逐条写方案</td></tr>
+        <tr><td>订阅消息</td><td><b>已取消</b>：首版不做订阅通知，模板与字段 DATA ID 作废</td><td>改为记录页微信原生分享；纯前端，无环境依赖</td></tr>
+        <tr><td><b>S1 通知方案</b></td><td><b>已裁决</b>：圆形分享按钮 + 固定 <code>path</code> 指向记录页 + 点菜成功轻提示</td><td>长截屏分享不做、不列二期；见 M0 指引第 07 节</td></tr>
+        <tr><td>云存储权限</td><td>免费套餐下成员互看图片依赖临时链接</td><td>保留 <code>getFileURL</code>；快照存原 fileID，展示时转换</td></tr>
+        <tr><td>许可证</td><td>上游为 CC BY-NC-SA 4.0</td><td>保留署名、许可证、非商业限制；新增 NOTICE</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="no">07</span>下一步</h2>
+    <div class="card">
+      <table>
+        <tr><th>需你确认</th><th>说明</th></tr>
+        <tr><td>1. D1–D4</td><td><b>已完成</b>：全部采用 A，四份文档与原型已同步</td></tr>
+        <tr><td>2. 项目导入与云环境</td><td><b>已完成</b>：导入 <code>PairBite</code> 根目录；环境 ID <code>cloud1-d4ggrforr7c833748</code> 已写入；免费基础版</td></tr>
+        <tr><td>3. 旧数据清理 / 许可证</td><td><b>已完成</b>：清空授权已给出；CC BY-NC-SA 4.0 用途已确认符合</td></tr>
+        <tr><td>4. 体验成员</td><td><b>2 个账号</b>：够跑主链路与真机分享验证；隔离测试降级为串行</td></tr>
+        <tr><td>5. <b>S1 通知方案</b></td><td><b>已完成</b>：订阅通知移除，改为记录页微信原生分享；项目名统一为 <code>FamilyDish</code></td></tr>
+      </table>
+      <div class="note">源码克隆、配置写入与冲突裁决已完成。本总览与《实施方案》《M0 环境开通操作指引》配套。当前仅完成规划与配置，未修改业务代码或云环境。项目命名：FamilyDish。</div>
+    </div>
+  </section>
+
+  <p class="foot">家庭点菜小程序 · 实施总览 v1.0 · 与需求文稿、UI 标注稿、可点击原型共同构成交付基线</p>
+
+</div>
+</body>
+</html>

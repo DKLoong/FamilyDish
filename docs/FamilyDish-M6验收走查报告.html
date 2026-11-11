@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FamilyDish · M6 验收走查报告</title>
+<style>
+  :root {
+    --bg: #FAF5EE; --card: #FFFFFF; --warm: #F4E6D7;
+    --primary: #C9663B; --ink: #3B2B23; --ink-2: #7B685C; --line: #E7D9CB;
+    --green: #708B57; --green-bg: #EEF3E7;
+    --amber: #B8862F; --amber-bg: #FBF1DE;
+    --red: #B4453A; --red-bg: #FBEBE9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 0 60px; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    font-size: 14px; line-height: 1.6;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+  header { padding: 28px 0 20px; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+  h1 { margin: 0 0 6px; font-size: 22px; font-weight: 600; }
+  .meta { font-size: 12px; color: var(--ink-2); }
+  .lead {
+    margin: 16px 0 0; padding: 14px 16px; background: var(--warm);
+    border-radius: 12px; font-size: 13px; color: #6B4A32;
+  }
+  h2 { margin: 32px 0 12px; font-size: 16px; font-weight: 600; display: flex; align-items: center; }
+  h2 .no {
+    display: inline-block; min-width: 26px; height: 26px; line-height: 26px; text-align: center;
+    margin-right: 10px; border-radius: 8px; background: var(--warm); color: var(--primary);
+    font-size: 12px; font-weight: 600;
+  }
+  .sub { margin: -6px 0 14px 36px; font-size: 12px; color: var(--ink-2); }
+  .stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .stat { flex: 1 1 140px; background: var(--card); border-radius: 12px; padding: 14px 16px; }
+  .stat .n { font-size: 24px; font-weight: 600; line-height: 1.2; }
+  .stat .l { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+  .stat.ok .n { color: var(--green); }
+  .stat.warn .n { color: var(--amber); }
+  .stat.info .n { color: var(--primary); }
+
+  table {
+    width: 100%; border-collapse: collapse; background: var(--card);
+    border-radius: 12px; overflow: hidden; font-size: 13px;
+  }
+  th {
+    text-align: left; padding: 10px 12px; background: #FDF9F4; color: var(--ink-2);
+    font-weight: 500; font-size: 12px; border-bottom: 1px solid var(--line); white-space: nowrap;
+  }
+  td { padding: 9px 12px; border-bottom: 1px solid #F3EBE1; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.id { font-family: "SFMono-Regular", Consolas, monospace; font-size: 11.5px; color: var(--ink-2); white-space: nowrap; }
+  td.note { color: var(--ink-2); font-size: 12.5px; }
+  .tag { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 11px; white-space: nowrap; }
+  .tag.ok { background: var(--green-bg); color: var(--green); }
+  .tag.device { background: var(--amber-bg); color: var(--amber); }
+  .tag.manual { background: var(--red-bg); color: var(--red); }
+  .group-row td { background: #FDF9F4; font-size: 12px; font-weight: 500; color: var(--ink-2); }
+  .note-box {
+    margin-top: 24px; padding: 14px 16px; background: var(--warm);
+    border-radius: 12px; font-size: 12.5px; color: #6B4A32;
+  }
+  ul { margin: 8px 0; padding-left: 20px; }
+  li { margin-bottom: 4px; font-size: 13px; }
+  footer {
+    margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line);
+    font-size: 11.5px; color: var(--ink-2); line-height: 1.8;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>FamilyDish · M6 验收走查报告</h1>
+    <div class="meta">2026-11-09 · 对照《需求文稿》第十三章验收测试表，共 48 项</div>
+    <div class="lead">
+      按验证方式分三档：<b>单测覆盖或代码可确认</b>、<b>需真机验证</b>、<b>需人工走查界面</b>。
+      单测覆盖不等于真机通过，两者分开标注，不混为一谈。
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat ok"><div class="n">39</div><div class="l">单测覆盖 / 代码可确认</div></div>
+    <div class="stat warn"><div class="n">4</div><div class="l">需真机验证</div></div>
+    <div class="stat manual" style="flex:1 1 140px;background:#FFFFFF;border-radius:12px;padding:14px 16px">
+      <div class="n" style="font-size:24px;font-weight:600;line-height:1.2;color:#B4453A">5</div>
+      <div class="l" style="font-size:12px;color:#7B685C;margin-top:2px">需人工走查</div>
+    </div>
+    <div class="stat info"><div class="n">2</div><div class="l">已知限制（二期）</div></div>
+  </div>
+
+  <h2><span class="no">01</span>当前规模</h2>
+  <table>
+    <tbody>
+      <tr><td style="width:30%">页面</td><td class="note">8 个（首页、记录、购物、我的 4 个 tab + 菜谱详情、菜谱表单、加入家庭、分类管理）</td></tr>
+      <tr><td>云函数</td><td class="note">2 个：<code>familyApi</code>（22 个动作 + 白名单 CRUD）、<code>ensureUser</code></td></tr>
+      <tr><td>集合</td><td class="note">7 个，全部「所有用户不可读写」，读写经 <code>familyApi</code></td></tr>
+      <tr><td>自动化测试</td><td class="note">233 项（云函数 200 + 前端展示层 33）</td></tr>
+      <tr><td>前端直连</td><td class="note">0 处。<code>utils/api.js</code> 中是注释文字，非调用</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="no">02</span>单测覆盖 / 代码可确认（39 项）</h2>
+  <div class="sub">这部分有对应单元测试，或可从代码结构直接判定，不需要人工操作。</div>
+
+  <table>
+    <thead><tr><th style="width:8%">编号</th><th style="width:52%">验收项</th><th>依据</th></tr></thead>
+    <tbody>
+      <tr class="group-row"><td colspan="3">A 家庭与权限</td></tr>
+      <tr><td class="id">A01</td><td>创建家庭并填写昵称</td><td class="note">family.test.js · 创建者与昵称长度校验</td></tr>
+      <tr><td class="id">A04</td><td>邀请码过期</td><td class="note">family.test.js · INVITE_EXPIRED</td></tr>
+      <tr><td class="id">A05</td><td>重新生成邀请码，旧码立即失效</td><td class="note">family.test.js · 旧码被覆盖</td></tr>
+      <tr><td class="id">A06</td><td>重复加入家庭</td><td class="note">family.test.js · 复用成员记录，不新增</td></tr>
+      <tr><td class="id">A07</td><td>人数达到上限</td><td class="note">family.test.js · FAMILY_FULL</td></tr>
+      <tr><td class="id">A08</td><td>修改人数上限范围</td><td class="note">family.test.js · 当前成员数至 50</td></tr>
+      <tr><td class="id">A09</td><td>退出、移除和解散</td><td class="note">family.test.js · 状态流转与历史保留</td></tr>
+
+      <tr class="group-row"><td colspan="3">B 点菜与状态</td></tr>
+      <tr><td class="id">B01</td><td>查看菜谱不生成记录</td><td class="note">DishDetail 只读，写入口只有点菜弹层</td></tr>
+      <tr><td class="id">B02</td><td>显式点菜，保存快照</td><td class="note">order.test.js · dishSnapshot 完整</td></tr>
+      <tr><td class="id">B03</td><td>重复点击不生成重复记录</td><td class="note">order.test.js · requestId 幂等</td></tr>
+      <tr><td class="id">B04</td><td>完成或取消自己的待做记录</td><td class="note">order.test.js · 条件更新</td></tr>
+      <tr><td class="id">B05</td><td>管理员处理他人记录</td><td class="note">order.test.js · assertOperable</td></tr>
+      <tr><td class="id">B06</td><td>终态记录不可再变更</td><td class="note">order.test.js · CONFLICT</td></tr>
+      <tr><td class="id">B07</td><td>菜品修改或归档后历史仍用快照</td><td class="note">order.test.js · 快照独立存储</td></tr>
+      <tr><td class="id">B08</td><td>归档菜品不出现在列表与搜索</td><td class="note">crud.buildWhere · archived 默认过滤</td></tr>
+      <tr><td class="id">B09</td><td>同菜同日期同餐次第二人点菜</td><td class="note">order.test.js · 合并点菜人，购物项不增加</td></tr>
+      <tr><td class="id">B10</td><td>同菜但日期或餐次不同</td><td class="note">order.test.js · 各自独立记录</td></tr>
+      <tr><td class="id">B11</td><td>终态后再点同一道菜</td><td class="note">order.test.js · 新建记录</td></tr>
+      <tr><td class="id">B12</td><td>合并时补建缺失购物项</td><td class="note">order.test.js · 按名称+单位差集</td></tr>
+      <tr><td class="id">B13</td><td>同一人重复点同一道菜</td><td class="note">order.test.js · alreadyJoined</td></tr>
+      <tr><td class="id">B14</td><td>取消多人合并的记录</td><td class="note">order.test.js · 整条取消，弹层说明人数</td></tr>
+
+      <tr class="group-row"><td colspan="3">C 购物清单</td></tr>
+      <tr><td class="id">C01</td><td>只为未准备食材生成来源</td><td class="note">order.test.js · preparedKeys 排除</td></tr>
+      <tr><td class="id">C02</td><td>全部已准备则不生成</td><td class="note">order.test.js · shoppingCount = 0</td></tr>
+      <tr><td class="id">C03</td><td>点菜后改本地勾选不影响清单</td><td class="note">已准备状态只存本地 storage</td></tr>
+      <tr><td class="id">C04</td><td>同名同单位同数值合并求和</td><td class="note">shopping-view.test.js</td></tr>
+      <tr><td class="id">C05</td><td>同名同单位都无数值合并</td><td class="note">shopping-view.test.js · 备注并列去重</td></tr>
+      <tr><td class="id">C05b</td><td>数值与无数值混用、单位不同</td><td class="note">shopping-view.test.js · 分行显示</td></tr>
+      <tr><td class="id">C06</td><td>勾选合并组整组变已购</td><td class="note">shopping.test.js · 共享 purchaseGroupId</td></tr>
+      <tr><td class="id">C07</td><td>新增相同食材新建未购组</td><td class="note">shopping.test.js · 已购组不参与合并</td></tr>
+      <tr><td class="id">C08</td><td>取消点菜只删本单来源</td><td class="note">order.test.js · 其他订单不受影响</td></tr>
+      <tr><td class="id">C09</td><td>完成点菜不改变清单</td><td class="note">completeOrder 不触碰购物项</td></tr>
+      <tr><td class="id">C10</td><td>手工添加与删除权限</td><td class="note">shopping.test.js · 仅自己手工项可删</td></tr>
+
+      <tr class="group-row"><td colspan="3">E 计时器与本地状态</td></tr>
+      <tr><td class="id">E03</td><td>菜谱修改后旧勾选重置</td><td class="note">storage key 含 version</td></tr>
+      <tr><td class="id">E04</td><td>一键清除已准备</td><td class="note">clearPrepared · 二次确认，不动清单</td></tr>
+
+      <tr class="group-row"><td colspan="3">F 内容与状态</td></tr>
+      <tr><td class="id">F01</td><td>列表加载、空状态与失败重试</td><td class="note">5 个列表页均有四态</td></tr>
+      <tr><td class="id">F03</td><td>5 道示例菜覆盖约定场景</td><td class="note">dish.test.js · 导入幂等与内容校验</td></tr>
+      <tr><td class="id">F04</td><td>重命名分类同步菜品</td><td class="note">category.test.js · 版本号不变</td></tr>
+      <tr><td class="id">F05</td><td>首次进入分类自动补入</td><td class="note">category.test.js · 同步幂等</td></tr>
+      <tr><td class="id">F06</td><td>删除分类</td><td class="note">category.test.js · 清空菜品且不被补回</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="no">03</span>需真机验证（4 项）</h2>
+  <div class="sub">开发者工具能调通不等于手机上成立，这四项必须在真机确认。</div>
+
+  <table>
+    <thead><tr><th style="width:8%">编号</th><th style="width:42%">验收项</th><th>验证方法</th></tr></thead>
+    <tbody>
+      <tr><td class="id">D01</td><td>点击记录页分享按钮拉起微信「发送给」选择页</td><td class="note">真机点按钮，确认弹出好友/群选择页，卡片标题为「家庭名 + 的点菜记录」</td></tr>
+      <tr><td class="id">D02</td><td>分享卡片落地无越权</td><td class="note">家庭成员点开进入本家庭记录；非成员点开进入他自己的家庭；未加入的新用户进入创建/加入页</td></tr>
+      <tr><td class="id">E01</td><td>计时器切后台后恢复</td><td class="note">开始计时 → 退到微信主界面等 20 秒 → 回到小程序，剩余时间应正确减少</td></tr>
+      <tr><td class="id">F02</td><td>离线或网络失败</td><td class="note">开飞行模式后点菜，应提示失败而不得假成功；恢复网络后可手动重试</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="no">04</span>需人工走查（5 项）</h2>
+  <div class="sub">规则已在服务端与单测覆盖，但界面呈现需要人眼看一遍。</div>
+
+  <table>
+    <thead><tr><th style="width:8%">编号</th><th style="width:42%">验收项</th><th>走查要点</th></tr></thead>
+    <tbody>
+      <tr><td class="id">A02</td><td>三类角色权限在界面一致</td><td class="note">用三个微信号分别登录，确认普通成员看不到菜品管理、分类管理、成员角色按钮</td></tr>
+      <tr><td class="id">A03</td><td>两个家庭的数据隔离</td><td class="note">两个账号属于不同家庭，各自只看到自家菜品、记录、购物清单</td></tr>
+      <tr><td class="id">D03</td><td>分享不影响业务</td><td class="note">取消分享或分享失败后，点菜记录与购物清单仍正常</td></tr>
+      <tr><td class="id">E02</td><td>启动另一个步骤计时器</td><td class="note">已有计时进行中时点另一步骤，应弹出切换确认</td></tr>
+      <tr><td class="id">F07</td><td>三处分类内容与顺序一致</td><td class="note">首页胶囊、菜谱表单候选、分类管理页列表，名称与顺序应完全相同</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="no">05</span>已知限制（二期处理）</h2>
+  <ul>
+    <li><b>加入家庭的名额校验非原子。</b>「先查后写」下，两人同时加入且只剩一个名额时可能都成功。家庭场景概率极低，需配合计数字段或事务。</li>
+    <li><b>两人同时点同一道菜可能各建一条。</b>同菜同餐次去重是「先查后写」，根治需要 <code>dedupeKey</code> 与唯一索引配合；因为要允许同日多条终态记录，不能直接对五字段建唯一索引。</li>
+  </ul>
+  <div class="note-box">
+    两项都属于并发窗口问题，不影响单人或低并发使用。已记入风险清单，与二期的份数功能同批处理。
+  </div>
+
+  <footer>
+    FamilyDish · M6 验收走查报告 · 2026-11-09<br>
+    自动化测试：云函数 200 项 + 前端 33 项，合计 233 项全部通过<br>
+    配套文档：《需求文稿》第十三章、《需求实现对照表》、《实施方案》、《design-spec.html》
+  </footer>
+
+</div>
+</body>
+</html>

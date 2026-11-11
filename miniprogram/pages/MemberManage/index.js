@@ -12,8 +12,10 @@ Page({
     members: [],
     memberCount: 0,
     maxMembers: 10,
+    // 创建者看到「解散家庭」，其他人看到「退出家庭」
+    isOwner: false,
 
-    // 角色调整与移除共用一个确认弹层
+    // 角色调整、移除成员、退出/解散共用一个确认弹层
     showConfirm: false,
     confirmTitle: '',
     confirmLines: [],
@@ -69,7 +71,8 @@ Page({
         loading: false,
         members: members,
         memberCount: members.length,
-        maxMembers: data.maxMembers
+        maxMembers: data.maxMembers,
+        isOwner: isOwner
       })
       this._loaded = true
     } catch (err) {
@@ -124,6 +127,22 @@ Page({
     })
   },
 
+  // —— 退出 / 解散：低频危险操作放在成员页末尾，位置与文案沿用「我的」页 ——
+  leaveOrDissolve() {
+    const isOwner = this.data.isOwner
+    this.setData({
+      showConfirm: true,
+      confirmTitle: isOwner ? '解散家庭' : '退出家庭',
+      confirmLines: isOwner
+        ? ['解散后所有成员都将失去访问权限，历史记录保留但无法再查看。']
+        : ['退出后将无法查看家庭菜品与点菜记录，历史数据会保留。'],
+      confirmText: isOwner ? '解散' : '退出',
+      confirmDanger: true,
+      confirmAction: isOwner ? 'dissolve' : 'leave',
+      confirmTargetId: ''
+    })
+  },
+
   closeConfirm() {
     if (this.data.confirming) return
     this.setData({ showConfirm: false, confirmTargetId: '' })
@@ -133,10 +152,24 @@ Page({
     if (this.data.confirming) return
     const action = this.data.confirmAction
     const memberId = this.data.confirmTargetId
-    if (!action || !memberId) return
+    const isFamilyAction = action === 'dissolve' || action === 'leave'
+    if (!action) return
+    if (!isFamilyAction && !memberId) return
 
     this.setData({ confirming: true })
     try {
+      // 退出/解散会让当前用户立即失去家庭，直接回到绑定页，不再刷新成员列表
+      if (isFamilyAction) {
+        if (action === 'dissolve') {
+          await api.action('dissolveFamily', { confirm: true })
+        } else {
+          await api.action('leaveFamily')
+        }
+        await app.refreshContext(true)
+        wx.reLaunch({ url: '/pages/Bind/index' })
+        return
+      }
+
       if (action === 'role') {
         await api.action('setRole', { memberId: memberId, role: this.data.confirmNextRole })
       } else {

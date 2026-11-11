@@ -82,6 +82,32 @@
   color: #C94F3B;
 }
 
+/* 危险区：从「我的」页移来，间距与按钮规格保持不变（卡片 12 下边距 + 20 上间距） */
+.danger-zone {
+  margin-top: 32px;
+}
+
+.btn {
+  flex: 1;
+  height: 44px;
+  line-height: 44px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 0;
+  margin: 0;
+}
+
+.btn::after {
+  border: none;
+}
+
+.btn.danger {
+  background: #C94F3B;
+  color: #FFFFFF;
+  border: none;
+}
+
 .state {
   padding: 60px 0;
   text-align: center;

@@ -34,6 +34,10 @@
         </view>
       </view>
     </view>
+
+    <view class="danger-zone">
+      <button class="btn danger" bindtap="leaveOrDissolve">{{isOwner ? '解散家庭' : '退出家庭'}}</button>
+    </view>
   </block>
 
   <confirm-modal

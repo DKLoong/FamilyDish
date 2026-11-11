@@ -23,7 +23,6 @@ Page({
     memberCount: 0,
     maxMembers: 10,
 
-    isOwner: false,
     canManage: false,
     appVersion: 'v' + appInfo.getVersion(),
 
@@ -86,7 +85,6 @@ Page({
       else if (!app.globalData.ready) await app.refreshContext()
 
       const data = await api.action('listMembers')
-      const isOwner = data.role === 'owner'
       const members = data.members || []
       const nickname = app.getCurrentUserName() || ''
 
@@ -100,7 +98,6 @@ Page({
         inviteCode: data.inviteCode,
         memberCount: members.length,
         maxMembers: data.maxMembers,
-        isOwner: isOwner,
         canManage: data.canManage
       })
 
@@ -289,21 +286,7 @@ Page({
     }
   },
 
-  // —— 退出 / 解散 ——
-  leaveOrDissolve() {
-    const isOwner = this.data.isOwner
-    this.setData({
-      showConfirm: true,
-      confirmTitle: isOwner ? '解散家庭' : '退出家庭',
-      confirmLines: isOwner
-        ? ['解散后所有成员都将失去访问权限，历史记录保留但无法再查看。']
-        : ['退出后将无法查看家庭菜品与点菜记录，历史数据会保留。'],
-      confirmText: isOwner ? '解散' : '退出',
-      confirmDanger: true,
-      confirmAction: isOwner ? 'dissolve' : 'leave'
-    })
-  },
-
+  // 退出与解散已移到家庭成员页：这是低频危险操作，不放在「我的」首页
   closeConfirm() {
     if (this.data.confirming) return
     this.setData({ showConfirm: false })
@@ -311,24 +294,13 @@ Page({
 
   async submitConfirm() {
     if (this.data.confirming) return
-    const action = this.data.confirmAction
-    if (!action) return
+    if (this.data.confirmAction !== 'regenerate') return
 
     this.setData({ confirming: true })
     try {
-      if (action === 'regenerate') {
-        const data = await api.action('regenerateInvite')
-        this.setData({ showConfirm: false, inviteCode: data.inviteCode })
-        wx.showToast({ title: '已更新邀请码', icon: 'success' })
-      } else if (action === 'dissolve') {
-        await api.action('dissolveFamily', { confirm: true })
-        await app.refreshContext(true)
-        wx.reLaunch({ url: '/pages/Bind/index' })
-      } else if (action === 'leave') {
-        await api.action('leaveFamily')
-        await app.refreshContext(true)
-        wx.reLaunch({ url: '/pages/Bind/index' })
-      }
+      const data = await api.action('regenerateInvite')
+      this.setData({ showConfirm: false, inviteCode: data.inviteCode })
+      wx.showToast({ title: '已更新邀请码', icon: 'success' })
     } catch (err) {
       api.toastError(err)
     } finally {

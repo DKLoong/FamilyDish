@@ -127,11 +127,6 @@
   color: #9A8A7C;
 }
 
-/* 危险区 */
-.danger-zone {
-  margin-top: 20px;
-}
-
 /* 按钮 */
 .btn {
   flex: 1;
@@ -162,20 +157,8 @@
   color: #7A4E2D;
 }
 
-.btn.danger {
-  background: #C94F3B;
-  color: #FFFFFF;
-  border: none;
-}
-
 .btn.primary.is-pending {
   background: #E2B39D;
-  color: #FFFFFF;
-  opacity: 1;
-}
-
-.btn.danger.is-pending {
-  background: #E0A79E;
   color: #FFFFFF;
   opacity: 1;
 }

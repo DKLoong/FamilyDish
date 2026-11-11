@@ -34,9 +34,18 @@ Page({
   },
 
   async load(force) {
-    if (force !== true) this.setData({ loading: true, loadError: '' })
+    // 骨架只在首次进入时铺：改完角色/移除成员后的刷新保留现有列表原地替换
+    if (!this._loaded) this.setData({ loading: true })
+    this.setData({ loadError: '' })
+
+    // 请求序号：静默刷新会与确认操作后的刷新并发，只应用最后一次结果
+    const seq = (this._seq || 0) + 1
+    this._seq = seq
+
     try {
       const data = await api.action('listMembers')
+      if (seq !== this._seq) return
+
       const isOwner = data.role === 'owner'
       const isAdmin = data.role === 'admin'
 
@@ -62,9 +71,15 @@ Page({
         memberCount: members.length,
         maxMembers: data.maxMembers
       })
+      this._loaded = true
     } catch (err) {
+      if (seq !== this._seq) return
       console.error('[MemberManage] load failed', err)
-      this.setData({ loading: false, loadError: (err && err.message) || '加载失败' })
+      if (this._loaded) {
+        console.warn('[MemberManage] 静默刷新失败，沿用上次数据')
+      } else {
+        this.setData({ loading: false, loadError: (err && err.message) || '加载失败' })
+      }
     }
 
     if (force === true) wx.stopPullDownRefresh()

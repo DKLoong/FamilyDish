@@ -41,14 +41,25 @@ Page({
   },
 
   async load(refresh) {
-    if (refresh !== true) this.setData({ loading: true, loadError: '' })
+    // 骨架只在首次进入时铺：改名、删除、排序失败后的刷新保留现有列表原地替换
+    if (!this._loaded) this.setData({ loading: true })
+    this.setData({ loadError: '' })
+
+    // 请求序号：静默刷新会与删除/排序后的刷新并发，只应用最后一次结果
+    const seq = (this._seq || 0) + 1
+    this._seq = seq
+
     try {
       // 幂等同步：把菜品里已有、但分类表还没登记的分类补进来，避免首次进入是空列表
       if (!this._synced) {
         await api.action('syncCategories')
         this._synced = true
       }
+      if (seq !== this._seq) return
+
       const res = await api.list('Category', { orderBy: 'sort', order: 'asc', limit: 100 })
+      if (seq !== this._seq) return
+
       this.setData({
         loading: false,
         loadError: '',
@@ -56,9 +67,15 @@ Page({
           return { id: item._id, name: item.name }
         })
       })
+      this._loaded = true
     } catch (err) {
+      if (seq !== this._seq) return
       console.error('[CategoryManage] load failed', err)
-      this.setData({ loading: false, loadError: (err && err.message) || '加载失败' })
+      if (this._loaded) {
+        console.warn('[CategoryManage] 静默刷新失败，沿用上次数据')
+      } else {
+        this.setData({ loading: false, loadError: (err && err.message) || '加载失败' })
+      }
     } finally {
       if (refresh === true) wx.stopPullDownRefresh()
     }

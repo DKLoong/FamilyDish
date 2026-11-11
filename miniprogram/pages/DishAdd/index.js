@@ -118,6 +118,8 @@ Page({
   },
 
   async loadDish(id) {
+    // 编辑模式只有进入与重试两个加载时机，统一回到骨架态
+    this.setData({ loading: true, loadError: '' })
     try {
       const dish = await api.get('DishList', id)
       const ingredients = (dish.ingredients || []).map(function (item) {

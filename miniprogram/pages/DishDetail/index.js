@@ -81,15 +81,24 @@ Page({
   },
 
   async load() {
-    this.setData({ loading: true, loadError: '' })
+    // 骨架只在首次成功渲染前铺：从编辑页返回时静默刷新，内容原地更新
+    if (!this._loaded) this.setData({ loading: true })
+    this.setData({ loadError: '' })
+
+    // 请求序号：静默刷新会与重试并发，只应用最后一次结果
+    const seq = (this._seq || 0) + 1
+    this._seq = seq
+
     try {
       const dish = await api.get('DishList', this.data.dishId)
       if (!dish) throw new Error('菜品不存在')
+      if (seq !== this._seq) return
 
       let imageUrl = ''
       if (dish.image && String(dish.image).indexOf('cloud://') === 0) {
         const map = await app.getTempFileURLs([dish.image])
         imageUrl = map[dish.image] || ''
+        if (seq !== this._seq) return
       }
 
       const preparedKeys = this.readPrepared(dish)
@@ -122,11 +131,16 @@ Page({
         steps: steps,
         preparedCount: ingredients.filter(function (item) { return item.prepared }).length
       })
+      this._loaded = true
     } catch (err) {
+      if (seq !== this._seq) return
       console.error('[DishDetail] load failed', err)
-      this.setData({ loading: false, loadError: err.message || '加载失败' })
+      if (this._loaded) {
+        console.warn('[DishDetail] 静默刷新失败，沿用上次数据')
+      } else {
+        this.setData({ loading: false, loadError: err.message || '加载失败' })
+      }
     }
-    this._loaded = true
   },
 
   // 「已准备」按 openid + 菜品 + 版本存储，菜品内容更新后旧勾选自动失效

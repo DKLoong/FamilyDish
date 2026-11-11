@@ -38,13 +38,21 @@ Page({
   },
 
   async load(refresh) {
-    if (refresh !== true) this.setData({ loading: true, loadError: '' })
+    // 骨架只在首次进入时铺：从详情页、编辑页返回都保留现有列表原地替换
+    if (!this._loaded) this.setData({ loading: true })
+    this.setData({ loadError: '' })
+
+    // 请求序号：静默刷新会与归档/恢复后的刷新并发，只应用最后一次结果
+    const seq = (this._seq || 0) + 1
+    this._seq = seq
+
     try {
       // 一次取两组，切 tab 不再发请求
       const results = await Promise.all([
         api.list('DishList', { filters: { archived: false }, limit: 100 }),
         api.list('DishList', { filters: { archived: true }, limit: 100 })
       ])
+      if (seq !== this._seq) return
 
       const activeDishes = (results[0].items || []).map(decorate)
       const archivedDishes = (results[1].items || []).map(decorate)
@@ -58,9 +66,15 @@ Page({
         archivedTotal: results[1].total || archivedDishes.length,
         dishes: this.data.tab === 'archived' ? archivedDishes : activeDishes
       })
+      this._loaded = true
     } catch (err) {
+      if (seq !== this._seq) return
       console.error('[DishManage] load failed', err)
-      this.setData({ loading: false, loadError: (err && err.message) || '加载失败' })
+      if (this._loaded) {
+        console.warn('[DishManage] 静默刷新失败，沿用上次数据')
+      } else {
+        this.setData({ loading: false, loadError: (err && err.message) || '加载失败' })
+      }
     } finally {
       if (refresh === true) wx.stopPullDownRefresh()
     }

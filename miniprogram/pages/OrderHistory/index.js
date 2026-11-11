@@ -83,23 +83,44 @@ Page({
     this.setData({ refreshing: false })
   },
 
-  async load(force) {
-    if (force !== true) this.setData({ loading: true, loadError: '' })
-    const ctx = await app.refreshContext(force === true)
-    const openid = ctx.openid
-    const isManager = app.isAdmin()
-    const that = this
+  // force：是否强制刷新全局上下文（下拉刷新、错误重试）
+  // withSkeleton：查询条件变化（切换筛选）时显式铺骨架，
+  //   否则静默刷新会让旧筛选结果留在屏上，被误读成新条件的结果
+  async load(force, withSkeleton) {
+    if (!this._loaded || withSkeleton === true) this.setData({ loading: true })
+    this.setData({ loadError: '' })
+
+    // 请求序号：静默刷新会与切换筛选、完成/取消后的刷新并发，
+    // 只应用最后一次请求的结果，避免旧响应后到把列表改回旧数据
+    const seq = (this._seq || 0) + 1
+    this._seq = seq
 
     try {
+      const ctx = await app.refreshContext(force === true)
+      if (seq !== this._seq) return
+
+      const openid = ctx.openid
+      const isManager = app.isAdmin()
+      const that = this
+
       const filters = this.data.activeFilter ? { status: this.data.activeFilter } : {}
       const listRes = await api.list('OrderList', { filters: filters, limit: 50 })
+      if (seq !== this._seq) return
+
       const orders = (listRes.items || []).map(function (order) {
         return that.decorate(order, openid, isManager)
       })
       this.setData({ loading: false, orders: orders })
+      this._loaded = true
     } catch (err) {
+      if (seq !== this._seq) return
       console.error('[OrderHistory] load failed', err)
-      this.setData({ loading: false, loadError: err.message || '加载失败' })
+      if (this._loaded) {
+        // 静默刷新失败：保留已渲染的记录，不把整页切成错误态，下次进入会再试
+        console.warn('[OrderHistory] 静默刷新失败，沿用上次数据')
+      } else {
+        this.setData({ loading: false, loadError: err.message || '加载失败' })
+      }
     }
   },
 
@@ -151,7 +172,8 @@ Page({
     const key = e.currentTarget.dataset.key
     if (key === this.data.activeFilter) return
     this.setData({ activeFilter: key })
-    this.load()
+    // 查询条件变了必须重新铺骨架，不能让旧筛选的记录留在屏上
+    this.load(false, true)
   },
 
   openSnapshot(e) {

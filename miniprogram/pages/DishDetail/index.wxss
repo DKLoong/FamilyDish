@@ -255,13 +255,15 @@
 .sk-hero {
   height: 200px;
   border-radius: 12px;
-  background: #F1E8DC;
+  background: #EFE6DC;
+  animation: skeleton-breath 1.4s ease-in-out infinite;
 }
 
 .sk-line {
   height: 18px;
   border-radius: 6px;
-  background: #F1E8DC;
+  background: #EFE6DC;
+  animation: skeleton-breath 1.4s ease-in-out infinite;
   margin-top: 14px;
 }
 

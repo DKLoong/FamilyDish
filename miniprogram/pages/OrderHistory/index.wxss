@@ -297,7 +297,8 @@
 .sk-card {
   height: 92px;
   border-radius: 12px;
-  background: #F1E8DC;
+  background: #EFE6DC;
+  animation: skeleton-breath 1.4s ease-in-out infinite;
   margin-bottom: 10px;
 }
 

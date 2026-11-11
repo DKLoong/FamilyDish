@@ -25,3 +25,16 @@ button:focus {
 button::after {
   border: none;
 }
+
+/* 骨架屏呼吸动画：只定义动画本身，各页骨架块自行引用，
+   不在全局定义骨架样式，避免又出现跨页覆盖 */
+@keyframes skeleton-breath {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}

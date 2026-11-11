@@ -263,14 +263,16 @@
   height: 20px;
   width: 40%;
   border-radius: 6px;
-  background: #F1E8DC;
+  background: #EFE6DC;
+  animation: skeleton-breath 1.4s ease-in-out infinite;
   margin-bottom: 16px;
 }
 
 .sk-card {
   height: 180px;
   border-radius: 12px;
-  background: #F1E8DC;
+  background: #EFE6DC;
+  animation: skeleton-breath 1.4s ease-in-out infinite;
 }
 
 .error-box {

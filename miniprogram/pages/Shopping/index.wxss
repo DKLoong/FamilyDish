@@ -189,14 +189,16 @@
   width: 48px;
   height: 14px;
   border-radius: 7px;
-  background: #F1E8DC;
+  background: #EFE6DC;
+  animation: skeleton-breath 1.4s ease-in-out infinite;
   margin: 4px 2px 10px;
 }
 
 .sk-card {
   height: 70px;
   border-radius: 12px;
-  background: #F1E8DC;
+  background: #EFE6DC;
+  animation: skeleton-breath 1.4s ease-in-out infinite;
   margin-bottom: 8px;
 }
 

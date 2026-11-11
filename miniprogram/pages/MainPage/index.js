@@ -54,10 +54,20 @@ Page({
   },
 
   async load(force) {
-    if (force !== true) this.setData({ loading: true, loadError: '' })
-    if (force === true) await app.refreshContext(true)
+    // 骨架只在首次进入时铺：切回 tab、从子页面返回、写操作后的刷新
+    // 都保留现有列表，数据回来原地替换
+    if (!this._loaded) this.setData({ loading: true })
+    this.setData({ loadError: '' })
+
+    // 请求序号：静默刷新会与下拉刷新、导入示例菜后的刷新并发，
+    // 只应用最后一次请求的结果，避免旧响应后到把列表改回旧数据
+    const seq = (this._seq || 0) + 1
+    this._seq = seq
 
     try {
+      if (force === true) await app.refreshContext(true)
+      if (seq !== this._seq) return
+
       const results = await Promise.all([
         api.action('listMembers'),
         api.list('DishList', { limit: 100 }),
@@ -67,6 +77,8 @@ Page({
           return { items: [] }
         })
       ])
+      if (seq !== this._seq) return
+
       const members = results[0]
       const listRes = results[1]
       const categoryRes = results[2]
@@ -108,9 +120,16 @@ Page({
         dishes: dishes
       })
       this.applyFilter()
+      this._loaded = true
     } catch (err) {
+      if (seq !== this._seq) return
       console.error('[MainPage] load failed', err)
-      this.setData({ loading: false, loadError: err.message || '加载失败' })
+      if (this._loaded) {
+        // 静默刷新失败：保留已渲染的菜品，不把整页切成错误态，下次进入会再试
+        console.warn('[MainPage] 静默刷新失败，沿用上次数据')
+      } else {
+        this.setData({ loading: false, loadError: err.message || '加载失败' })
+      }
     }
   },
 

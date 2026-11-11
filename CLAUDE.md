@@ -72,6 +72,27 @@
 
 暖木厨房风格：页面背景 `#FAF5EE`、卡片 `#FFFFFF`、主色 `#C9663B`、正文 `#3B2B23`、边框 `#E7D9CB`、辅助绿 `#708B57`。基线 `app.wxss` 的绿色主题 `--primary-color: #6FCF97` 需整体替换。尺寸、圆角、状态与 1pt = 2rpx 换算见 `../family-menu-ui-prototype/design-spec.html`。
 
+### 页面数据加载约定
+
+页面显示的数据几乎都是「进入时读一次、写操作后更新」，因此统一按下面四条处理，避免切页出现「内容 → 骨架 → 内容」三段闪。
+
+| 场景 | 是否铺骨架 | 说明 |
+| --- | --- | --- |
+| 首次进入 | 铺 | 骨架块高对齐真实卡片/行高 |
+| 切回 tab、从子页面返回 | 不铺 | 保留现有内容，数据回来后原地替换 |
+| 下拉刷新 | 不铺 | 用滚动区原生 `refresher` 或 `wx.stopPullDownRefresh` |
+| 写操作后刷新 | 不铺 | 同上 |
+| 查询条件变化（切换筛选标签） | 铺 | 否则旧条件的记录会留在屏上，被误读成新条件的结果 |
+
+实现约定：
+
+- 用页面实例字段 `this._loaded` 记录「是否已成功渲染过」，不放进 `data`（不参与渲染）。骨架判定写成 `if (!this._loaded) this.setData({ loading: true })`。
+- 条件变化需要强制铺骨架时，额外传参而不是改全局判定，例如记录页 `this.load(false, true)` 里的第二个参数 `withSkeleton`。
+- 静默刷新失败要保留已渲染的数据，只 `console.warn`，**不得**把整页切成错误态；只有首次加载失败才显示错误态与「重新加载」。
+- 并发保护：`const seq = (this._seq || 0) + 1`，每个 `await` 之后 `if (seq !== this._seq) return`，只应用最后一次请求的结果，防止旧响应后到把列表改回旧数据。
+- 低频资料型页面（「我的」）额外加缓存 TTL（当前 5 分钟）与变更失效标记；协作型数据（首页、记录、购物）不加 TTL，每次显示静默刷新。
+- 骨架统一为纯色块 `#F1E8DC`，不做「白卡 + 内部占位」的结构化骨架：结构化要模拟条件渲染（按钮、标签按角色显隐），收益不稳定且要维护两份结构。
+
 ### 分享告知（替代订阅通知）
 
 **首版不做订阅消息**。`sendNotify` 停用；订阅模板、字段 DATA ID、额度账本、`notifySummary`、「我的」页订阅开关全部作废。
@@ -87,6 +108,7 @@
 5. 禁止把模板 ID、密钥、环境凭据写进前端或业务代码硬编码。
 6. 禁止用 `Family.memberOpenids` 做鉴权。
 7. 禁止用 `setInterval` 作为计时器的真实计时依据；用结束时间戳 `endAt`，`onShow` 重算。
+8. 禁止用 `wx.showModal` 做二次确认。统一用 `miniprogram/components/confirm-modal`：传 `title` / `lines` / `confirmText` / `danger` / `pending`，页面持有 `showConfirm` 与 `confirming` 两个状态，`pending` 期间禁止关闭。
 
 ## 平台约束（沿用上游，仍然有效）
 

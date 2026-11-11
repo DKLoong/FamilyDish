@@ -250,7 +250,7 @@ Page({
   // 推荐给朋友：落地首页。邀请家人加入自己的家庭走「我的 > 邀请成员」，那条路径带邀请码
   onShareAppMessage() {
     return {
-      title: '家庭菜单 · 和家人共用一份菜谱，点菜自动生成买菜清单',
+      title: '家肴匣 · 和家人共用一份菜谱，点菜自动生成买菜清单',
       path: '/pages/MainPage/index'
     }
   },

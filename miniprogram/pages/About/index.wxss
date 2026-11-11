@@ -16,18 +16,14 @@
   margin-bottom: 12px;
 }
 
+/* 圆形应用图标：与小程序头像一致的视觉，图片未加载完时用浅木色兜底 */
 .app-logo {
   width: 64px;
   height: 64px;
-  border-radius: 18px;
-  background: #C9663B;
-  color: #FFFFFF;
-  font-size: 26px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 50%;
+  background: #F4E6D7;
   margin-bottom: 12px;
+  display: block;
 }
 
 .app-name {

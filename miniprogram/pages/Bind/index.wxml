@@ -1,6 +1,6 @@
 <view class="page" style="padding-top: {{statusBarHeight + 16}}px">
   <view class="hero">
-    <view class="hero-title">家庭菜单</view>
+    <view class="hero-title">家肴匣</view>
     <view class="hero-sub">和家人共用一份菜单</view>
   </view>
 

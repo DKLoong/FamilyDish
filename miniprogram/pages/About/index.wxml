@@ -1,7 +1,7 @@
 <view class="page">
   <view class="app-card">
-    <view class="app-logo">家</view>
-    <view class="app-name">家庭菜单</view>
+    <image class="app-logo" src="/images/logo.jpg" mode="aspectFill" aria-role="img" aria-label="家肴匣" />
+    <view class="app-name">家肴匣</view>
     <view class="app-sub">FamilyDish · 家庭点菜与购物清单</view>
     <view class="app-chip">{{version}}</view>
   </view>

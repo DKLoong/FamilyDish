@@ -112,7 +112,7 @@
 <div class="layout">
   <nav class="sidenav">
     <h1>FamilyDish</h1>
-    <div class="sub">UI 静态稿与开发标注 v1.5<br>基准宽度 375pt / 750rpx</div>
+    <div class="sub">UI 静态稿与开发标注 v1.6<br>基准宽度 375pt / 750rpx</div>
     <a href="#tokens">01 设计令牌</a>
     <a href="#components">02 核心组件</a>
     <a href="#global">03 全局规则</a>
@@ -656,9 +656,11 @@
         <text x="187" y="80" font-size="18" font-weight="bold" fill="#3B2B23" text-anchor="middle">关于</text>
         <!-- ① 应用卡 -->
         <rect x="16" y="100" width="343" height="200" rx="12" fill="#FFFFFF"/>
-        <rect x="155" y="124" width="64" height="64" rx="18" fill="#C9663B"/>
-        <text x="187" y="167" font-size="26" font-weight="bold" fill="#FFFFFF" text-anchor="middle">家</text>
-        <text x="187" y="216" font-size="17" font-weight="bold" fill="#3B2B23" text-anchor="middle">家庭菜单</text>
+        <circle cx="187" cy="156" r="32" fill="#C08A5E"/>
+        <rect x="164" y="132" width="46" height="44" rx="9" fill="#8C5A32"/>
+        <circle cx="187" cy="160" r="14" fill="#F6EAD9"/>
+        <rect x="197" y="143" width="15" height="3" rx="1.5" fill="#F6EAD9" transform="rotate(30 197 143)"/>
+        <text x="187" y="216" font-size="17" font-weight="bold" fill="#3B2B23" text-anchor="middle">家肴匣</text>
         <text x="187" y="238" font-size="12" fill="#7B685C" text-anchor="middle">FamilyDish · 家庭点菜与购物清单</text>
         <rect x="155" y="252" width="64" height="24" rx="12" fill="#F8E8DC"/>
         <text x="187" y="269" font-size="12" fill="#C9663B" text-anchor="middle">v1.0.0</text>
@@ -691,7 +693,7 @@
     </div>
     <table>
       <tr><th>项</th><th>规格</th></tr>
-      <tr><td>应用卡</td><td>白卡圆角 12，垂直居中排列：64 圆角方块 logo（主色底 + 白字「家」）、应用名 17/500、副标题 12 secondary、版本 chip（<code>#F8E8DC</code> 底 + 主色文字 12）</td></tr>
+      <tr><td>应用卡</td><td>白卡圆角 12，垂直居中排列：64 圆形应用图标（与小程序头像同一张图，资源 <code>images/logo.jpg</code>，未加载时用浅木色 <code>#F4E6D7</code> 兜底）、应用名 17/500、副标题 12 secondary、版本 chip（<code>#F8E8DC</code> 底 + 主色文字 12）</td></tr>
       <tr><td>信息组</td><td>行高 54，分隔线 <code>#F1E8DC</code>，三行：当前版本 / 版权信息（<code>© 2026 FamilyDish</code>）/ 开源许可（<code>CC BY-NC-SA 4.0</code>），右侧值 14 secondary</td></tr>
       <tr><td>开源说明卡</td><td>标题 14/500 + 正文 13/21 secondary 两段（基于 PairBite 改造、原作者 630999Steven；许可义务：保留署名、非商业、同协议共享）；末行「项目地址」为通栏行，点击复制仓库地址并轻提示</td></tr>
       <tr><td>页脚</td><td>12，<code>#A99A8C</code>，居中：仅供家庭内部使用 · 非商业用途</td></tr>
@@ -763,7 +765,7 @@
       <tr><td>D3</td><td><b>已作废</b>：首版不做订阅通知，订阅开关删除</td><td>09 我的与家庭管理 · 标注 ③</td></tr>
       <tr><td>D4</td><td>邀请码为 6 位字母数字（32 字符集），输入统一转大写</td><td>09 我的与家庭管理 · 标注 ③</td></tr>
     </table>
-    <div class="footer-note">本版为 v1.5。v1.0 中「餐次必选一项才能提交」的表述已作废；v1.1 中的订阅通知开关、通知汇总行已删除；v1.2 新增记录页常驻分享按钮规格（标注 ⑥）。v1.3 修正两处实现偏差：分享按钮改用具体半径并在真机按 bottom:16px 定位（原生 tabBar 不占页面坐标系），购物页与分类页的手工添加 FAB 由右下角改为水平居中、加号改用线条绘制以保证居中。v1.4 对齐近期实现：2.3 弹窗规格按 <code>confirm-modal</code> 组件重写（取消文案「再想想」、提交中「处理中…」、禁止 <code>wx.showModal</code>）；退出/解散由「我的」页移到家庭成员页，新增 9.1 家庭成员页与 9.2 关于页；「我的」页末组改为「关于」；03 节 tabBar 高度按 50 计并补进入型页面悬浮按钮避让规则；08 节补看板占位符与数字口径；10 节新增「刷新」规则与 10.1 骨架块对照（菜品管理、分类管理、家庭成员补骨架，菜品管理标签吸顶）；9.2 附关于页标注图。v1.4 起本文档与可点击原型一并纳入仓库 <code>docs/ui/</code>。v1.5 为上线前搜索优化：<code>sitemap.json</code> 由全部禁止改为仅放开首页与关于页，首页标题改为「家庭菜单与点菜」（原「家庭菜单 · 菜谱与点菜」在窄屏会被截断），分享拆成两条路径（记录页推荐给朋友、落地首页；「我的 &gt; 邀请成员」邀请家人、带邀请码），点菜成功提示去掉「可分享给家人」。项目名统一为 FamilyDish。</div>
+    <div class="footer-note">本版为 v1.6。v1.0 中「餐次必选一项才能提交」的表述已作废；v1.1 中的订阅通知开关、通知汇总行已删除；v1.2 新增记录页常驻分享按钮规格（标注 ⑥）。v1.3 修正两处实现偏差：分享按钮改用具体半径并在真机按 bottom:16px 定位（原生 tabBar 不占页面坐标系），购物页与分类页的手工添加 FAB 由右下角改为水平居中、加号改用线条绘制以保证居中。v1.4 对齐近期实现：2.3 弹窗规格按 <code>confirm-modal</code> 组件重写（取消文案「再想想」、提交中「处理中…」、禁止 <code>wx.showModal</code>）；退出/解散由「我的」页移到家庭成员页，新增 9.1 家庭成员页与 9.2 关于页；「我的」页末组改为「关于」；03 节 tabBar 高度按 50 计并补进入型页面悬浮按钮避让规则；08 节补看板占位符与数字口径；10 节新增「刷新」规则与 10.1 骨架块对照（菜品管理、分类管理、家庭成员补骨架，菜品管理标签吸顶）；9.2 附关于页标注图。v1.4 起本文档与可点击原型一并纳入仓库 <code>docs/ui/</code>。v1.5 为上线前搜索优化：<code>sitemap.json</code> 由全部禁止改为仅放开首页与关于页，首页标题改为「家庭菜单与点菜」（原「家庭菜单 · 菜谱与点菜」在窄屏会被截断），分享拆成两条路径（记录页推荐给朋友、落地首页；「我的 &gt; 邀请成员」邀请家人、带邀请码），点菜成功提示去掉「可分享给家人」。v1.6 定名与品牌资源：小程序名称定为「家肴匣」，关于页应用卡改用圆形应用图标（<code>images/logo.jpg</code>，原图存档 <code>docs/brand/app-icon.jpg</code>），9.2 标注图同步。项目名统一为 FamilyDish。</div>
   </section>
 
   </div>

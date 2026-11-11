@@ -257,7 +257,7 @@ App({
   },
 
   getKitchenName() {
-    return this.getFamilyName() || '家庭菜单'
+    return this.getFamilyName() || '家肴匣'
   },
 
   setKitchenTitle() {

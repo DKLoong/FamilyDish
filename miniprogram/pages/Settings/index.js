@@ -148,7 +148,7 @@ Page({
   onShareAppMessage() {
     const code = this.data.inviteCode
     return {
-      title: '邀请你加入「' + (this.data.familyName || '家庭菜单') + '」',
+      title: '邀请你加入「' + (this.data.familyName || '家肴匣') + '」',
       path: code ? '/pages/Bind/index?inviteCode=' + code : '/pages/MainPage/index'
     }
   },

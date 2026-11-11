@@ -16,7 +16,7 @@
     "backgroundColor": "#FAF5EE",
     "backgroundTextStyle": "dark",
     "navigationBarBackgroundColor": "#FAF5EE",
-    "navigationBarTitleText": "家庭菜单",
+    "navigationBarTitleText": "家肴匣",
     "navigationBarTextStyle": "black"
   },
   "tabBar": {

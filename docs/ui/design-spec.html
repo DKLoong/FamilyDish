@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FamilyDish · UI 静态稿与开发标注</title>
+<style>
+  :root {
+    --bg: #FAF5EE;
+    --card: #FFFFFF;
+    --warm: #F4E6D7;
+    --primary: #C9663B;
+    --primary-pressed: #A9532F;
+    --text: #3B2B23;
+    --secondary: #7B685C;
+    --border: #E7D9CB;
+    --green: #708B57;
+    --danger: #C94F3B;
+    --redline: #C9663B;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #F1EAE0;
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .layout { display: flex; max-width: 1280px; margin: 0 auto; }
+  /* 侧边导航 */
+  .sidenav {
+    width: 200px; flex: 0 0 200px;
+    position: sticky; top: 0; height: 100vh; overflow: auto;
+    padding: 24px 16px;
+    background: #FBF7F1;
+    border-right: 1px solid var(--border);
+  }
+  .sidenav h1 { font-size: 16px; margin-bottom: 4px; }
+  .sidenav .sub { font-size: 12px; color: var(--secondary); margin-bottom: 20px; }
+  .sidenav a {
+    display: block; padding: 7px 10px; border-radius: 8px;
+    color: var(--text); text-decoration: none; font-size: 13px;
+  }
+  .sidenav a:hover { background: var(--warm); }
+  /* 主内容 */
+  .content { flex: 1; padding: 32px 40px 80px; min-width: 0; }
+  section { margin-bottom: 64px; }
+  h2 { font-size: 22px; margin-bottom: 6px; }
+  h2 .no { color: var(--primary); margin-right: 8px; }
+  .section-sub { color: var(--secondary); font-size: 13px; margin-bottom: 20px; }
+  h3 { font-size: 16px; margin: 28px 0 12px; }
+  /* 通用表格 */
+  table { border-collapse: collapse; width: 100%; background: var(--card); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  th, td { padding: 9px 14px; text-align: left; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--warm); font-weight: 500; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td code { font-family: Consolas, monospace; font-size: 12px; background: #F6EFE6; padding: 1px 6px; border-radius: 4px; }
+  .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; border: 1px solid rgba(0,0,0,0.08); }
+  /* 标注稿展示 */
+  .mock-row { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+  .mock-row svg { flex: 0 0 auto; background: #E8DFD2; border-radius: 20px; }
+  .callout-list { flex: 1; min-width: 280px; }
+  .callout-item { display: flex; gap: 10px; margin-bottom: 10px; font-size: 13px; }
+  .callout-item .num {
+    flex: 0 0 20px; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--primary); color: #fff; font-size: 11px;
+    display: flex; align-items: center; justify-content: center; margin-top: 2px;
+  }
+  .callout-item b { font-weight: 500; }
+  .callout-item .dim { color: var(--secondary); font-size: 12px; }
+  /* 组件示例 */
+  .demo-surface { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+  .demo-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .demo-label { flex: 0 0 110px; font-size: 12px; color: var(--secondary); }
+  .btn-primary {
+    height: 44px; padding: 0 24px; border: none; border-radius: 12px;
+    background: var(--primary); color: #fff; font-size: 15px; cursor: pointer;
+  }
+  .btn-primary:active { background: var(--primary-pressed); }
+  .btn-primary:disabled { background: #E2B39D; cursor: default; }
+  .btn-secondary {
+    height: 40px; padding: 0 20px; border: none; border-radius: 12px;
+    background: var(--warm); color: #7A4E2D; font-size: 14px; cursor: pointer;
+  }
+  .btn-danger {
+    height: 44px; padding: 0 24px; border: none; border-radius: 12px;
+    background: var(--danger); color: #fff; font-size: 15px; cursor: pointer;
+  }
+  .btn-small { height: 32px; padding: 0 14px; border-radius: 9px; border: none; font-size: 13px; cursor: pointer; }
+  .btn-small.green { background: #E9EFE2; color: var(--green); }
+  .btn-small.danger { background: #F6E4DF; color: var(--danger); }
+  .chip { height: 32px; padding: 0 16px; border-radius: 16px; font-size: 13px; display: inline-flex; align-items: center; border: none; }
+  .chip.on { background: var(--primary); color: #fff; }
+  .chip.off { background: var(--warm); color: #7A4E2D; }
+  .tag { height: 22px; padding: 0 10px; border-radius: 11px; font-size: 11px; display: inline-flex; align-items: center; }
+  .tag.warm { background: var(--warm); color: #7A4E2D; }
+  .tag.green { background: #E9EFE2; color: var(--green); }
+  .tag.outline { border: 1px solid var(--border); color: var(--secondary); }
+  .note {
+    background: #FDF3E7; border-left: 3px solid var(--primary);
+    padding: 10px 16px; border-radius: 0 8px 8px 0; font-size: 13px; margin: 14px 0;
+  }
+  .footer-note { color: var(--secondary); font-size: 12px; margin-top: 40px; }
+  @media print {
+    .sidenav { display: none; }
+    .content { padding: 0; }
+    body { background: #fff; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidenav">
+    <h1>FamilyDish</h1>
+    <div class="sub">UI 静态稿与开发标注 v1.4<br>基准宽度 375pt / 750rpx</div>
+    <a href="#tokens">01 设计令牌</a>
+    <a href="#components">02 核心组件</a>
+    <a href="#global">03 全局规则</a>
+    <a href="#home">04 首页</a>
+    <a href="#detail">05 菜谱详情</a>
+    <a href="#sheet">06 点菜确认弹层</a>
+    <a href="#records">07 点菜记录</a>
+    <a href="#shopping">08 购物清单</a>
+    <a href="#my">09 我的与家庭管理</a>
+    <a href="#states">10 状态与异常</a>
+    <a href="#handoff">11 开发交接说明</a>
+    <a href="#decisions">12 冲突裁决同步</a>
+  </nav>
+
+  <div class="content">
+
+  <!-- ==================== 01 设计令牌 ==================== -->
+  <section id="tokens">
+    <h2><span class="no">01</span>设计令牌</h2>
+    <div class="section-sub">所有颜色、字号、间距均以令牌形式定义。开发时映射为全局变量，不允许页面内写散值。</div>
+
+    <h3>1.1 颜色</h3>
+    <table>
+      <tr><th>令牌名</th><th>色值</th><th>示例</th><th>用途</th></tr>
+      <tr><td><code>color-bg</code></td><td>#FAF5EE</td><td><span class="swatch" style="background:#FAF5EE"></span></td><td>全局页面背景</td></tr>
+      <tr><td><code>color-card</code></td><td>#FFFFFF</td><td><span class="swatch" style="background:#FFFFFF"></span></td><td>卡片、表单、弹窗背景</td></tr>
+      <tr><td><code>color-warm</code></td><td>#F4E6D7</td><td><span class="swatch" style="background:#F4E6D7"></span></td><td>次按钮底、标签底、提示条、选中容器</td></tr>
+      <tr><td><code>color-primary</code></td><td>#C9663B</td><td><span class="swatch" style="background:#C9663B"></span></td><td>主按钮、选中态、当前状态、链接</td></tr>
+      <tr><td><code>color-primary-pressed</code></td><td>#A9532F</td><td><span class="swatch" style="background:#A9532F"></span></td><td>主按钮按下态</td></tr>
+      <tr><td><code>color-primary-soft</code></td><td>#F8E8DC</td><td><span class="swatch" style="background:#F8E8DC"></span></td><td>主色弱底（tab 选中底等）</td></tr>
+      <tr><td><code>color-text</code></td><td>#3B2B23</td><td><span class="swatch" style="background:#3B2B23"></span></td><td>标题与正文</td></tr>
+      <tr><td><code>color-text-secondary</code></td><td>#7B685C</td><td><span class="swatch" style="background:#7B685C"></span></td><td>辅助说明、次要信息</td></tr>
+      <tr><td><code>color-border</code></td><td>#E7D9CB</td><td><span class="swatch" style="background:#E7D9CB"></span></td><td>卡片描边、输入框描边、分隔线</td></tr>
+      <tr><td><code>color-green</code></td><td>#708B57</td><td><span class="swatch" style="background:#708B57"></span></td><td>已完成、已准备、成功反馈</td></tr>
+      <tr><td><code>color-danger</code></td><td>#C94F3B</td><td><span class="swatch" style="background:#C94F3B"></span></td><td>危险操作（取消点菜、移除成员、解散）</td></tr>
+      <tr><td><code>color-skeleton</code></td><td>#EFE6DC</td><td><span class="swatch" style="background:#EFE6DC"></span></td><td>骨架屏占位</td></tr>
+    </table>
+    <div class="note">暖色只做重点与状态，不做大面积背景。正文文字禁止使用浅于 <code>#7B685C</code> 的颜色。</div>
+
+    <h3>1.2 字体</h3>
+    <table>
+      <tr><th>层级</th><th>字号/行高 (pt)</th><th>字重</th><th>用途</th></tr>
+      <tr><td>页面标题</td><td>18 / 26</td><td>500</td><td>导航栏标题、我的页昵称</td></tr>
+      <tr><td>区块标题</td><td>15 / 22</td><td>500</td><td>食材/步骤/列表标题</td></tr>
+      <tr><td>卡片标题</td><td>15 / 22</td><td>500</td><td>菜名、记录菜名</td></tr>
+      <tr><td>正文</td><td>14 / 22</td><td>400</td><td>步骤文字、表单、列表正文</td></tr>
+      <tr><td>辅助说明</td><td>12 / 18</td><td>400</td><td>元信息、时间、来源数、空状态说明</td></tr>
+    </table>
+    <div class="note">首版只用系统字体栈 <code>-apple-system, "PingFang SC", "Microsoft YaHei"</code>，不加载自定义字体。字重仅 400 与 500 两档。</div>
+
+    <h3>1.3 间距、圆角、阴影、图标</h3>
+    <table>
+      <tr><th>令牌</th><th>值</th><th>说明</th></tr>
+      <tr><td><code>space</code> 体系</td><td>4 的倍数：4 / 8 / 12 / 16 / 20 / 24</td><td>基础单位 4pt，禁止出现非 4 倍数的间距</td></tr>
+      <tr><td><code>page-padding</code></td><td>16</td><td>页面左右留白（32rpx）</td></tr>
+      <tr><td><code>radius-s</code></td><td>8</td><td>小控件：小按钮、输入框</td></tr>
+      <tr><td><code>radius-m</code></td><td>12</td><td>卡片、主按钮、菜品图片</td></tr>
+      <tr><td><code>radius-l</code></td><td>16</td><td>弹窗、大图容器</td></tr>
+      <tr><td><code>radius-pill</code></td><td>高度的一半</td><td>分类胶囊、状态标签</td></tr>
+      <tr><td><code>shadow-card</code></td><td>0 2 8 rgba(59,43,35,0.06)</td><td>仅卡片与弹窗使用，页面背景不加阴影</td></tr>
+      <tr><td><code>icon-size</code></td><td>20 / 24</td><td>线宽 1.5pt，线性风格，不用面性填充图标</td></tr>
+    </table>
+  </section>
+
+  <!-- ==================== 02 核心组件 ==================== -->
+  <section id="components">
+    <h2><span class="no">02</span>核心组件</h2>
+    <div class="section-sub">以下为高保真样式与尺寸。所有写按钮在提交期间禁用并显示提交中状态。</div>
+
+    <div class="demo-surface">
+      <div class="demo-row"><div class="demo-label">主按钮（44pt）</div><button class="btn-primary">我要点这道菜</button><button class="btn-primary" disabled>提交中…</button></div>
+      <div class="demo-row"><div class="demo-label">次按钮（40pt）</div><button class="btn-secondary">随机一下</button></div>
+      <div class="demo-row"><div class="demo-label">危险按钮（44pt）</div><button class="btn-danger">确认取消点菜</button></div>
+      <div class="demo-row"><div class="demo-label">记录操作（32pt）</div><button class="btn-small green">完成</button><button class="btn-small danger">取消</button></div>
+      <div class="demo-row"><div class="demo-label">分类胶囊（32pt）</div><button class="chip on">全部</button><button class="chip off">家常菜</button><button class="chip off">汤羹</button></div>
+      <div class="demo-row"><div class="demo-label">标签（22pt）</div><span class="tag warm">45 分钟</span><span class="tag warm">难度中等</span><span class="tag green">已准备</span><span class="tag outline">多个来源</span></div>
+    </div>
+
+    <h3>2.1 按钮规则</h3>
+    <table>
+      <tr><th>状态</th><th>规则</th></tr>
+      <tr><td>默认</td><td>主按钮高 44、次按钮高 40、小按钮高 32；圆角 12（小按钮 9）</td></tr>
+      <tr><td>按下</td><td>主按钮底色变为 <code>#A9532F</code>；次按钮底色加深约 6%</td></tr>
+      <tr><td>禁用/提交中</td><td>主按钮变浅 <code>#E2B39D</code>，文案改为「提交中…」，禁止重复点击</td></tr>
+      <tr><td>危险操作</td><td>红色按钮 + 二次确认弹窗，弹窗正文必须说明影响范围（如「将同时移除 3 项购物食材」）</td></tr>
+      <tr><td>二次确认</td><td>全站统一使用 <code>confirm-modal</code> 组件（规格见 2.3），<b>禁止使用 <code>wx.showModal</code></b>。覆盖：归档/恢复菜品、删除分类、移除成员、退出/解散家庭、清除已准备、切换计时、重新生成邀请码</td></tr>
+    </table>
+
+    <h3>2.2 菜品卡片</h3>
+    <table>
+      <tr><th>项</th><th>规格</th></tr>
+      <tr><td>布局</td><td>双列网格，卡间距 12；卡内边距 12</td></tr>
+      <tr><td>图片</td><td>4:3，圆角 12，占卡宽满幅</td></tr>
+      <tr><td>标题</td><td>15/22、500，单行截断</td></tr>
+      <tr><td>元信息</td><td>12/18 secondary：耗时 · 难度；标签最多 2 个</td></tr>
+      <tr><td>点击行为</td><td>整卡进入菜谱详情；点击不产生点菜记录</td></tr>
+    </table>
+
+    <h3>2.3 弹窗通用规则</h3>
+    <div class="section-sub">对应 <code>components/confirm-modal</code>。所有二次确认共用这一个组件，不再各页自造弹窗。</div>
+    <table>
+      <tr><th>项</th><th>规格</th></tr>
+      <tr><td>遮罩</td><td><code>rgba(59,43,35,.4)</code>，全屏居中，左右留 32</td></tr>
+      <tr><td>卡片</td><td>最大宽 300，白底，圆角 16，内边距 20 / 16 / 16（上 / 左右 / 下）</td></tr>
+      <tr><td>标题</td><td>16 / 500，居中，<code>#3B2B23</code></td></tr>
+      <tr><td>正文</td><td>13 / 1.6，居中，<code>#7B685C</code>；一句一段，段间由组件自动行距分隔；正文必须说明影响范围</td></tr>
+      <tr><td>操作区</td><td>双按钮等宽，高 44、圆角 12、字号 15 / 500、间距 11；<b>取消居左</b>文案固定「再想想」（次按钮 <code>#F4E6D7</code> / <code>#7A4E2D</code>），<b>确认居右</b>（主色 <code>#C9663B</code> 或危险 <code>#C94F3B</code>）</td></tr>
+      <tr><td>关闭方式</td><td>点遮罩、点「再想想」均可关闭；确认动作执行后自动关闭</td></tr>
+      <tr><td>提交中</td><td>双按钮禁用、不可关闭（点遮罩无效）；确认文案变「处理中…」；主色退到 <code>#E2B39D</code>、危险色退到 <code>#E0A79E</code>、次按钮透明度 0.45</td></tr>
+      <tr><td>禁用</td><td>不再用全屏 <code>wx.showLoading</code> 遮住弹窗，提交反馈只体现在按钮上</td></tr>
+    </table>
+  </section>
+
+  <!-- ==================== 03 全局规则 ==================== -->
+  <section id="global">
+    <h2><span class="no">03</span>全局规则</h2>
+    <div class="section-sub">底部导航、单位换算与栅格。</div>
+    <table>
+      <tr><th>项</th><th>规格</th></tr>
+      <tr><td>底部导航</td><td>4 个入口：首页 / 记录 / 购物 / 我的。内容区高 50 + 底部安全区 34（iPhone 全面屏）＝总高 84；图标 22，文字 10；选中 = 主色文字 + <code>#F8E8DC</code> 圆角底；未选中 = <code>#7B685C</code></td></tr>
+      <tr><td>单位换算</td><td>设计稿 1pt = 2rpx（750rpx 设计宽）。本文所有数值单位均为 pt</td></tr>
+      <tr><td>内容安全区</td><td>tabBar 页滚动内容底部预留 96，避免被导航遮挡；进入型页面同样预留 96</td></tr>
+      <tr><td>进入型页面的悬浮按钮</td><td>分类管理、菜品管理、家庭成员、关于等非 tabBar 页没有底部导航占位，悬浮按钮要自行避让 tabBar 高度：<code>bottom = 16 + 50 + env(safe-area-inset-bottom)</code>。否则返回转场时 tabBar 一出现就会把按钮切掉一半</td></tr>
+      <tr><td>返回导航</td><td>详情/快照/管理页左上返回箭头，返回来源页</td></tr>
+    </table>
+  </section>
+
+  <!-- ==================== 04 首页 ==================== -->
+  <section id="home">
+    <h2><span class="no">04</span>首页（标注稿）</h2>
+    <div class="section-sub">任务：找菜。结构从上到下依次为问候区、搜索、分类、随机、菜品列表。</div>
+    <div class="mock-row">
+      <svg width="300" height="650" viewBox="0 0 375 812" role="img" aria-label="首页标注稿">
+        <rect width="375" height="812" fill="#FAF5EE"/>
+        <text x="24" y="34" font-size="13" fill="#3B2B23">9:41</text>
+        <text x="351" y="34" font-size="13" fill="#3B2B23" text-anchor="end">▮</text>
+        <!-- ① 问候区 -->
+        <text x="20" y="86" font-size="18" font-weight="bold" fill="#3B2B23">晚上好，妈妈</text>
+        <rect x="20" y="98" width="120" height="26" rx="13" fill="#F4E6D7"/>
+        <text x="34" y="115" font-size="12" fill="#7A4E2D">林家 · 3 人</text>
+        <circle cx="345" cy="105" r="13" fill="#F4E6D7"/>
+        <circle cx="345" cy="105" r="9" fill="none" stroke="#C9663B" stroke-width="2"/><circle cx="345" cy="105" r="3.5" fill="#C9663B"/>
+        <!-- ② 搜索框 -->
+        <rect x="16" y="140" width="343" height="44" rx="12" fill="#FFFFFF" stroke="#E7D9CB"/>
+        <circle cx="38" cy="162" r="6" fill="none" stroke="#7B685C" stroke-width="2"/><line x1="43" y1="167" x2="47" y2="171" stroke="#7B685C" stroke-width="2"/>
+        <text x="56" y="167" font-size="14" fill="#7B685C">搜索菜名或食材，如「红烧」</text>
+        <!-- ③ 分类胶囊 -->
+        <rect x="16" y="196" width="56" height="32" rx="16" fill="#C9663B"/><text x="30" y="216" font-size="13" fill="#FFFFFF">全部</text>
+        <rect x="80" y="196" width="72" height="32" rx="16" fill="#F4E6D7"/><text x="94" y="216" font-size="13" fill="#7A4E2D">家常菜</text>
+        <rect x="160" y="196" width="56" height="32" rx="16" fill="#F4E6D7"/><text x="174" y="216" font-size="13" fill="#7A4E2D">汤羹</text>
+        <rect x="224" y="196" width="56" height="32" rx="16" fill="#F4E6D7"/><text x="238" y="216" font-size="13" fill="#7A4E2D">轻食</text>
+        <!-- ④ 随机按钮 -->
+        <rect x="16" y="240" width="343" height="40" rx="12" fill="#F4E6D7"/>
+        <text x="160" y="265" font-size="14" fill="#7A4E2D">🎲 不知道吃什么？随机一下</text>
+        <!-- ⑤ 列表标题 -->
+        <text x="20" y="308" font-size="15" font-weight="bold" fill="#3B2B23">全部菜品</text>
+        <text x="355" y="308" font-size="13" fill="#C9663B" text-anchor="end">管理 ›</text>
+        <!-- ⑥ 菜品卡 -->
+        <rect x="16" y="322" width="167" height="212" rx="12" fill="#FFFFFF"/>
+        <rect x="28" y="334" width="143" height="107" rx="12" fill="#E8B48F"/>
+        <text x="28" y="464" font-size="15" font-weight="bold" fill="#3B2B23">番茄炖牛腩</text>
+        <text x="28" y="486" font-size="12" fill="#7B685C">45 分钟 · 难度中等</text>
+        <rect x="28" y="498" width="52" height="22" rx="11" fill="#F4E6D7"/><text x="37" y="513" font-size="11" fill="#7A4E2D">家常菜</text>
+        <rect x="195" y="322" width="167" height="212" rx="12" fill="#FFFFFF"/>
+        <rect x="207" y="334" width="143" height="107" rx="12" fill="#C9D3B0"/>
+        <text x="207" y="464" font-size="15" font-weight="bold" fill="#3B2B23">冬瓜排骨汤</text>
+        <text x="207" y="486" font-size="12" fill="#7B685C">60 分钟 · 难度简单</text>
+        <rect x="207" y="498" width="52" height="22" rx="11" fill="#F4E6D7"/><text x="216" y="513" font-size="11" fill="#7A4E2D">汤羹</text>
+        <!-- ⑦ Tabbar -->
+        <rect x="0" y="729" width="375" height="83" fill="#FFFFFF"/>
+        <line x1="0" y1="729" x2="375" y2="729" stroke="#E7D9CB"/>
+        <rect x="20" y="735" width="68" height="44" rx="10" fill="#F8E8DC"/>
+        <text x="54" y="765" font-size="10" fill="#C9663B" text-anchor="middle">首页</text>
+        <text x="152" y="765" font-size="10" fill="#7B685C" text-anchor="middle">记录</text>
+        <text x="250" y="765" font-size="10" fill="#7B685C" text-anchor="middle">购物</text>
+        <text x="332" y="765" font-size="10" fill="#7B685C" text-anchor="middle">我的</text>
+        <line x1="120" y1="795" x2="255" y2="795" stroke="#3B2B23" stroke-width="4" stroke-linecap="round"/>
+        <!-- 尺寸标注 -->
+        <g stroke="#C9663B" stroke-width="1" stroke-dasharray="3 3" fill="none">
+          <line x1="8" y1="140" x2="8" y2="184"/><line x1="4" y1="140" x2="12" y2="140"/><line x1="4" y1="184" x2="12" y2="184"/>
+          <line x1="368" y1="196" x2="368" y2="228"/>
+          <line x1="368" y1="322" x2="368" y2="534"/>
+          <line x1="60" y1="716" x2="315" y2="716"/>
+        </g>
+        <text x="14" y="166" font-size="10" fill="#C9663B">44</text>
+        <text x="350" y="216" font-size="10" fill="#C9663B">32</text>
+        <text x="350" y="432" font-size="10" fill="#C9663B">212</text>
+        <text x="188" y="712" font-size="10" fill="#C9663B">167</text>
+        <!-- 编号 -->
+        <g font-size="11" fill="#fff" text-anchor="middle">
+          <circle cx="330" cy="86" r="9" fill="#C9663B"/><text x="330" y="90">1</text>
+          <circle cx="340" cy="140" r="9" fill="#C9663B"/><text x="340" y="144">2</text>
+          <circle cx="300" cy="212" r="9" fill="#C9663B"/><text x="300" y="216">3</text>
+          <circle cx="330" cy="260" r="9" fill="#C9663B"/><text x="330" y="264">4</text>
+          <circle cx="100" cy="304" r="9" fill="#C9663B"/><text x="100" y="308">5</text>
+          <circle cx="70" cy="430" r="9" fill="#C9663B"/><text x="70" y="434">6</text>
+          <circle cx="188" cy="750" r="9" fill="#C9663B"/><text x="188" y="754">7</text>
+        </g>
+      </svg>
+      <div class="callout-list">
+        <div class="callout-item"><span class="num">1</span><div><b>问候区</b>　主问候 18/26；家庭信息为胶囊标签（高 26，radius-pill）。右上为家庭切换预留位，首版点击仅提示「二期支持多家庭」。</div></div>
+        <div class="callout-item"><span class="num">2</span><div><b>搜索框</b>　高 44，圆角 12，占位文案「搜索菜名或食材，如『红烧』」。<span class="dim">同时匹配菜名与食材名，菜名命中优先；输入实时过滤，防抖 300ms。</span></div></div>
+        <div class="callout-item"><span class="num">3</span><div><b>分类胶囊</b>　高 32，radius-pill，间距 8，横向滚动。选中 = 主色底白字；未选中 = 暖色底。</div></div>
+        <div class="callout-item"><span class="num">4</span><div><b>随机一下</b>　次按钮高 40 通栏。点击随机进入一道未归档菜品的详情页。</div></div>
+        <div class="callout-item"><span class="num">5</span><div><b>列表标题</b>　15/22。「管理 ›」仅创建者/管理员可见，进入菜品管理。</div></div>
+        <div class="callout-item"><span class="num">6</span><div><b>菜品卡片</b>　宽 167（(375−32−12)/2），高 212：图片 4:3（高 107）+ 标题 + 元信息 + 标签 ≤2。归档菜品不出现。</div></div>
+        <div class="callout-item"><span class="num">7</span><div><b>底部导航</b>　总高 83（49 内容 + 34 安全区）；选中项主色文字 + <code>#F8E8DC</code> 底。</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 05 菜谱详情 ==================== -->
+  <section id="detail">
+    <h2><span class="no">05</span>菜谱详情（标注稿）</h2>
+    <div class="section-sub">任务：读菜谱、勾食材、计时、发起点菜。底部主按钮常驻。</div>
+    <div class="mock-row">
+      <svg width="300" height="650" viewBox="0 0 375 812" role="img" aria-label="菜谱详情标注稿">
+        <rect width="375" height="812" fill="#FAF5EE"/>
+        <!-- ① 大图 -->
+        <rect width="375" height="280" fill="#E8B48F"/>
+        <circle cx="30" cy="54" r="16" fill="rgba(255,255,255,0.9)"/>
+        <polyline points="35,48 25,54 35,60" fill="none" stroke="#3B2B23" stroke-width="2"/>
+        <!-- ② 标题区 -->
+        <text x="20" y="322" font-size="18" font-weight="bold" fill="#3B2B23">番茄炖牛腩</text>
+        <text x="20" y="346" font-size="12" fill="#7B685C">家常菜 · 45 分钟 · 难度中等</text>
+        <rect x="20" y="358" width="343" height="30" rx="8" fill="#FDF3E7"/>
+        <text x="32" y="377" font-size="12" fill="#7A4E2D">酸甜开胃，汤汁适合拌饭。</text>
+        <!-- ③ 食材 -->
+        <text x="20" y="424" font-size="15" font-weight="bold" fill="#3B2B23">食材</text>
+        <text x="355" y="424" font-size="12" fill="#C9663B" text-anchor="end">一键清除</text>
+        <g font-size="14" fill="#3B2B23">
+          <circle cx="30" cy="452" r="10" fill="none" stroke="#E7D9CB" stroke-width="2"/>
+          <text x="50" y="457">牛腩</text><text x="355" y="457" text-anchor="end" fill="#7B685C" font-size="13">500 g</text>
+          <circle cx="30" cy="496" r="10" fill="#708B57"/><polyline points="25,496 29,500 36,491" fill="none" stroke="#fff" stroke-width="2"/>
+          <text x="50" y="501" fill="#7B685C">番茄</text><text x="355" y="501" text-anchor="end" fill="#7B685C" font-size="13">2 个</text>
+          <circle cx="30" cy="540" r="10" fill="none" stroke="#E7D9CB" stroke-width="2"/>
+          <text x="50" y="545">盐</text><text x="355" y="545" text-anchor="end" fill="#7B685C" font-size="13">适量</text>
+        </g>
+        <!-- ④ 步骤 -->
+        <text x="20" y="596" font-size="15" font-weight="bold" fill="#3B2B23">步骤</text>
+        <circle cx="30" cy="622" r="12" fill="#F4E6D7"/><text x="30" y="627" font-size="12" fill="#7A4E2D" text-anchor="middle">1</text>
+        <text x="50" y="620" font-size="14" fill="#3B2B23">牛腩切块，冷水下锅焯去浮沫。</text>
+        <rect x="265" y="606" width="98" height="32" rx="9" fill="#C9663B"/>
+        <text x="314" y="627" font-size="12" fill="#FFFFFF" text-anchor="middle">计时 10 分钟</text>
+        <circle cx="30" cy="668" r="12" fill="#F4E6D7"/><text x="30" y="673" font-size="12" fill="#7A4E2D" text-anchor="middle">2</text>
+        <text x="50" y="666" font-size="14" fill="#3B2B23">番茄和洋葱下锅炒出汤汁。</text>
+        <rect x="265" y="652" width="98" height="32" rx="9" fill="#F4E6D7"/>
+        <text x="314" y="673" font-size="12" fill="#7A4E2D" text-anchor="middle">计时 8 分钟</text>
+        <!-- ⑥ 底部 CTA -->
+        <rect x="0" y="718" width="375" height="94" fill="#FAF5EE"/>
+        <rect x="16" y="726" width="343" height="44" rx="12" fill="#C9663B"/>
+        <text x="188" y="754" font-size="15" fill="#FFFFFF" text-anchor="middle">我要点这道菜</text>
+        <!-- 尺寸标注 -->
+        <g stroke="#C9663B" stroke-width="1" stroke-dasharray="3 3" fill="none">
+          <line x1="368" y1="0" x2="368" y2="280"/>
+          <line x1="8" y1="442" x2="8" y2="552"/>
+        </g>
+        <text x="352" y="146" font-size="10" fill="#C9663B">280</text>
+        <text x="14" y="500" font-size="10" fill="#C9663B">≥44</text>
+        <g font-size="11" fill="#fff" text-anchor="middle">
+          <circle cx="330" cy="30" r="9" fill="#C9663B"/><text x="330" y="34">1</text>
+          <circle cx="200" cy="318" r="9" fill="#C9663B"/><text x="200" y="322">2</text>
+          <circle cx="70" cy="450" r="9" fill="#C9663B"/><text x="70" y="454">3</text>
+          <circle cx="230" cy="622" r="9" fill="#C9663B"/><text x="230" y="626">4</text>
+          <circle cx="320" cy="748" r="9" fill="#C9663B"/><text x="320" y="752">5</text>
+        </g>
+      </svg>
+      <div class="callout-list">
+        <div class="callout-item"><span class="num">1</span><div><b>大图区</b>　高 280，4:3 比例裁切。返回按钮为直径 32 的白色半透明圆形，位于左上安全区内。</div></div>
+        <div class="callout-item"><span class="num">2</span><div><b>标题区</b>　菜名 18/26；元信息行 12/18 secondary（分类 · 耗时 · 难度）；描述为暖底提示条（高 30，radius 8）。</div></div>
+        <div class="callout-item"><span class="num">3</span><div><b>食材列表</b>　每行高 ≥44，勾选圆 20；勾选后整行文字弱化并加删除线。「已准备」为本地状态（按用户+菜品），不同步家庭。<span class="dim">「适量」类食材显示 note 文本。</span></div></div>
+        <div class="callout-item"><span class="num">4</span><div><b>步骤与计时</b>　序号圆 24；计时按钮高 32（进行中变主色并显示剩余时间）。同一详情页仅允许一个进行中计时器，切换需确认。计时基于结束时间戳，回前台重算；到时不做后台通知。</div></div>
+        <div class="callout-item"><span class="num">5</span><div><b>底部 CTA</b>　主按钮高 44，位于安全区上方 12。点击打开点菜确认弹层（见 06），不跳页。</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 06 点菜确认弹层 ==================== -->
+  <section id="sheet">
+    <h2><span class="no">06</span>点菜确认弹层（标注稿）</h2>
+    <div class="section-sub">底部弹层，保留菜谱上下文。确认后停留在详情页并出现轻提示。</div>
+    <div class="mock-row">
+      <svg width="300" height="650" viewBox="0 0 375 812" role="img" aria-label="点菜确认弹层标注稿">
+        <rect width="375" height="812" fill="#3B2B23" opacity="0.45"/>
+        <rect y="0" width="375" height="812" fill="#FAF5EE" opacity="0.15"/>
+        <!-- 弹层 -->
+        <rect x="0" y="300" width="375" height="512" rx="16" fill="#FFFFFF"/>
+        <rect x="167" y="312" width="41" height="4" rx="2" fill="#E7D9CB"/>
+        <text x="24" y="352" font-size="15" font-weight="bold" fill="#3B2B23">确认点菜</text>
+        <!-- ① 菜品行 -->
+        <rect x="24" y="368" width="48" height="48" rx="12" fill="#E8B48F"/>
+        <text x="84" y="388" font-size="15" font-weight="bold" fill="#3B2B23">番茄炖牛腩</text>
+        <text x="84" y="406" font-size="12" fill="#7B685C">45 分钟 · 难度中等</text>
+        <!-- ② 日期 -->
+        <text x="24" y="448" font-size="13" fill="#7B685C">用餐日期</text>
+        <rect x="24" y="458" width="104" height="36" rx="10" fill="#F8E8DC"/><text x="76" y="481" font-size="13" fill="#C9663B" text-anchor="middle">今天</text>
+        <rect x="140" y="458" width="104" height="36" rx="10" fill="#F4E6D7"/><text x="192" y="481" font-size="13" fill="#7A4E2D" text-anchor="middle">明天</text>
+        <rect x="256" y="458" width="95" height="36" rx="10" fill="#F4E6D7"/><text x="304" y="481" font-size="13" fill="#7A4E2D" text-anchor="middle">选择日期</text>
+        <!-- ③ 餐次（选填，默认无选中） -->
+        <text x="24" y="530" font-size="13" fill="#7B685C">餐次（选填）</text>
+        <rect x="24" y="540" width="77" height="36" rx="10" fill="#F4E6D7"/><text x="62" y="563" font-size="13" fill="#7A4E2D" text-anchor="middle">早餐</text>
+        <rect x="110" y="540" width="77" height="36" rx="10" fill="#F4E6D7"/><text x="148" y="563" font-size="13" fill="#7A4E2D" text-anchor="middle">午餐</text>
+        <rect x="196" y="540" width="77" height="36" rx="10" fill="#F4E6D7"/><text x="234" y="563" font-size="13" fill="#7A4E2D" text-anchor="middle">晚餐</text>
+        <rect x="282" y="540" width="69" height="36" rx="10" fill="#F4E6D7"/><text x="316" y="563" font-size="13" fill="#7A4E2D" text-anchor="middle">其他</text>
+        <!-- ④ 备注 -->
+        <text x="24" y="612" font-size="13" fill="#7B685C">备注（选填）</text>
+        <rect x="24" y="622" width="327" height="64" rx="12" fill="#FFFFFF" stroke="#E7D9CB"/>
+        <text x="38" y="646" font-size="14" fill="#7B685C">如：少辣、晚上六点吃</text>
+        <!-- ⑤ 提示条 -->
+        <rect x="24" y="700" width="327" height="36" rx="10" fill="#FDF3E7"/>
+        <text x="188" y="723" font-size="12" fill="#7A4E2D" text-anchor="middle">3 项未准备食材将加入购物清单</text>
+        <!-- ⑥ 按钮区 -->
+        <rect x="24" y="748" width="158" height="44" rx="12" fill="#F4E6D7"/>
+        <text x="103" y="775" font-size="15" fill="#7A4E2D" text-anchor="middle">取消</text>
+        <rect x="193" y="748" width="158" height="44" rx="12" fill="#C9663B"/>
+        <text x="272" y="775" font-size="15" fill="#FFFFFF" text-anchor="middle">确认点菜</text>
+        <!-- 编号 -->
+        <g font-size="11" fill="#fff" text-anchor="middle">
+          <circle cx="340" cy="388" r="9" fill="#C9663B"/><text x="340" y="392">1</text>
+          <circle cx="320" cy="440" r="9" fill="#C9663B"/><text x="320" y="444">2</text>
+          <circle cx="60" cy="530" r="9" fill="#C9663B"/><text x="60" y="534">3</text>
+          <circle cx="320" cy="606" r="9" fill="#C9663B"/><text x="320" y="610">4</text>
+          <circle cx="16" cy="718" r="9" fill="#C9663B"/><text x="16" y="722">5</text>
+          <circle cx="188" cy="736" r="9" fill="#C9663B"/><text x="188" y="740">6</text>
+        </g>
+      </svg>
+      <div class="callout-list">
+        <div class="callout-item"><span class="num">1</span><div><b>菜品行</b>　图片 48×48（radius 12）+ 菜名 15/22 + 元信息 12/18。只读，不可在此改菜。</div></div>
+        <div class="callout-item"><span class="num">2</span><div><b>用餐日期</b>　分段控件高 36：今天（默认选中）/ 明天 / 选择日期（打开系统日期选择器，范围不限）。</div></div>
+        <div class="callout-item"><span class="num">3</span><div><b>餐次</b>　4 个等宽 chip，高 36。<b>选填</b>：默认不预选任何项，未选也可直接提交，不写入餐次字段；已选中项可再次点击取消。已裁决 D1-A。</div></div>
+        <div class="callout-item"><span class="num">4</span><div><b>备注</b>　多行输入，高 64，radius 12，placeholder「如：少辣、晚上六点吃」。选填，上限 100 字。</div></div>
+        <div class="callout-item"><span class="num">5</span><div><b>购物提示条</b>　暖底，实时显示「N 项未准备食材将加入购物清单」。N=0 时文案改为「全部食材已准备，不会产生购物项」。</div></div>
+        <div class="callout-item"><span class="num">6</span><div><b>操作区</b>　两按钮各高 44、间距 11：取消（次，关闭弹层）/ 确认点菜（主）。确认后：生成记录 + 购物来源，按钮转提交中防重复，成功后轻提示「已点菜，可分享给家人」并关闭。</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 07 点菜记录 ==================== -->
+  <section id="records">
+    <h2><span class="no">07</span>点菜记录（标注稿）</h2>
+    <div class="section-sub">任务：看进度、完成、取消。默认按状态倒序，待做优先。</div>
+    <div class="mock-row">
+      <svg width="300" height="650" viewBox="0 0 375 812" role="img" aria-label="点菜记录标注稿">
+        <rect width="375" height="812" fill="#FAF5EE"/>
+        <text x="24" y="34" font-size="13" fill="#3B2B23">9:41</text>
+        <text x="20" y="80" font-size="18" font-weight="bold" fill="#3B2B23">点菜记录</text>
+        <!-- ① 筛选 -->
+        <rect x="16" y="100" width="56" height="32" rx="16" fill="#C9663B"/><text x="30" y="120" font-size="13" fill="#FFFFFF">全部</text>
+        <rect x="80" y="100" width="56" height="32" rx="16" fill="#F4E6D7"/><text x="94" y="120" font-size="13" fill="#7A4E2D">待做</text>
+        <rect x="144" y="100" width="72" height="32" rx="16" fill="#F4E6D7"/><text x="158" y="120" font-size="13" fill="#7A4E2D">已完成</text>
+        <rect x="224" y="100" width="72" height="32" rx="16" fill="#F4E6D7"/><text x="238" y="120" font-size="13" fill="#7A4E2D">已取消</text>
+        <!-- ② 待做卡 -->
+        <rect x="16" y="148" width="343" height="116" rx="12" fill="#FFFFFF"/>
+        <text x="32" y="180" font-size="15" font-weight="bold" fill="#3B2B23">番茄炖牛腩</text>
+        <rect x="297" y="162" width="48" height="24" rx="12" fill="#F8E8DC"/><text x="321" y="178" font-size="11" fill="#C9663B" text-anchor="middle">待做</text>
+        <text x="32" y="204" font-size="12" fill="#7B685C">妈妈 · 今天 晚餐 · 少辣</text>
+        <rect x="185" y="228" width="76" height="28" rx="9" fill="#E9EFE2"/><text x="223" y="247" font-size="12" fill="#708B57" text-anchor="middle">完成</text>
+        <rect x="269" y="228" width="76" height="28" rx="9" fill="#F6E4DF"/><text x="307" y="247" font-size="12" fill="#C94F3B" text-anchor="middle">取消</text>
+        <!-- 已完成卡 -->
+        <rect x="16" y="276" width="343" height="84" rx="12" fill="#FFFFFF"/>
+        <text x="32" y="308" font-size="15" font-weight="bold" fill="#3B2B23">冬瓜排骨汤</text>
+        <rect x="285" y="290" width="60" height="24" rx="12" fill="#E9EFE2"/><text x="315" y="306" font-size="11" fill="#708B57" text-anchor="middle">已完成</text>
+        <text x="32" y="332" font-size="12" fill="#7B685C">爸爸 · 昨天 午餐</text>
+        <!-- 已取消卡 -->
+        <rect x="16" y="372" width="343" height="84" rx="12" fill="#FFFFFF"/>
+        <text x="32" y="404" font-size="15" font-weight="bold" fill="#7B685C">可乐鸡翅</text>
+        <rect x="285" y="386" width="60" height="24" rx="12" fill="#F4E6D7"/><text x="315" y="402" font-size="11" fill="#7B685C" text-anchor="middle">已取消</text>
+        <text x="32" y="428" font-size="12" fill="#7B685C">小禾 · 周一 晚餐</text>
+        <!-- 常驻分享按钮 -->
+        <circle cx="187" cy="697" r="28" fill="#C9663B"/>
+        <path d="M187 685v14m-5-9 5-5 5 5m-11 6v9h12v-9" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Tabbar -->
+        <rect x="0" y="729" width="375" height="83" fill="#FFFFFF"/>
+        <line x1="0" y1="729" x2="375" y2="729" stroke="#E7D9CB"/>
+        <text x="54" y="765" font-size="10" fill="#7B685C" text-anchor="middle">首页</text>
+        <rect x="110" y="735" width="68" height="44" rx="10" fill="#F8E8DC"/>
+        <text x="144" y="765" font-size="10" fill="#C9663B" text-anchor="middle">记录</text>
+        <text x="250" y="765" font-size="10" fill="#7B685C" text-anchor="middle">购物</text>
+        <text x="332" y="765" font-size="10" fill="#7B685C" text-anchor="middle">我的</text>
+        <g font-size="11" fill="#fff" text-anchor="middle">
+          <circle cx="320" cy="100" r="9" fill="#C9663B"/><text x="320" y="104">1</text>
+          <circle cx="150" cy="180" r="9" fill="#C9663B"/><text x="150" y="184">2</text>
+          <circle cx="120" cy="222" r="9" fill="#C9663B"/><text x="120" y="226">3</text>
+          <circle cx="160" cy="242" r="9" fill="#C9663B"/><text x="160" y="246">4</text>
+          <circle cx="222" cy="690" r="9" fill="#C9663B"/><text x="222" y="694">5</text>
+        </g>
+      </svg>
+      <div class="callout-list">
+        <div class="callout-item"><span class="num">1</span><div><b>状态筛选</b>　4 个胶囊高 32：全部（默认）/ 待做 / 已完成 / 已取消。</div></div>
+        <div class="callout-item"><span class="num">2</span><div><b>记录卡</b>　卡内边距 12：菜名 15/22 + 状态 chip（高 24，radius-pill）；第二行 12/18 为「点菜人 · 日期 餐次 · 备注」。</div></div>
+        <div class="callout-item"><span class="num">3</span><div><b>记录卡副行</b>　12/18 secondary：「点菜人 · 日期 餐次 · 备注」。<b>首版不再显示通知汇总</b>；订阅通知已整体移除。</div></div>
+        <div class="callout-item"><span class="num">4</span><div><b>操作按钮</b>　仅待做记录显示「完成」（绿）/「取消」（红），高 28。按权限显示：普通成员只见自己记录的按钮；管理员/创建者见全部。点击先弹二次确认，取消须注明移除几项购物食材。</div></div>
+        <div class="callout-item"><span class="num">5</span><div><b>点击卡片</b>　整卡可点，进入菜品快照页（当时保存的名称、图片、食材、步骤），不可编辑。</div></div>
+        <div class="callout-item"><span class="num">6</span><div><b>常驻分享按钮</b>　56px 正圆（<code>border-radius: 28px</code>，不用 50%，避免宽高被撑开时变椭圆），主色 <code>#C9663B</code> 实心 + 白色 24px 分享图标（线宽 1.6），水平居中；<code>bottom = 16px</code>。列表 <code>padding-bottom</code> 不小于 88px 避开按钮。使用 <code>button</code> 组件时必须清除默认 <code>padding</code>/<code>line-height</code> 与 <code>::after</code> 边框，否则会被撑成椭圆；配 <code>aria-label</code>，视觉上纯图标。点击拉起微信「发送给」选择页。<br><span class="dim">注：本图为自绘导航的示意坐标（83 + 16）。真实小程序中原生 tabBar 不占页面坐标系，页面内 <code>fixed</code> 元素直接相对可视区定位，因此实现值为 <code>bottom: 16px</code>。</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 08 购物清单 ==================== -->
+  <section id="shopping">
+    <h2><span class="no">08</span>购物清单（标注稿）</h2>
+    <div class="section-sub">任务：合并展示、勾选购买。底层按来源存储，页面按「名称+单位」分组：都有数值则求和，都无数值则共用备注。</div>
+    <div class="mock-row">
+      <svg width="300" height="650" viewBox="0 0 375 812" role="img" aria-label="购物清单标注稿">
+        <rect width="375" height="812" fill="#FAF5EE"/>
+        <text x="24" y="34" font-size="13" fill="#3B2B23">9:41</text>
+        <text x="20" y="80" font-size="18" font-weight="bold" fill="#3B2B23">购物清单</text>
+        <text x="355" y="80" font-size="13" fill="#C9663B" text-anchor="end">清空已购</text>
+        <text x="20" y="106" font-size="12" fill="#7B685C">待购 4 项 · 已购 2 项</text>
+        <!-- ① 待购合并组 -->
+        <rect x="16" y="122" width="343" height="60" rx="12" fill="#FFFFFF"/>
+        <circle cx="42" cy="152" r="11" fill="none" stroke="#C9663B" stroke-width="2"/>
+        <text x="64" y="150" font-size="15" font-weight="bold" fill="#3B2B23">排骨</text>
+        <rect x="104" y="136" width="66" height="20" rx="10" fill="#F4E6D7"/><text x="137" y="150" font-size="11" fill="#7A4E2D" text-anchor="middle">2 个来源</text>
+        <text x="64" y="170" font-size="13" fill="#7B685C">共 800 g</text>
+        <rect x="16" y="190" width="343" height="60" rx="12" fill="#FFFFFF"/>
+        <circle cx="42" cy="220" r="11" fill="none" stroke="#C9663B" stroke-width="2"/>
+        <text x="64" y="218" font-size="15" font-weight="bold" fill="#3B2B23">番茄</text>
+        <text x="64" y="238" font-size="13" fill="#7B685C">2 个</text>
+        <rect x="16" y="258" width="343" height="60" rx="12" fill="#FFFFFF"/>
+        <circle cx="42" cy="288" r="11" fill="none" stroke="#C9663B" stroke-width="2"/>
+        <text x="64" y="286" font-size="15" font-weight="bold" fill="#3B2B23">盐</text>
+        <text x="64" y="306" font-size="13" fill="#7B685C">适量 · 手动添加</text>
+        <!-- ② 已购 -->
+        <text x="20" y="356" font-size="12" fill="#7B685C">已购买</text>
+        <rect x="16" y="368" width="343" height="52" rx="12" fill="#FFFFFF"/>
+        <circle cx="42" cy="394" r="11" fill="#708B57"/><polyline points="37,394 41,398 48,389" fill="none" stroke="#fff" stroke-width="2"/>
+        <text x="64" y="399" font-size="15" fill="#B9A99B"><tspan text-decoration="line-through">洋葱</tspan>　1 个</text>
+        <!-- ③ FAB -->
+        <circle cx="323" cy="660" r="28" fill="#C9663B"/>
+        <text x="323" y="668" font-size="24" fill="#FFFFFF" text-anchor="middle">+</text>
+        <!-- 常驻分享按钮 -->
+        <circle cx="187" cy="697" r="28" fill="#C9663B"/>
+        <path d="M187 685v14m-5-9 5-5 5 5m-11 6v9h12v-9" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Tabbar -->
+        <rect x="0" y="729" width="375" height="83" fill="#FFFFFF"/>
+        <line x1="0" y1="729" x2="375" y2="729" stroke="#E7D9CB"/>
+        <text x="54" y="765" font-size="10" fill="#7B685C" text-anchor="middle">首页</text>
+        <text x="152" y="765" font-size="10" fill="#7B685C" text-anchor="middle">记录</text>
+        <rect x="208" y="735" width="68" height="44" rx="10" fill="#F8E8DC"/>
+        <text x="242" y="765" font-size="10" fill="#C9663B" text-anchor="middle">购物</text>
+        <text x="332" y="765" font-size="10" fill="#7B685C" text-anchor="middle">我的</text>
+        <!-- 尺寸标注 -->
+        <g stroke="#C9663B" stroke-width="1" stroke-dasharray="3 3" fill="none">
+          <line x1="8" y1="122" x2="8" y2="182"/>
+        </g>
+        <text x="14" y="156" font-size="10" fill="#C9663B">60</text>
+        <g font-size="11" fill="#fff" text-anchor="middle">
+          <circle cx="230" cy="140" r="9" fill="#C9663B"/><text x="230" y="144">1</text>
+          <circle cx="150" cy="390" r="9" fill="#C9663B"/><text x="150" y="394">2</text>
+          <circle cx="290" cy="660" r="9" fill="#C9663B"/><text x="290" y="664">3</text>
+          <circle cx="300" cy="76" r="9" fill="#C9663B"/><text x="300" y="80">4</text>
+        </g>
+      </svg>
+      <div class="callout-list">
+        <div class="callout-item"><span class="num">1</span><div><b>待购合并项</b>　行高 60。勾选圆 22；名称 15/22 加粗 + 合计数量 13；来源数 &gt;1 时显示「N 个来源」标签。<span class="dim">合并条件：名称与单位相同。都有数值则求和；都无数值则备注并列。数值与无数值混用、单位不同均不合并。已购组不参与合并。</span></div></div>
+        <div class="callout-item"><span class="num">2</span><div><b>已购组</b>　弱化文字 + 删除线，保留深棕色底色以保证可读；点击可取消勾选回到待购。整组勾选 = 组内全部来源记录标记已购；不支持部分购买。</div></div>
+        <div class="callout-item"><span class="num">3</span><div><b>手工添加 FAB</b>　直径 56，<b>水平居中</b>，距底 16，与记录页分享按钮同尺寸同位置。「+」用两条实心线绘制（横 22×2.5、竖 2.5×22）并绝对定位居中，不使用字符，避免字体基线造成偏移。点击打开添加弹层：名称必填，数量/单位/备注选填。<br><span class="dim">注：示意图画在右下角为初版构图，实现改为水平居中，以文字规格为准。</span></div></div>
+        <div class="callout-item"><span class="num">4</span><div><b>看板与清空已购</b>　看板两个数字是「食材种类数」，与列表行数一致，不暴露来源条数；点击对应区域可滚到「待购买」/「已购买」标题。加载中与加载失败时数字显示占位符 <code>—</code>，不显示 <code>0</code>，避免被误读成清单为空。「清空已购」文字按钮仅创建者/管理员可见，点击二次确认后删除所有已购项。普通成员只能删除自己添加的项目。</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 09 我的 ==================== -->
+  <section id="my">
+    <h2><span class="no">09</span>我的与家庭管理（标注稿）</h2>
+    <div class="section-sub">任务：身份、邀请、管理、关于分区。退出与解散已移到家庭成员页。</div>
+    <div class="mock-row">
+      <svg width="300" height="650" viewBox="0 0 375 812" role="img" aria-label="我的页标注稿">
+        <rect width="375" height="812" fill="#FAF5EE"/>
+        <text x="24" y="34" font-size="13" fill="#3B2B23">9:41</text>
+        <text x="20" y="80" font-size="18" font-weight="bold" fill="#3B2B23">我的</text>
+        <!-- ① 身份卡 -->
+        <rect x="16" y="100" width="343" height="88" rx="12" fill="#FFFFFF"/>
+        <circle cx="52" cy="144" r="24" fill="#E8B48F"/>
+        <text x="88" y="138" font-size="18" font-weight="bold" fill="#3B2B23">妈妈</text>
+        <rect x="140" y="122" width="52" height="22" rx="11" fill="#F8E8DC"/><text x="166" y="137" font-size="11" fill="#C9663B" text-anchor="middle">创建者</text>
+        <text x="88" y="164" font-size="12" fill="#7B685C">林家 · 3 / 10 人</text>
+        <!-- ② 功能组 -->
+        <rect x="16" y="200" width="343" height="216" rx="12" fill="#FFFFFF"/>
+        <g font-size="14" fill="#3B2B23">
+          <text x="52" y="236">邀请成员</text><text x="343" y="236" text-anchor="end" fill="#7B685C">›</text>
+          <line x1="16" y1="254" x2="359" y2="254" stroke="#F1E8DC"/>
+          <text x="52" y="290">菜品管理</text><text x="343" y="290" text-anchor="end" fill="#7B685C">›</text>
+          <line x1="16" y1="308" x2="359" y2="308" stroke="#F1E8DC"/>
+          <text x="52" y="344">分类管理</text><text x="343" y="344" text-anchor="end" fill="#7B685C">›</text>
+          <line x1="16" y1="362" x2="359" y2="362" stroke="#F1E8DC"/>
+          <text x="52" y="398">家庭成员</text><text x="300" y="398" text-anchor="end" fill="#7B685C">3 人 ›</text>
+        </g>
+        <!-- ③ 设置组 -->
+        <rect x="16" y="428" width="343" height="108" rx="12" fill="#FFFFFF"/>
+        <g font-size="14" fill="#3B2B23">
+          <text x="52" y="464">家庭名称</text><text x="343" y="464" text-anchor="end" fill="#7B685C">林家 ›</text>
+          <line x1="16" y1="482" x2="359" y2="482" stroke="#F1E8DC"/>
+          <text x="52" y="518">家庭人数上限</text><text x="343" y="518" text-anchor="end" fill="#7B685C">10 ›</text>
+        </g>
+        <!-- ④ 关于组 -->
+        <rect x="16" y="548" width="343" height="54" rx="12" fill="#FFFFFF"/>
+        <text x="52" y="580" font-size="14" fill="#3B2B23">关于</text>
+        <text x="343" y="580" font-size="14" fill="#7B685C" text-anchor="end">v1.0.0 ›</text>
+        <!-- Tabbar -->
+        <rect x="0" y="729" width="375" height="83" fill="#FFFFFF"/>
+        <line x1="0" y1="729" x2="375" y2="729" stroke="#E7D9CB"/>
+        <text x="54" y="765" font-size="10" fill="#7B685C" text-anchor="middle">首页</text>
+        <text x="152" y="765" font-size="10" fill="#7B685C" text-anchor="middle">记录</text>
+        <text x="250" y="765" font-size="10" fill="#7B685C" text-anchor="middle">购物</text>
+        <rect x="290" y="735" width="68" height="44" rx="10" fill="#F8E8DC"/>
+        <text x="324" y="765" font-size="10" fill="#C9663B" text-anchor="middle">我的</text>
+        <g font-size="11" fill="#fff" text-anchor="middle">
+          <circle cx="250" cy="130" r="9" fill="#C9663B"/><text x="250" y="134">1</text>
+          <circle cx="150" cy="236" r="9" fill="#C9663B"/><text x="150" y="240">2</text>
+          <circle cx="250" cy="450" r="9" fill="#C9663B"/><text x="250" y="454">3</text>
+          <circle cx="150" cy="575" r="9" fill="#C9663B"/><text x="150" y="579">4</text>
+        </g>
+      </svg>
+      <div class="callout-list">
+        <div class="callout-item"><span class="num">1</span><div><b>身份卡</b>　头像占位 48（首版用首字圆形色块，不拉取微信头像）；昵称 18/26 + 角色 chip（创建者/管理员/成员三种文案与配色）；第三行「家庭名 · 当前人数 / 上限」。</div></div>
+        <div class="callout-item"><span class="num">2</span><div><b>管理功能组</b>　行高 54，组内分隔线 <code>#F1E8DC</code>。「菜品管理」「分类管理」仅创建者/管理员可见；「家庭成员」右侧显示人数。另有「修改昵称」行（图略）。</div></div>
+        <div class="callout-item"><span class="num">3</span><div><b>设置组</b>　行高 54。<b>订阅通知开关已删除</b>（首版不做订阅通知，S1 裁决）。<b>家庭人数上限</b>行进入设置页，用步进器调整，范围 = 当前成员数 ～ 50。<br>另需<b>「家庭名称」行</b>：仅创建者/管理员可见，点击弹层改名，必填 1–12 字；创建家庭时同样必填（已裁决 D2-A）。「邀请成员」弹层中的邀请码为 6 位字母数字（32 字符集 <code>ABCDEFGHJKLMNPQRSTUVWXYZ23456789</code>），不区分大小写（已裁决 D4-A）。</div></div>
+        <div class="callout-item"><span class="num">4</span><div><b>关于组</b>　1 行，行高 54，右侧显示版本号 + 箭头，点击进入「关于」页（规格见 9.2）。<b>危险区已移出本页</b>：退出家庭 / 解散家庭属低频危险操作，移到「家庭成员」页末尾（见 9.1）。</div></div>
+      </div>
+    </div>
+
+    <h3>9.1 家庭成员页</h3>
+    <div class="section-sub">从「我的」→「家庭成员」进入，承载成员管理与家庭级危险操作。</div>
+    <table>
+      <tr><th>项</th><th>规格</th></tr>
+      <tr><td>顶部摘要</td><td>12 / secondary：<code>N 位成员 · 上限 M 人</code></td></tr>
+      <tr><td>成员卡</td><td>白卡圆角 12，内边距左右 16；行内左侧昵称 15/22 + 角色 12 secondary，本人追加「（我）」；右侧操作按钮高 32、圆角 9、字号 13</td></tr>
+      <tr><td>行内操作</td><td>「设为管理员 / 撤销管理员」仅创建者对非创建者可见；「移除」创建者可见任意非创建者、管理员仅可见普通成员。两者均走二次确认弹层，正文说明影响范围</td></tr>
+      <tr><td>危险区</td><td>成员卡下方 32，通栏红色按钮，高 44、圆角 12、字号 15/500；创建者显示「解散家庭」，其余成员（含管理员）显示「退出家庭」。确认后直接回到绑定页</td></tr>
+    </table>
+
+    <h3>9.2 关于页</h3>
+    <div class="section-sub">静态页，内容全部来自本地常量，不请求云端，因此没有加载态与错误态。</div>
+    <div class="mock-row">
+      <svg width="300" height="650" viewBox="0 0 375 812" role="img" aria-label="关于页标注稿">
+        <rect width="375" height="812" fill="#FAF5EE"/>
+        <text x="24" y="34" font-size="13" fill="#3B2B23">9:41</text>
+        <text x="187" y="80" font-size="18" font-weight="bold" fill="#3B2B23" text-anchor="middle">关于</text>
+        <!-- ① 应用卡 -->
+        <rect x="16" y="100" width="343" height="200" rx="12" fill="#FFFFFF"/>
+        <rect x="155" y="124" width="64" height="64" rx="18" fill="#C9663B"/>
+        <text x="187" y="167" font-size="26" font-weight="bold" fill="#FFFFFF" text-anchor="middle">家</text>
+        <text x="187" y="216" font-size="17" font-weight="bold" fill="#3B2B23" text-anchor="middle">家庭菜单</text>
+        <text x="187" y="238" font-size="12" fill="#7B685C" text-anchor="middle">FamilyDish · 家庭点菜与购物清单</text>
+        <rect x="155" y="252" width="64" height="24" rx="12" fill="#F8E8DC"/>
+        <text x="187" y="269" font-size="12" fill="#C9663B" text-anchor="middle">v1.0.0</text>
+        <!-- ② 信息组 -->
+        <rect x="16" y="312" width="343" height="162" rx="12" fill="#FFFFFF"/>
+        <g font-size="14" fill="#3B2B23">
+          <text x="48" y="344">当前版本</text><text x="343" y="344" text-anchor="end" fill="#7B685C">v1.0.0</text>
+          <line x1="16" y1="366" x2="359" y2="366" stroke="#F1E8DC"/>
+          <text x="48" y="398">版权信息</text><text x="343" y="398" text-anchor="end" fill="#7B685C">© 2026 FamilyDish</text>
+          <line x1="16" y1="420" x2="359" y2="420" stroke="#F1E8DC"/>
+          <text x="48" y="452">开源许可</text><text x="343" y="452" text-anchor="end" fill="#7B685C">CC BY-NC-SA 4.0</text>
+        </g>
+        <!-- ③ 开源说明卡 -->
+        <rect x="16" y="486" width="343" height="180" rx="12" fill="#FFFFFF"/>
+        <text x="32" y="512" font-size="14" font-weight="bold" fill="#3B2B23">开源说明</text>
+        <text x="32" y="536" font-size="13" fill="#7B685C">本小程序基于开源项目 PairBite 改造，原作者 630999Steven。</text>
+        <text x="32" y="558" font-size="13" fill="#7B685C">依 CC BY-NC-SA 4.0 许可：保留原作者署名，不得用于商业</text>
+        <text x="32" y="578" font-size="13" fill="#7B685C">用途，本改造以相同协议共享。</text>
+        <line x1="16" y1="612" x2="359" y2="612" stroke="#F1E8DC"/>
+        <text x="32" y="644" font-size="14" fill="#3B2B23">项目地址</text>
+        <text x="343" y="644" font-size="12" fill="#7B685C" text-anchor="end">630999Steven/PairBite ›</text>
+        <!-- 页脚 -->
+        <text x="187" y="700" font-size="12" fill="#A99A8C" text-anchor="middle">仅供家庭内部使用 · 非商业用途</text>
+        <g font-size="11" fill="#fff" text-anchor="middle">
+          <circle cx="300" cy="124" r="9" fill="#C9663B"/><text x="300" y="128">1</text>
+          <circle cx="300" cy="330" r="9" fill="#C9663B"/><text x="300" y="334">2</text>
+          <circle cx="300" cy="504" r="9" fill="#C9663B"/><text x="300" y="508">3</text>
+        </g>
+      </svg>
+    </div>
+    <table>
+      <tr><th>项</th><th>规格</th></tr>
+      <tr><td>应用卡</td><td>白卡圆角 12，垂直居中排列：64 圆角方块 logo（主色底 + 白字「家」）、应用名 17/500、副标题 12 secondary、版本 chip（<code>#F8E8DC</code> 底 + 主色文字 12）</td></tr>
+      <tr><td>信息组</td><td>行高 54，分隔线 <code>#F1E8DC</code>，三行：当前版本 / 版权信息（<code>© 2026 FamilyDish</code>）/ 开源许可（<code>CC BY-NC-SA 4.0</code>），右侧值 14 secondary</td></tr>
+      <tr><td>开源说明卡</td><td>标题 14/500 + 正文 13/21 secondary 两段（基于 PairBite 改造、原作者 630999Steven；许可义务：保留署名、非商业、同协议共享）；末行「项目地址」为通栏行，点击复制仓库地址并轻提示</td></tr>
+      <tr><td>页脚</td><td>12，<code>#A99A8C</code>，居中：仅供家庭内部使用 · 非商业用途</td></tr>
+      <tr><td>版本号来源</td><td>优先取 <code>wx.getAccountInfoSync().miniProgram.version</code>（发布后由微信注入），开发版 / 体验版为空时回落到本地常量 <code>1.0.0</code></td></tr>
+    </table>
+  </section>
+
+  <!-- ==================== 10 状态与异常 ==================== -->
+  <section id="states">
+    <h2><span class="no">10</span>状态与异常</h2>
+    <div class="section-sub">所有列表页必须具备四种状态；写操作具备提交中/成功/失败反馈。</div>
+    <table>
+      <tr><th>场景</th><th>表现</th></tr>
+      <tr><td>加载中</td><td>骨架屏（<code>#EFE6DC</code> 块，带呼吸动画），不使用转圈加载遮住整页超过 1 秒</td></tr>
+      <tr><td>刷新</td><td>骨架只在<b>首次进入</b>或<b>查询条件变化</b>（如记录页切换筛选、分类变化）时出现；切回 tab、从子页面返回、下拉刷新、写操作后的刷新都保留现有内容、数据回来原地替换，不重铺骨架。静默刷新失败保留上次数据，只有首次加载失败才进入「加载失败」状态</td></tr>
+      <tr><td>空列表</td><td>暖色插图占位 + 一句说明 + 主按钮动作（如「去点菜」），不允许空白页</td></tr>
+      <tr><td>加载失败</td><td>说明文案 +「重新加载」按钮；重试仍失败保留该状态</td></tr>
+      <tr><td>写操作提交中</td><td>触发按钮禁用并变进行态文案：确认弹层为「处理中…」（双按钮同时禁用、点遮罩不关闭），抽屉表单为「提交中…」。不使用全屏 <code>wx.showLoading</code> 遮住弹层</td></tr>
+      <tr><td>写操作成功</td><td>轻提示 toast（位于底部导航上方 96，停留 2 秒）+ 关闭弹层并刷新数据</td></tr>
+      <tr><td>写操作失败/网络错误</td><td>toast 显示失败原因；数据不落地，用户可重试。首版不做离线缓存与离线同步</td></tr>
+      <tr><td>无搜索结果</td><td>「没有找到含『鸡』的食材，换个关键词试试」+ 清空搜索按钮</td></tr>
+      <tr><td>重复提交</td><td>点菜等关键操作带唯一请求标识，重复点击/网络重试不产生重复记录</td></tr>
+      <tr><td>家庭已解散</td><td>统一锁定页：说明 +「创建新家庭」「加入家庭」两个入口，阻断一切家庭数据访问</td></tr>
+    </table>
+
+    <h3>10.1 骨架块对照</h3>
+    <div class="section-sub">骨架块是纯色块，<b>高度必须等于真实内容高度</b>，否则加载完成时列表会跳动。块数按首屏可见量取整，不追求与真实条数一致。</div>
+    <table>
+      <tr><th>页面</th><th>骨架构成</th></tr>
+      <tr><td>首页</td><td>双列菜品卡 × 6，单块 210 高、圆角 12、间距 12</td></tr>
+      <tr><td>记录</td><td>记录卡 × 5，单块 92 高、圆角 12、间距 10</td></tr>
+      <tr><td>购物</td><td>「待购买」标题条 1 条（48×14、圆角 7）+ 食材行 × 6，单行 70 高、圆角 12、间距 8</td></tr>
+      <tr><td>我的</td><td>身份卡 80 + 功能组 270 + 设置组 108 + 关于组 54（1 行），间距 12</td></tr>
+      <tr><td>菜谱详情</td><td>封面块 1 + 文字行 2（长短各一），圆角 12 / 6</td></tr>
+      <tr><td>菜品编辑</td><td>文字行 1 + 表单卡块 1</td></tr>
+      <tr><td>菜品管理</td><td>菜品行 × 5，单块 64 高、圆角 12、间距 8。<b>「在用 / 已归档」标签在滚动区之外吸顶</b>，不随列表滚动（与记录页筛选、购物页看板同一套「固定顶区 + scroll-view 列表」结构）</td></tr>
+      <tr><td>分类管理</td><td>分类行 × 5，单块 52 高、圆角 12、间距 8</td></tr>
+      <tr><td>家庭成员</td><td>成员卡整块 216（按 3 行 × 72 估算），圆角 12</td></tr>
+    </table>
+  </section>
+
+  <!-- ==================== 11 开发交接 ==================== -->
+  <section id="handoff">
+    <h2><span class="no">11</span>开发交接说明</h2>
+    <div class="section-sub">给小程序开发的落地约定。</div>
+    <table>
+      <tr><th>项</th><th>约定</th></tr>
+      <tr><td>单位</td><td>本文 pt 数值 ×2 即为 rpx（750rpx 设计宽）。字号、间距同理换算</td></tr>
+      <tr><td>字体</td><td>系统字体栈；字重 400/500；<code>wx.loadFontFace</code> 首版不使用</td></tr>
+      <tr><td>颜色</td><td>全部取自第 01 节令牌，WXSS 中以 CSS 变量集中定义（支持的库版本）或统一 less/scss 变量</td></tr>
+      <tr><td>阴影</td><td>仅 <code>0 2 8 rgba(59,43,35,0.06)</code> 一档，卡片与弹窗使用</td></tr>
+      <tr><td>图片</td><td>菜品图统一 4:3 裁切，服务端/CDN 返回 <code>w=500</code> 缩略；详情大图 <code>w=750</code></td></tr>
+      <tr><td>安全区</td><td>底部固定元素统一用 <code>env(safe-area-inset-bottom)</code> 适配</td></tr>
+      <tr><td>图标</td><td>线性图标一套，20/24 两档，线宽 1.5pt 等比；不允许混用面性图标</td></tr>
+      <tr><td>交互动效</td><td>仅两类：页面切换 200ms 缓动；弹层上滑 250ms。不做炫技动效</td></tr>
+      <tr><td>可访问性</td><td>主要按钮最小热区 44；文字对比度 ≥ 4.5:1（secondary 文字仅用于非关键信息）</td></tr>
+    </table>
+    <div class="footer-note">本文档与可点击原型 index.html 配套使用。标注稿为设计基线，开发中如发现实现成本问题，先在群内对齐再偏离，不允许静默改值。</div>
+  </section>
+
+  <!-- ==================== 12 冲突裁决同步 ==================== -->
+  <section id="decisions">
+    <h2><span class="no">12</span>冲突裁决同步</h2>
+    <div class="section-sub">2026-11-08 确认，四项差异全部采用方案 A。下表为实施约束，与本文其他章节同等效力。</div>
+    <table>
+      <tr><th>编号</th><th>裁决结果</th><th>本文已同步位置</th></tr>
+      <tr><td>D1</td><td>餐次<b>选填</b>：默认不选中，未选不写入字段，不阻断提交</td><td>06 点菜确认弹层 · SVG ③ 与标注 ③</td></tr>
+      <tr><td>D2</td><td>家庭名称创建时必填 1–12 字；创建者、管理员可改名</td><td>09 我的与家庭管理 · 标注 ③</td></tr>
+      <tr><td>D3</td><td><b>已作废</b>：首版不做订阅通知，订阅开关删除</td><td>09 我的与家庭管理 · 标注 ③</td></tr>
+      <tr><td>D4</td><td>邀请码为 6 位字母数字（32 字符集），输入统一转大写</td><td>09 我的与家庭管理 · 标注 ③</td></tr>
+    </table>
+    <div class="footer-note">本版为 v1.4。v1.0 中「餐次必选一项才能提交」的表述已作废；v1.1 中的订阅通知开关、通知汇总行已删除；v1.2 新增记录页常驻分享按钮规格（标注 ⑥）。v1.3 修正两处实现偏差：分享按钮改用具体半径并在真机按 bottom:16px 定位（原生 tabBar 不占页面坐标系），购物页与分类页的手工添加 FAB 由右下角改为水平居中、加号改用线条绘制以保证居中。v1.4 对齐近期实现：2.3 弹窗规格按 <code>confirm-modal</code> 组件重写（取消文案「再想想」、提交中「处理中…」、禁止 <code>wx.showModal</code>）；退出/解散由「我的」页移到家庭成员页，新增 9.1 家庭成员页与 9.2 关于页；「我的」页末组改为「关于」；03 节 tabBar 高度按 50 计并补进入型页面悬浮按钮避让规则；08 节补看板占位符与数字口径；10 节新增「刷新」规则与 10.1 骨架块对照（菜品管理、分类管理、家庭成员补骨架，菜品管理标签吸顶）；9.2 附关于页标注图。v1.4 起本文档与可点击原型一并纳入仓库 <code>docs/ui/</code>。项目名统一为 FamilyDish。</div>
+  </section>
+
+  </div>
+</div>
+</body>
+</html>

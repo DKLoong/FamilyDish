@@ -70,7 +70,7 @@
 
 ### 设计规范
 
-暖木厨房风格：页面背景 `#FAF5EE`、卡片 `#FFFFFF`、主色 `#C9663B`、正文 `#3B2B23`、边框 `#E7D9CB`、辅助绿 `#708B57`。基线 `app.wxss` 的绿色主题 `--primary-color: #6FCF97` 需整体替换。尺寸、圆角、状态与 1pt = 2rpx 换算见 `../family-menu-ui-prototype/design-spec.html`。
+暖木厨房风格：页面背景 `#FAF5EE`、卡片 `#FFFFFF`、主色 `#C9663B`、正文 `#3B2B23`、边框 `#E7D9CB`、辅助绿 `#708B57`。基线 `app.wxss` 的绿色主题 `--primary-color: #6FCF97` 需整体替换。尺寸、圆角、状态与 1pt = 2rpx 换算见 `docs/ui/design-spec.html`。
 
 ### 页面数据加载约定
 
@@ -123,8 +123,8 @@
 | --- | --- |
 | `../家庭点菜小程序改造需求文稿.md` | 产品规则、角色权限、36 项验收用例 |
 | `../家庭点菜小程序实施方案.md` | 架构、数据模型、云函数契约、M0–M7 里程碑 |
-| `../family-menu-ui-prototype/design-spec.html` | UI 设计令牌与 6 张标注稿 |
-| `../family-menu-ui-prototype/index.html` | 可点击 HTML 原型 |
+| `docs/ui/design-spec.html` | UI 设计令牌与 6 张标注稿 |
+| `docs/ui/index.html` | 可点击 HTML 原型 |
 | `../家庭点菜小程序实施总览.html` | 架构图与风险总览 |
 | `../家庭点菜小程序M0环境开通指引.html` | 项目导入、云环境、体验成员操作指引 |
 

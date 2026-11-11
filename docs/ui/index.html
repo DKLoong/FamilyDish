@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FamilyDish · 可点击 UI 原型</title>
+  <style>
+    :root {
+      --bg: #FAF5EE;
+      --card: #FFFFFF;
+      --warm: #F4E6D7;
+      --warm-strong: #EAD8C5;
+      --primary: #C9663B;
+      --primary-dark: #A9532F;
+      --primary-soft: #FFF0E7;
+      --text: #3B2B23;
+      --muted: #7B685C;
+      --faint: #A58F80;
+      --border: #E7D9CB;
+      --green: #708B57;
+      --green-dark: #536B3B;
+      --green-soft: #EDF2E7;
+      --danger: #B3473E;
+      --danger-soft: #FCEBE9;
+      --shadow: rgba(59, 43, 35, 0.16);
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { margin: 0; min-height: 100%; }
+
+    body {
+      background: #F1EFE8;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { border: 0; background: none; cursor: pointer; padding: 0; }
+    button:disabled { cursor: not-allowed; opacity: 0.58; }
+    p, h1, h2, h3 { margin: 0; }
+
+    .prototype-layout {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+    }
+
+    .guide {
+      padding: 34px 30px;
+      border-right: 0.5px solid #D8D4CA;
+    }
+
+    .guide-label {
+      display: inline-flex;
+      align-items: center;
+      height: 26px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--warm);
+      color: #7A4E2D;
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+
+    .guide h1 {
+      font-size: 24px;
+      line-height: 1.35;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    .guide .intro {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 22px;
+    }
+
+    .guide h2 {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    .guide ol {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .guide li { margin: 8px 0; }
+    .guide strong { color: var(--text); font-weight: 500; }
+
+    .guide-note {
+      margin-top: 24px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #FFFFFF;
+      border: 0.5px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .reset-demo {
+      margin-top: 18px;
+      width: 100%;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--text);
+      color: #FFFFFF;
+      font-size: 13px;
+    }
+
+    .phone-stage {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+    }
+
+    .phone {
+      position: relative;
+      width: min(430px, 100%);
+      height: min(860px, calc(100vh - 52px));
+      min-height: 700px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      border: 10px solid var(--text);
+      border-radius: 38px;
+    }
+
+    .screen {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 16px 104px;
+      scrollbar-width: none;
+    }
+
+    .screen::-webkit-scrollbar { display: none; }
+    .phone.hide-tabs .screen { padding-bottom: 24px; }
+
+    .tabbar {
+      position: absolute;
+      z-index: 12;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 76px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+      padding: 7px 8px 13px;
+      background: var(--card);
+      border-top: 0.5px solid var(--border);
+    }
+
+    .phone.hide-tabs .tabbar { display: none; }
+
+    .tabbar button {
+      border-radius: 10px;
+      color: var(--faint);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 11px;
+    }
+
+    .tabbar button.active { color: var(--primary); background: var(--primary-soft); }
+    .tabbar svg { width: 22px; height: 22px; }
+
+    .share-fab {
+      position: absolute; z-index: 11; bottom: 92px; left: 50%;
+      transform: translateX(-50%);
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--primary); color: #FFFFFF;
+      display: none; align-items: center; justify-content: center;
+      box-shadow: 0 6px 18px rgba(201,102,59,.32);
+    }
+    .share-fab svg { width: 24px; height: 24px; }
+    .phone.show-share .share-fab { display: flex; }
+    .screen.with-share-fab { padding-bottom: 164px; }
+
+    .page-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 48px;
+      margin-bottom: 12px;
+    }
+
+    .back-btn {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      border-radius: 10px;
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+    }
+
+    .page-title { font-size: 18px; line-height: 26px; font-weight: 500; }
+    .page-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .head-spacer { flex: 1; }
+
+    .icon-btn {
+      height: 38px;
+      min-width: 38px;
+      padding: 0 11px;
+      border-radius: 10px;
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      font-size: 12px;
+    }
+
+    .home-hero {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px;
+      border-radius: 18px;
+      background: var(--warm);
+      margin-bottom: 14px;
+    }
+
+    .greeting { font-size: 20px; line-height: 28px; font-weight: 500; }
+    .hero-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 500;
+      flex: 0 0 auto;
+    }
+
+    .search-box {
+      height: 44px;
+      border-radius: 12px;
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      margin-bottom: 12px;
+      color: var(--faint);
+    }
+
+    .search-box svg { width: 18px; height: 18px; flex: 0 0 auto; }
+    .search-box input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 14px; color: var(--text); }
+    .search-box input::placeholder { color: var(--faint); }
+
+    .chip-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: 14px;
+      scrollbar-width: none;
+    }
+
+    .chip-row::-webkit-scrollbar { display: none; }
+
+    .chip {
+      height: 32px;
+      flex: 0 0 auto;
+      padding: 0 13px;
+      border-radius: 999px;
+      background: var(--warm);
+      color: #7A4E2D;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chip.plain { background: var(--card); border: 0.5px solid var(--border); color: var(--muted); }
+    .chip.active { background: var(--primary); color: #FFFFFF; }
+
+    .random-card {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 14px;
+      background: var(--text);
+      color: #FFFFFF;
+      margin-bottom: 18px;
+      text-align: left;
+    }
+
+    .random-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+    }
+
+    .random-icon svg { width: 20px; height: 20px; }
+    .random-title { font-size: 14px; font-weight: 500; }
+    .random-sub { font-size: 12px; color: #D8CCC0; margin-top: 2px; }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .section-title { font-size: 15px; line-height: 22px; font-weight: 500; }
+    .section-action { color: var(--primary); font-size: 12px; }
+
+    .dish-list { display: grid; gap: 10px; }
+
+    .dish-card {
+      width: 100%;
+      display: flex;
+      gap: 12px;
+      padding: 11px;
+      border-radius: 14px;
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      text-align: left;
+      align-items: center;
+    }
+
+    .dish-art {
+      width: 96px;
+      height: 78px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      overflow: hidden;
+      position: relative;
+      background: #E5BD98;
+    }
+
+    .dish-art.art-2 { background: #D7B28E; }
+    .dish-art.art-3 { background: #C9CFA3; }
+    .dish-art.art-4 { background: #B9D38B; }
+    .dish-art.art-5 { background: #D8C59F; }
+
+    .food-plate {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 7px solid rgba(255, 255, 255, 0.62);
+      position: relative;
+    }
+
+    .food-plate::after {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      top: 10px;
+      left: 9px;
+      opacity: 0.82;
+    }
+
+    .dish-info { flex: 1; min-width: 0; }
+    .dish-name { font-size: 15px; line-height: 22px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dish-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .dish-desc { font-size: 12px; color: var(--faint); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tag-row { display: flex; gap: 6px; margin-top: 7px; }
+
+    .mini-tag {
+      height: 22px;
+      padding: 0 7px;
+      border-radius: 999px;
+      background: var(--warm);
+      color: #7A4E2D;
+      font-size: 11px;
+      line-height: 22px;
+    }
+
+    .hero-image {
+      height: 210px;
+      border-radius: 18px;
+      background: #E5BD98;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-image .food-plate { width: 112px; height: 112px; border-width: 14px; }
+    .hero-image .food-plate::after { width: 38px; height: 38px; top: 18px; left: 16px; }
+
+    .dish-title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .dish-title { font-size: 20px; line-height: 28px; font-weight: 500; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 7px; margin: 9px 0 10px; }
+    .meta-pill { height: 26px; padding: 0 9px; border-radius: 999px; background: var(--warm); color: #7A4E2D; font-size: 11px; line-height: 26px; }
+    .description { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+
+    .section { margin-top: 18px; }
+    .section-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+    .section-label h3 { font-size: 15px; font-weight: 500; }
+    .section-hint { font-size: 12px; color: var(--faint); }
+
+    .ingredient-list, .step-list, .record-list, .shop-list, .menu-list { display: grid; gap: 8px; }
+
+    .ingredient-row {
+      min-height: 48px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 11px;
+      border-radius: 12px;
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      text-align: left;
+    }
+
+    .check-circle {
+      width: 22px;
+      height: 22px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .check-circle svg { width: 12px; height: 12px; opacity: 0; }
+    .ingredient-row.prepared .check-circle { background: var(--green); border-color: var(--green); color: #FFFFFF; }
+    .ingredient-row.prepared .check-circle svg { opacity: 1; }
+    .shop-row.purchased .check-circle { background: var(--green); border-color: var(--green); color: #FFFFFF; }
+    .shop-row.purchased .check-circle svg { opacity: 1; }
+    .back-btn svg, .icon-btn svg { width: 17px; height: 17px; flex: 0 0 auto; }
+    .chevron svg { width: 16px; height: 16px; }
+    .ingredient-name { flex: 1; min-width: 0; font-size: 14px; }
+    .ingredient-amount { font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .ingredient-row.prepared .ingredient-name { color: var(--green-dark); }
+
+    .clear-link { color: var(--primary); font-size: 12px; }
+
+    .step-card {
+      border-radius: 13px;
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      padding: 12px;
+    }
+
+    .step-top { display: flex; align-items: flex-start; gap: 9px; }
+    .step-no {
+      width: 28px;
+      height: 28px;
+      border-radius: 9px;
+      background: var(--warm);
+      color: #7A4E2D;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 500;
+      flex: 0 0 auto;
+    }
+
+    .step-text { flex: 1; font-size: 14px; }
+    .timer-btn {
+      height: 34px;
+      padding: 0 10px;
+      border-radius: 9px;
+      background: var(--warm);
+      color: #7A4E2D;
+      font-size: 12px;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .timer-btn svg { width: 14px; height: 14px; flex: 0 0 auto; }
+    .timer-btn.active { background: var(--primary); color: #FFFFFF; }
+    .timer-panel { margin-top: 10px; padding: 10px; border-radius: 10px; background: var(--bg); }
+    .timer-line { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); }
+    .timer-time { color: var(--primary); font-size: 14px; font-weight: 500; }
+    .progress { height: 6px; border-radius: 999px; background: var(--warm-strong); overflow: hidden; margin-top: 8px; }
+    .progress span { display: block; height: 100%; width: 0%; background: var(--primary); border-radius: inherit; }
+
+    .tips-card {
+      padding: 12px;
+      border-radius: 12px;
+      background: var(--primary-soft);
+      color: #7A4E2D;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .cta-dock {
+      position: sticky;
+      bottom: 12px;
+      z-index: 8;
+      margin-top: 22px;
+      padding: 10px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 0.5px solid var(--border);
+    }
+
+    .cta-summary { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .primary-btn, .secondary-btn, .danger-btn {
+      width: 100%;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .primary-btn { background: var(--primary); color: #FFFFFF; }
+    .primary-btn:active { background: var(--primary-dark); }
+    .secondary-btn { background: var(--warm); color: #7A4E2D; }
+    .danger-btn { background: var(--danger); color: #FFFFFF; }
+
+    .filter-row { display: flex; gap: 8px; margin-bottom: 13px; }
+    .record-card, .shop-card, .profile-card, .menu-item, .member-card, .manage-row {
+      border-radius: 14px;
+      background: var(--card);
+      border: 0.5px solid var(--border);
+    }
+
+    .record-card {
+      width: 100%;
+      padding: 12px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .record-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .record-dish { font-size: 15px; font-weight: 500; }
+    .record-sub { margin-top: 5px; color: var(--muted); font-size: 12px; }
+    .record-notice { margin-top: 6px; color: var(--faint); font-size: 11px; }
+
+    .status-chip {
+      height: 26px;
+      padding: 0 9px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      flex: 0 0 auto;
+    }
+
+    .status-chip.pending { background: var(--primary-soft); color: var(--primary-dark); }
+    .status-chip.done { background: var(--green-soft); color: var(--green-dark); }
+    .status-chip.cancelled { background: #F3ECE8; color: #8D756C; }
+
+    .record-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .small-btn {
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 9px;
+      background: var(--warm);
+      color: #7A4E2D;
+      font-size: 12px;
+    }
+
+    .small-btn.green { background: var(--green-soft); color: var(--green-dark); }
+    .small-btn.danger { background: var(--danger-soft); color: var(--danger); }
+
+    .shop-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 13px 14px;
+      border-radius: 14px;
+      background: var(--warm);
+      margin-bottom: 12px;
+    }
+
+    .shop-summary strong { font-size: 18px; font-weight: 500; display: block; }
+    .shop-summary span { font-size: 12px; color: #7A4E2D; }
+
+    .shop-row {
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 11px;
+      border-radius: 12px;
+      background: var(--card);
+      border: 0.5px solid var(--border);
+    }
+
+    .shop-row.purchased { background: #FBF7F2; }
+    .shop-row.purchased .shop-name { color: var(--faint); text-decoration: line-through; }
+    .shop-name { flex: 1; min-width: 0; font-size: 14px; }
+    .shop-amount { font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .source-tag { height: 22px; padding: 0 7px; border-radius: 999px; background: var(--warm); color: #7A4E2D; font-size: 11px; line-height: 22px; }
+    .delete-btn { width: 30px; height: 30px; border-radius: 8px; color: var(--faint); display: flex; align-items: center; justify-content: center; }
+    .delete-btn svg { width: 16px; height: 16px; }
+
+    .profile-card { padding: 15px; display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+    .profile-main { flex: 1; min-width: 0; }
+    .profile-name { font-size: 17px; font-weight: 500; }
+    .profile-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    .menu-list { gap: 9px; }
+    .menu-item {
+      width: 100%;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 12px;
+      text-align: left;
+    }
+
+    .menu-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--warm);
+      color: #7A4E2D;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+    }
+
+    .menu-icon svg { width: 19px; height: 19px; }
+    .menu-text { flex: 1; min-width: 0; }
+    .menu-title { font-size: 14px; }
+    .menu-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .chevron { color: var(--faint); }
+
+    .member-card { padding: 12px; margin-bottom: 8px; }
+    .member-top { display: flex; align-items: center; gap: 10px; }
+    .member-name { font-size: 14px; font-weight: 500; }
+    .member-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .role-chip { height: 24px; padding: 0 8px; border-radius: 999px; background: var(--warm); color: #7A4E2D; font-size: 11px; line-height: 24px; }
+    .member-actions { display: flex; gap: 8px; margin-top: 10px; padding-left: 48px; }
+
+    .manage-row { padding: 11px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; }
+    .manage-art { width: 58px; height: 52px; border-radius: 9px; background: #E5BD98; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+    .manage-art .food-plate { width: 32px; height: 32px; border-width: 4px; }
+    .manage-art .food-plate::after { width: 11px; height: 11px; border-width: 0; top: 7px; left: 5px; }
+    .manage-info { flex: 1; min-width: 0; }
+    .manage-actions { display: flex; gap: 6px; }
+
+    .tiny-btn { height: 30px; padding: 0 9px; border-radius: 8px; background: var(--warm); color: #7A4E2D; font-size: 11px; }
+    .tiny-btn.danger { background: var(--danger-soft); color: var(--danger); }
+
+    .form-card { padding: 14px; border-radius: 16px; background: var(--card); border: 0.5px solid var(--border); display: grid; gap: 12px; }
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: 12px; color: var(--muted); }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      min-height: 42px;
+      padding: 9px 10px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .field textarea { min-height: 74px; resize: vertical; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--primary); }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+
+    .empty-state {
+      padding: 32px 20px;
+      border-radius: 16px;
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty-plate {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      margin: 0 auto 12px;
+      background: var(--bg);
+      border: 8px solid var(--warm);
+    }
+
+    .empty-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 5px; }
+    .empty-sub { font-size: 12px; line-height: 1.6; }
+
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      background: rgba(59, 43, 35, 0.36);
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .modal {
+      width: 100%;
+      max-height: 86%;
+      overflow-y: auto;
+      background: var(--card);
+      border-radius: 20px 20px 0 0;
+      padding: 18px 16px 20px;
+      scrollbar-width: none;
+    }
+
+    .modal::-webkit-scrollbar { display: none; }
+    .modal-handle { width: 38px; height: 4px; border-radius: 999px; background: var(--warm-strong); margin: 0 auto 14px; }
+    .modal-title { font-size: 17px; line-height: 25px; font-weight: 500; margin-bottom: 6px; }
+    .modal-sub { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 14px; }
+    .modal-actions { display: flex; gap: 9px; margin-top: 15px; }
+
+    .modal-form { display: grid; gap: 11px; }
+    .order-summary {
+      padding: 10px 12px;
+      border-radius: 11px;
+      background: var(--bg);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .invite-code {
+      padding: 15px;
+      border-radius: 14px;
+      background: var(--bg);
+      text-align: center;
+      font-size: 26px;
+      letter-spacing: 4px;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    .range-row { display: flex; align-items: center; gap: 12px; }
+    .range-row input { flex: 1; accent-color: var(--primary); }
+    .range-value { width: 42px; text-align: right; font-size: 16px; font-weight: 500; }
+
+    .toast {
+      position: absolute;
+      z-index: 70;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-12px);
+      max-width: calc(100% - 40px);
+      padding: 9px 13px;
+      border-radius: 999px;
+      background: var(--text);
+      color: #FFFFFF;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .locked-card { margin-top: 90px; text-align: center; padding: 26px 20px; }
+    .locked-card .empty-plate { margin-bottom: 16px; }
+    .locked-actions { display: grid; gap: 10px; margin-top: 18px; }
+
+    @media (max-width: 860px) {
+      .prototype-layout { grid-template-columns: 1fr; }
+      .guide { border-right: 0; border-bottom: 0.5px solid #D8D4CA; padding: 24px 20px; }
+      .guide ol { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 4px 18px; }
+      .phone-stage { padding: 20px 12px; }
+      .phone { height: min(840px, calc(100vh - 40px)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="prototype-layout">
+    <aside class="guide">
+      <div class="guide-label">暖木厨房 · 可点击原型</div>
+      <h1>家庭点菜小程序</h1>
+      <p class="intro">此原型用于验证首版流程、信息层级和关键交互。它不是微信小程序实现代码。</p>
+      <h2>建议验证路径</h2>
+      <ol>
+        <li><strong>选菜：</strong>搜索菜名或食材，点击菜品。</li>
+        <li><strong>点菜：</strong>勾选食材，确认日期、餐次和备注。</li>
+        <li><strong>记录：</strong>完成或取消点菜，点击底部圆形按钮分享给家人。</li>
+        <li><strong>购物：</strong>查看合并食材，勾选购入，手工添加。</li>
+        <li><strong>管理：</strong>邀请成员、管理菜品、调整人数上限、修改家庭名称。</li>
+      </ol>
+      <div class="guide-note">当前演示身份：妈妈（创建者）。因此同时显示管理入口和普通成员入口。点击手机外灰色区域不会触发手机内操作。<br><br>v1.2 已同步 S1 裁决：首版取消订阅通知；记录页新增常驻圆形分享按钮（纯图标，居中于导航栏上方）；点菜成功提示「已点菜，可分享给家人」。项目名 FamilyDish。</div>
+      <button class="reset-demo" id="resetDemo">重置演示数据</button>
+    </aside>
+
+    <main class="phone-stage">
+      <div class="phone" id="phone">
+        <main class="screen" id="screen"></main>
+        <button class="share-fab" id="shareFab" data-action="shareRecords" aria-label="分享给家人" title="分享给家人">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10"/><path d="M8 7l4-4 4 4"/><path d="M6 12v7h12v-7"/></svg>
+        </button>
+        <nav class="tabbar" id="tabbar" aria-label="底部导航"></nav>
+        <div id="overlay"></div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const screenEl = document.getElementById('screen');
+    const tabbarEl = document.getElementById('tabbar');
+    const phoneEl = document.getElementById('phone');
+    const overlayEl = document.getElementById('overlay');
+    const toastEl = document.getElementById('toast');
+
+    const INVITE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    function generateInviteCode() {
+      let code = '';
+      for (let i = 0; i < 6; i++) code += INVITE_CHARS.charAt(Math.floor(Math.random() * INVITE_CHARS.length));
+      return code;
+    }
+
+    const initialData = {
+      family: { name: '林家', maxMembers: 10, inviteCode: 'K7M2P9', inviteDays: 3, status: 'active' },
+      currentUser: { id: 'u1', name: '妈妈', role: 'owner' },
+      members: [
+        { id: 'u1', name: '妈妈', role: 'owner', joinedAt: '2026-11-01' },
+        { id: 'u2', name: '爸爸', role: 'admin', joinedAt: '2026-11-02' },
+        { id: 'u3', name: '小禾', role: 'member', joinedAt: '2026-11-03' }
+      ],
+      categories: ['家常菜', '汤羹', '轻食'],
+      dishes: [
+        {
+          id: 'd1', name: '番茄炖牛腩', category: '家常菜', time: 45, difficulty: '中等', art: 'art-1', archived: false,
+          description: '酸甜开胃，汤汁适合拌饭。',
+          ingredients: [
+            { key: 'i1', name: '牛腩', quantity: 500, unit: 'g', note: '' },
+            { key: 'i2', name: '番茄', quantity: 2, unit: '个', note: '' },
+            { key: 'i3', name: '洋葱', quantity: 1, unit: '个', note: '' },
+            { key: 'i4', name: '盐', quantity: null, unit: '', note: '适量' },
+            { key: 'i5', name: '生抽', quantity: 2, unit: '勺', note: '' }
+          ],
+          steps: [
+            { text: '牛腩切块，冷水下锅焯去浮沫。', minutes: 10 },
+            { text: '番茄和洋葱下锅炒出汤汁。', minutes: 8 },
+            { text: '加入牛腩和热水，中火炖至软烂。', minutes: 30 }
+          ],
+          tips: '番茄先冷冻再切，更容易炒出汁。'
+        },
+        {
+          id: 'd2', name: '可乐鸡翅', category: '家常菜', time: 30, difficulty: '简单', art: 'art-2', archived: false,
+          description: '甜香入味，孩子接受度高。',
+          ingredients: [
+            { key: 'i1', name: '鸡翅', quantity: 500, unit: 'g', note: '' },
+            { key: 'i2', name: '可乐', quantity: 1, unit: '罐', note: '' },
+            { key: 'i3', name: '姜片', quantity: null, unit: '', note: '适量' }
+          ],
+          steps: [
+            { text: '鸡翅两面划口，煎至表面微黄。', minutes: 8 },
+            { text: '加入可乐和姜片，中小火烧至收汁。', minutes: 20 }
+          ],
+          tips: '收汁时观察火候，避免糖色发苦。'
+        },
+        {
+          id: 'd3', name: '紫菜蛋花汤', category: '汤羹', time: 12, difficulty: '简单', art: 'art-3', archived: false,
+          description: '快手汤品，适合搭配主食。',
+          ingredients: [
+            { key: 'i1', name: '鸡蛋', quantity: 2, unit: '个', note: '' },
+            { key: 'i2', name: '紫菜', quantity: null, unit: '', note: '适量' },
+            { key: 'i3', name: '香油', quantity: 1, unit: '勺', note: '' }
+          ],
+          steps: [
+            { text: '水开后放入紫菜。', minutes: 3 },
+            { text: '淋入蛋液，关火后滴香油。', minutes: 2 }
+          ],
+          tips: '蛋液淋入后不要马上搅拌，蛋花更完整。'
+        },
+        {
+          id: 'd4', name: '上汤西兰花', category: '轻食', time: 15, difficulty: '简单', art: 'art-4', archived: false,
+          description: '清爽少油，保留蔬菜口感。',
+          ingredients: [
+            { key: 'i1', name: '西兰花', quantity: 1, unit: '颗', note: '' },
+            { key: 'i2', name: '蒜', quantity: null, unit: '', note: '适量' }
+          ],
+          steps: [
+            { text: '西兰花焯水 1 分钟，捞出沥干。', minutes: 4 },
+            { text: '蒜末炒香，加入西兰花快炒。', minutes: 5 }
+          ],
+          tips: '焯水时加少量盐，颜色更绿。'
+        },
+        {
+          id: 'd5', name: '清蒸鲈鱼', category: '家常菜', time: 20, difficulty: '简单', art: 'art-5', archived: false,
+          description: '鲜味突出，做法稳定。',
+          ingredients: [
+            { key: 'i1', name: '鲈鱼', quantity: 1, unit: '条', note: '' },
+            { key: 'i2', name: '葱姜', quantity: null, unit: '', note: '适量' },
+            { key: 'i3', name: '蒸鱼豉油', quantity: 2, unit: '勺', note: '' }
+          ],
+          steps: [
+            { text: '鱼身铺葱姜，水开后上锅。', minutes: 10 },
+            { text: '倒掉盘中汁水，淋热油和豉油。', minutes: 3 }
+          ],
+          tips: '蒸好后的汁水腥味较重，建议倒掉。'
+        }
+      ],
+      records: [
+        {
+          id: 'r2', dishId: 'd5', dishName: '清蒸鲈鱼', snapshot: null, orderer: '妈妈', date: '今天', meal: '晚餐', note: '',
+          status: 'done', createdAt: '昨天 18:20'
+        },
+        {
+          id: 'r1', dishId: 'd2', dishName: '可乐鸡翅', snapshot: null, orderer: '爸爸', date: '今天', meal: '午餐', note: '少放糖',
+          status: 'pending', createdAt: '今天 11:05'
+        }
+      ],
+      shopping: [
+        { id: 's1', orderId: 'r1', dishId: 'd2', name: '鸡翅', quantity: 500, unit: 'g', note: '', purchased: false, createdBy: '爸爸' },
+        { id: 's2', orderId: 'r1', dishId: 'd2', name: '可乐', quantity: 1, unit: '罐', note: '', purchased: false, createdBy: '爸爸' },
+        { id: 's3', orderId: null, dishId: null, name: '牛奶', quantity: 1, unit: '盒', note: '', purchased: false, createdBy: '妈妈' }
+      ]
+    };
+
+    let state;
+    let view = 'home';
+    let currentDishId = null;
+    let currentRecordId = null;
+    let editingDishId = null;
+    let category = '全部';
+    let searchText = '';
+    let recordFilter = '全部';
+    let prepared = {};
+    let timer = { dishId: null, stepIndex: null, endAt: null, total: 0 };
+    let toastTimer = null;
+
+    function clone(value) { return JSON.parse(JSON.stringify(value)); }
+
+    function resetState() {
+      state = clone(initialData);
+      state.records.forEach(record => {
+        const dish = state.dishes.find(item => item.id === record.dishId);
+        record.snapshot = clone(dish);
+      });
+      view = 'home';
+      currentDishId = null;
+      currentRecordId = null;
+      editingDishId = null;
+      category = '全部';
+      searchText = '';
+      recordFilter = '全部';
+      prepared = {};
+      timer = { dishId: null, stepIndex: null, endAt: null, total: 0 };
+      closeModal();
+      render();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+    }
+
+    function icon(name) {
+      const paths = {
+        home: '<path d="M4 11L12 4l8 7"/><path d="M6.5 9.5V20h11V9.5"/><path d="M10 20v-5h4v5"/>',
+        records: '<path d="M7 4h10a2 2 0 0 1 2 2v14H5V6a2 2 0 0 1 2-2Z"/><path d="M9 9h6M9 13h6M9 17h4"/>',
+        cart: '<path d="M5 6h2l2 11h9l2-8H8"/><circle cx="10" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>',
+        user: '<circle cx="12" cy="8" r="3.5"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/>',
+        back: '<path d="M15 5l-7 7 7 7"/>',
+        search: '<circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/>',
+        random: '<path d="M4 7h4l8 10h4"/><path d="M4 17h4l2-2.5"/><path d="M13 9.5L16 7h4"/><path d="M17 4l3 3-3 3"/><path d="M17 14l3 3-3 3"/>',
+        plus: '<path d="M12 5v14M5 12h14"/>',
+        clock: '<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>',
+        users: '<circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M16 5.5a3 3 0 0 1 0 5.8"/><path d="M17 13.5a5.5 5.5 0 0 1 3.5 5.5"/>',
+        dish: '<circle cx="12" cy="12" r="7"/><circle cx="10" cy="10" r="1.5"/><circle cx="14" cy="14" r="1.5"/>',
+        chevron: '<path d="M9 5l7 7-7 7"/>',
+        trash: '<path d="M5 7h14"/><path d="M9 7V5h6v2"/><path d="M8 7l1 13h6l1-13"/>',
+        check: '<path d="M5 12l4 4L19 6"/>',
+        share: '<path d="M12 4v10"/><path d="M8 7l4-4 4 4"/><path d="M6 12v7h12v-7"/>'
+      };
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths[name] + '</svg>';
+    }
+
+    function roleName(role) {
+      return { owner: '创建者', admin: '管理员', member: '普通成员' }[role] || '成员';
+    }
+
+    function isAdminUser() {
+      return ['owner', 'admin'].includes(state.currentUser.role);
+    }
+
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      toastEl.textContent = message;
+      toastEl.classList.add('show');
+      toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+    }
+
+    function pageHead(title, subtitle = '', backAction = 'back', actionHtml = '') {
+      const backButton = backAction ? '<button class="back-btn" data-action="' + backAction + '" aria-label="返回">' + icon('back') + '</button>' : '';
+      return '<div class="page-head">' + backButton + '<div><div class="page-title">' + title + '</div>' + (subtitle ? '<div class="page-sub">' + subtitle + '</div>' : '') + '</div><div class="head-spacer"></div>' + actionHtml + '</div>';
+    }
+
+    function getVisibleDishes() {
+      return state.dishes.filter(dish => !dish.archived);
+    }
+
+    function getPrepared(dishId, key) {
+      return Boolean(prepared[dishId] && prepared[dishId][key]);
+    }
+
+    function formatAmount(item) {
+      const quantity = item.quantity === null || item.quantity === undefined ? '' : item.quantity;
+      const unit = item.unit || '';
+      const note = item.note || '';
+      return [quantity + unit, note].filter(Boolean).join(' ') || '适量';
+    }
+
+    function dishCard(dish) {
+      const tags = dish.ingredients.slice(0, 2).map(item => '<span class="mini-tag">' + escapeHtml(item.name) + '</span>').join('');
+      return '<button class="dish-card" data-action="openDish" data-id="' + dish.id + '">' +
+        '<div class="dish-art ' + dish.art + '"><div class="food-plate"></div></div>' +
+        '<div class="dish-info"><div class="dish-name">' + escapeHtml(dish.name) + '</div>' +
+        '<div class="dish-meta">' + dish.time + ' 分钟 · ' + escapeHtml(dish.difficulty) + ' · ' + escapeHtml(dish.category) + '</div>' +
+        '<div class="dish-desc">' + escapeHtml(dish.description) + '</div>' +
+        '<div class="tag-row">' + tags + '</div></div></button>';
+    }
+
+    function filteredDishes() {
+      const keyword = searchText.trim();
+      const list = getVisibleDishes().filter(dish => {
+        if (category !== '全部' && dish.category !== category) return false;
+        if (!keyword) return true;
+        return dish.name.includes(keyword) || dish.ingredients.some(item => item.name.includes(keyword));
+      });
+      if (!keyword) return list;
+      // 菜名命中的排在仅食材命中的之前
+      return list.sort((a, b) => {
+        const rankA = a.name.includes(keyword) ? 2 : 1;
+        const rankB = b.name.includes(keyword) ? 2 : 1;
+        return rankB - rankA;
+      });
+    }
+
+    function homeDishListHtml() {
+      const dishes = filteredDishes();
+      if (!dishes.length) {
+        return '<div class="empty-state"><div class="empty-plate"></div><div class="empty-title">没有找到菜品</div><div class="empty-sub">试试更换食材关键词，或清除分类筛选。</div></div>';
+      }
+      return dishes.map(dishCard).join('');
+    }
+
+    function viewHome() {
+      const categoryChips = ['全部'].concat(state.categories).map(item => '<button class="chip ' + (category === item ? 'active' : 'plain') + '" data-action="setCategory" data-value="' + escapeHtml(item) + '">' + escapeHtml(item) + '</button>').join('');
+      return '<div class="home-hero"><div><div class="greeting">晚上好，' + escapeHtml(state.family.name) + '</div><div class="hero-sub">' + state.members.length + ' 位成员 · 今天也好好吃饭</div></div><div class="avatar">' + escapeHtml(state.currentUser.name.slice(0, 1)) + '</div></div>' +
+        '<label class="search-box">' + icon('search') + '<input id="ingredientSearch" value="' + escapeHtml(searchText) + '" placeholder="搜索菜名或食材，如“红烧”"></label>' +
+        '<div class="chip-row">' + categoryChips + '</div>' +
+        '<button class="random-card" data-action="randomDish"><div class="random-icon">' + icon('random') + '</div><div><div class="random-title">随机一下</div><div class="random-sub">不知道吃什么时，让家庭菜单帮你决定</div></div></button>' +
+        '<div class="section-head"><div class="section-title">家庭菜品</div>' + (isAdminUser() ? '<button class="section-action" data-action="goDishManage">管理</button>' : '') + '</div>' +
+        '<div class="dish-list" id="dishList">' + homeDishListHtml() + '</div>';
+    }
+
+    function ingredientRow(dish, item) {
+      const checked = getPrepared(dish.id, item.key);
+      return '<button class="ingredient-row ' + (checked ? 'prepared' : '') + '" data-action="togglePrepared" data-dish="' + dish.id + '" data-key="' + item.key + '">' +
+        '<span class="check-circle">' + icon('check') + '</span><span class="ingredient-name">' + escapeHtml(item.name) + '</span><span class="ingredient-amount">' + escapeHtml(formatAmount(item)) + '</span></button>';
+    }
+
+    function stepCard(dish, step, index) {
+      const active = timer.dishId === dish.id && timer.stepIndex === index;
+      const label = step.minutes ? step.minutes + ' 分钟' : '计时';
+      return '<div class="step-card"><div class="step-top"><div class="step-no">' + (index + 1) + '</div><div class="step-text">' + escapeHtml(step.text) + '</div><button class="timer-btn ' + (active ? 'active' : '') + '" data-action="startTimer" data-step="' + index + '" data-minutes="' + (step.minutes || 1) + '">' + icon('clock') + '<span>' + (active ? '计时中' : label) + '</span></button></div>' +
+        (active ? '<div class="timer-panel"><div class="timer-line"><span>当前步骤</span><span class="timer-time" data-timer-remain>--:--</span></div><div class="progress"><span data-timer-progress></span></div></div>' : '') + '</div>';
+    }
+
+    function viewDetail() {
+      const dish = state.dishes.find(item => item.id === currentDishId);
+      if (!dish) return viewHome();
+      const unpreparedCount = dish.ingredients.filter(item => !getPrepared(dish.id, item.key)).length;
+      return pageHead('菜谱详情', escapeHtml(dish.category), 'back') +
+        '<div class="hero-image ' + dish.art + '"><div class="food-plate"></div></div>' +
+        '<div class="dish-title-row"><div class="dish-title">' + escapeHtml(dish.name) + '</div><button class="icon-btn" data-action="startTimer" data-step="0" data-minutes="' + (dish.steps[0]?.minutes || 1) + '">' + icon('clock') + '</button></div>' +
+        '<div class="meta-row"><span class="meta-pill">' + dish.time + ' 分钟</span><span class="meta-pill">' + escapeHtml(dish.difficulty) + '</span><span class="meta-pill">' + escapeHtml(dish.category) + '</span></div>' +
+        '<p class="description">' + escapeHtml(dish.description) + '</p>' +
+        '<div class="section"><div class="section-label"><h3>食材清单</h3><button class="clear-link" data-action="clearPrepared">一键清除</button></div><div class="ingredient-list">' + dish.ingredients.map(item => ingredientRow(dish, item)).join('') + '</div></div>' +
+        '<div class="section"><div class="section-label"><h3>烹饪步骤</h3><span class="section-hint">同一时间只计一个步骤</span></div><div class="step-list">' + dish.steps.map((step, index) => stepCard(dish, step, index)).join('') + '</div></div>' +
+        '<div class="section"><div class="section-label"><h3>小贴士</h3></div><div class="tips-card">' + escapeHtml(dish.tips || '暂无小贴士') + '</div></div>' +
+        '<div class="cta-dock"><div class="cta-summary">将为 ' + unpreparedCount + ' 项未准备食材加入购物清单</div><button class="primary-btn" data-action="openOrderSheet">我要点这道菜</button></div>';
+    }
+
+    function statusChip(status) {
+      const map = { pending: ['pending', '待做'], done: ['done', '已完成'], cancelled: ['cancelled', '已取消'] };
+      const item = map[status];
+      return '<span class="status-chip ' + item[0] + '">' + item[1] + '</span>';
+    }
+
+    function viewRecords() {
+      const filters = ['全部', '待做', '已完成', '已取消'];
+      const chips = filters.map(item => '<button class="chip ' + (recordFilter === item ? 'active' : 'plain') + '" data-action="setRecordFilter" data-value="' + item + '">' + item + '</button>').join('');
+      let records = state.records;
+      if (recordFilter === '待做') records = records.filter(record => record.status === 'pending');
+      if (recordFilter === '已完成') records = records.filter(record => record.status === 'done');
+      if (recordFilter === '已取消') records = records.filter(record => record.status === 'cancelled');
+      const cards = records.length ? records.map(record => {
+        const canManage = record.status === 'pending' && (record.orderer === state.currentUser.name || isAdminUser());
+        return '<div class="record-card" data-action="openSnapshot" data-id="' + record.id + '" role="button" tabindex="0">' +
+          '<div class="record-top"><div class="record-dish">' + escapeHtml(record.dishName) + '</div>' + statusChip(record.status) + '</div>' +
+          '<div class="record-sub">' + escapeHtml(record.orderer) + ' · ' + escapeHtml(record.date) + ' ' + escapeHtml(record.meal || '') + (record.note ? ' · ' + escapeHtml(record.note) : '') + '</div>' +
+          (canManage ? '<div class="record-actions"><button class="small-btn green" data-action="completeRecord" data-id="' + record.id + '">完成</button><button class="small-btn danger" data-action="cancelRecord" data-id="' + record.id + '">取消</button></div>' : '') +
+          '</div>';
+      }).join('') : '<div class="empty-state"><div class="empty-plate"></div><div class="empty-title">暂无点菜记录</div><div class="empty-sub">回到首页选择一道菜，家庭成员就能看到这里。</div></div>';
+      return pageHead('点菜记录', '按状态查看家庭点菜动态', null) + '<div class="filter-row">' + chips + '</div><div class="record-list">' + cards + '</div>';
+    }
+
+    function snapshotView(record) {
+      const dish = record.snapshot;
+      return pageHead('点菜快照', escapeHtml(record.createdAt || ''), 'backRecords') +
+        '<div class="hero-image ' + dish.art + '"><div class="food-plate"></div></div>' +
+        '<div class="dish-title">' + escapeHtml(dish.name) + '</div>' +
+        '<div class="meta-row"><span class="meta-pill">' + dish.time + ' 分钟</span><span class="meta-pill">' + escapeHtml(dish.difficulty) + '</span><span class="meta-pill">' + escapeHtml(record.meal || '未选餐次') + '</span></div>' +
+        '<p class="description">此页面展示点菜时保存的菜品内容，不受后续修改影响。</p>' +
+        '<div class="section"><div class="section-label"><h3>食材快照</h3></div><div class="ingredient-list">' + dish.ingredients.map(item => '<div class="ingredient-row"><span class="ingredient-name">' + escapeHtml(item.name) + '</span><span class="ingredient-amount">' + escapeHtml(formatAmount(item)) + '</span></div>').join('') + '</div></div>' +
+        '<div class="section"><div class="section-label"><h3>步骤快照</h3></div><div class="step-list">' + dish.steps.map((step, index) => '<div class="step-card"><div class="step-top"><div class="step-no">' + (index + 1) + '</div><div class="step-text">' + escapeHtml(step.text) + '</div></div></div>').join('') + '</div></div>';
+    }
+
+    function normalizeKey(value) {
+      return String(value || '').trim().toLowerCase();
+    }
+
+    function groupShoppingItems(items) {
+      const groups = new Map();
+      items.forEach(item => {
+        const hasNumber = item.quantity !== null && item.quantity !== undefined;
+        const key = normalizeKey(item.name) + '|' + normalizeKey(item.unit) + '|' + (hasNumber ? 'number' : 'text|' + normalizeKey(item.note));
+        if (!groups.has(key)) groups.set(key, { key, name: item.name, unit: item.unit, quantity: 0, hasNumber, note: item.note, items: [] });
+        const group = groups.get(key);
+        if (hasNumber) group.quantity += Number(item.quantity);
+        group.items.push(item);
+      });
+      return Array.from(groups.values());
+    }
+
+    function shoppingRow(group, purchased) {
+      const amount = group.hasNumber ? group.quantity + (group.unit || '') : (group.note || '适量');
+      const sourceText = group.items.every(item => !item.orderId) ? '手工' : (group.items.some(item => item.orderId) && group.items.some(item => !item.orderId) ? '混合来源' : group.items.length + ' 个来源');
+      const canDelete = isAdminUser() || group.items.every(item => item.createdBy === state.currentUser.name);
+      return '<div class="shop-row ' + (purchased ? 'purchased' : '') + '">' +
+        '<button class="check-circle" data-action="toggleShopGroup" data-key="' + encodeURIComponent(group.key) + '" data-purchased="' + purchased + '" aria-label="切换已购买">' + icon('check') + '</button>' +
+        '<span class="shop-name">' + escapeHtml(group.name) + '</span><span class="shop-amount">' + escapeHtml(amount) + '</span><span class="source-tag">' + sourceText + '</span>' +
+        (canDelete ? '<button class="delete-btn" data-action="deleteShopGroup" data-key="' + encodeURIComponent(group.key) + '" data-purchased="' + purchased + '" aria-label="删除">' + icon('trash') + '</button>' : '') +
+        '</div>';
+    }
+
+    function viewShopping() {
+      const unbought = state.shopping.filter(item => !item.purchased);
+      const bought = state.shopping.filter(item => item.purchased);
+      const unboughtGroups = groupShoppingItems(unbought);
+      const boughtGroups = groupShoppingItems(bought);
+      const list = unboughtGroups.map(group => shoppingRow(group, false)).join('') + boughtGroups.map(group => shoppingRow(group, true)).join('');
+      return pageHead('购物清单', '按来源合并，可按组勾选', null, '<button class="icon-btn" data-action="openAddShopping">' + icon('plus') + '</button>') +
+        '<div class="shop-summary"><div><strong>' + unbought.length + '</strong><span>待购项目</span></div><div style="text-align:right"><strong>' + bought.length + '</strong><span>已购项目</span></div></div>' +
+        (state.shopping.length ? '<div class="shop-list">' + list + '</div>' + (isAdminUser() && bought.length ? '<button class="secondary-btn" style="margin-top:12px" data-action="clearPurchased">清空已购买项目</button>' : '') : '<div class="empty-state"><div class="empty-plate"></div><div class="empty-title">清单还是空的</div><div class="empty-sub">点菜时，未准备的食材会自动进入这里。</div></div>');
+    }
+
+    function menuItem(action, iconName, title, sub, extra = '') {
+      return '<button class="menu-item" data-action="' + action + '"><div class="menu-icon">' + icon(iconName) + '</div><div class="menu-text"><div class="menu-title">' + title + '</div><div class="menu-sub">' + sub + '</div></div>' + extra + '<span class="chevron">' + icon('chevron') + '</span></button>';
+    }
+
+    function viewMy() {
+      const dangerAction = state.currentUser.role === 'owner' ? '<button class="danger-btn" data-action="openDissolve">解散家庭</button>' : '<button class="danger-btn">退出家庭</button>';
+      return pageHead('我的', '家庭与账号设置', null) +
+        '<div class="profile-card"><div class="avatar">' + escapeHtml(state.currentUser.name.slice(0, 1)) + '</div><div class="profile-main"><div class="profile-name">' + escapeHtml(state.currentUser.name) + '</div><div class="profile-sub">' + escapeHtml(state.family.name) + ' · ' + roleName(state.currentUser.role) + '</div></div></div>' +
+        '<div class="menu-list">' +
+        menuItem('openInvite', 'share', '邀请成员', '邀请码 ' + state.family.inviteCode + ' · ' + state.family.inviteDays + ' 天内有效') +
+        menuItem('goDishManage', 'dish', '管理菜品和分类', isAdminUser() ? '新增、编辑和归档菜品' : '仅管理员和创建者可用') +
+        menuItem('goMembers', 'users', '家庭成员', state.members.length + ' 人 · 上限 ' + state.family.maxMembers + ' 人') +
+        menuItem('openCapacity', 'users', '家庭人数上限', '当前设置为 ' + state.family.maxMembers + ' 人') +
+        (isAdminUser() ? menuItem('openRenameFamily', 'dish', '家庭名称', escapeHtml(state.family.name) + ' · 1–12 字，可修改') : '') +
+        menuItem('openNickname', 'user', '修改家庭内昵称', '当前为 ' + escapeHtml(state.currentUser.name)) +
+        '</div><div style="margin-top:18px">' + dangerAction + '</div>';
+    }
+
+    function viewMembers() {
+      const cards = state.members.map(member => {
+        const isSelf = member.id === state.currentUser.id;
+        const actions = [];
+        if (!isSelf && state.currentUser.role === 'owner') actions.push('<button class="small-btn" data-action="toggleMemberRole" data-id="' + member.id + '">' + (member.role === 'admin' ? '取消管理员' : '设为管理员') + '</button>');
+        if (!isSelf && (state.currentUser.role === 'owner' || (state.currentUser.role === 'admin' && member.role === 'member'))) actions.push('<button class="small-btn danger" data-action="removeMember" data-id="' + member.id + '">移除</button>');
+        return '<div class="member-card"><div class="member-top"><div class="avatar">' + escapeHtml(member.name.slice(0, 1)) + '</div><div style="flex:1"><div class="member-name">' + escapeHtml(member.name) + (isSelf ? '（我）' : '') + '</div><div class="member-sub">' + member.joinedAt + ' 加入</div></div><span class="role-chip">' + roleName(member.role) + '</span></div>' + (actions.length ? '<div class="member-actions">' + actions.join('') + '</div>' : '') + '</div>';
+      }).join('');
+      return pageHead('家庭成员', state.members.length + ' / ' + state.family.maxMembers + ' 人', 'backMy') + cards;
+    }
+
+    function viewDishManage() {
+      const rows = state.dishes.map(dish => '<div class="manage-row"><div class="manage-art ' + dish.art + '"><div class="food-plate"></div></div><div class="manage-info"><div class="dish-name">' + escapeHtml(dish.name) + '</div><div class="dish-meta">' + escapeHtml(dish.category) + ' · ' + dish.time + ' 分钟</div><div class="dish-meta">' + (dish.archived ? '已归档' : '展示中') + '</div></div><div class="manage-actions"><button class="tiny-btn" data-action="editDish" data-id="' + dish.id + '">编辑</button><button class="tiny-btn ' + (dish.archived ? '' : 'danger') + '" data-action="archiveDish" data-id="' + dish.id + '">' + (dish.archived ? '恢复' : '归档') + '</button></div></div>').join('');
+      return pageHead('菜品管理', '新增、编辑或归档家庭菜品', 'backMy', '<button class="icon-btn" data-action="addDish">' + icon('plus') + '</button>') + rows + '<button class="secondary-btn" style="margin-top:12px" data-action="goCategories">管理分类</button>';
+    }
+
+    function viewDishForm() {
+      const dish = editingDishId ? state.dishes.find(item => item.id === editingDishId) : null;
+      const name = dish ? dish.name : '';
+      const categoryValue = dish ? dish.category : state.categories[0];
+      const time = dish ? dish.time : 30;
+      const difficulty = dish ? dish.difficulty : '简单';
+      const description = dish ? dish.description : '';
+      const ingredient = dish ? dish.ingredients[0] : { name: '', quantity: 1, unit: '个', note: '' };
+      const step = dish ? dish.steps[0] : { text: '', minutes: 10 };
+      const options = state.categories.map(item => '<option ' + (item === categoryValue ? 'selected' : '') + '>' + escapeHtml(item) + '</option>').join('');
+      return pageHead(dish ? '编辑菜品' : '新增菜品', '原型演示一组食材和一个步骤', editingDishId ? 'backDishManage' : 'backDishManage') +
+        '<div class="form-card"><div class="field"><label>菜品名称</label><input id="dishName" value="' + escapeHtml(name) + '" placeholder="例如：番茄炖牛腩"></div>' +
+        '<div class="two-col"><div class="field"><label>分类</label><select id="dishCategory">' + options + '</select></div><div class="field"><label>总耗时（分钟）</label><input id="dishTime" type="number" min="1" value="' + time + '"></div></div>' +
+        '<div class="field"><label>难度</label><select id="dishDifficulty"><option ' + (difficulty === '简单' ? 'selected' : '') + '>简单</option><option ' + (difficulty === '中等' ? 'selected' : '') + '>中等</option><option ' + (difficulty === '较难' ? 'selected' : '') + '>较难</option></select></div>' +
+        '<div class="field"><label>描述</label><textarea id="dishDescription" placeholder="简单说明口味和特点">' + escapeHtml(description) + '</textarea></div>' +
+        '<div class="field"><label>食材名称</label><input id="ingredientName" value="' + escapeHtml(ingredient.name) + '" placeholder="例如：牛腩"></div>' +
+        '<div class="two-col"><div class="field"><label>数量</label><input id="ingredientQuantity" type="number" min="0" value="' + (ingredient.quantity ?? '') + '" placeholder="适量可留空"></div><div class="field"><label>单位</label><input id="ingredientUnit" value="' + escapeHtml(ingredient.unit || '') + '" placeholder="g、个、勺"></div></div>' +
+        '<div class="field"><label>烹饪步骤</label><textarea id="stepText" placeholder="描述这一步要做什么">' + escapeHtml(step.text) + '</textarea></div>' +
+        '<div class="field"><label>建议时长（分钟）</label><input id="stepMinutes" type="number" min="1" value="' + step.minutes + '"></div>' +
+        '<button class="primary-btn" data-action="saveDish">保存菜品</button></div>';
+    }
+
+    function viewCategories() {
+      return pageHead('分类管理', '用于首页筛选和菜品归类', 'backDishManage') +
+        '<div class="chip-row">' + state.categories.map(item => '<span class="chip plain">' + escapeHtml(item) + '</span>').join('') + '</div>' +
+        '<div class="form-card"><div class="field"><label>新增分类</label><input id="newCategory" placeholder="例如：早餐"></div><button class="primary-btn" data-action="addCategory">添加分类</button></div>';
+    }
+
+    function viewLocked() {
+      return '<div class="locked-card"><div class="empty-plate"></div><div class="empty-title">家庭已解散</div><div class="empty-sub">你已失去对原家庭数据的访问权限。可以创建新家庭，或通过新的邀请加入其他家庭。</div><div class="locked-actions"><button class="primary-btn" data-action="createNewFamily">创建新家庭</button><button class="secondary-btn" data-action="joinNewFamily">加入家庭</button></div></div>';
+    }
+
+    function render() {
+      const tabViews = ['home', 'records', 'shopping', 'my'];
+      phoneEl.classList.toggle('hide-tabs', !tabViews.includes(view));
+      phoneEl.classList.toggle('show-share', view === 'records');
+      screenEl.classList.toggle('with-share-fab', view === 'records');
+      const tabs = [
+        ['home', '首页', 'home'],
+        ['records', '记录', 'records'],
+        ['shopping', '购物', 'cart'],
+        ['my', '我的', 'user']
+      ];
+      tabbarEl.innerHTML = tabs.map(item => '<button class="' + (view === item[0] ? 'active' : '') + '" data-action="goTab" data-view="' + item[0] + '">' + icon(item[2]) + '<span>' + item[1] + '</span></button>').join('');
+      const views = { home: viewHome, records: viewRecords, shopping: viewShopping, my: viewMy, detail: viewDetail, snapshot: () => snapshotView(state.records.find(item => item.id === currentRecordId)), members: viewMembers, dishManage: viewDishManage, dishForm: viewDishForm, categories: viewCategories, locked: viewLocked };
+      screenEl.innerHTML = views[view]();
+      updateTimers();
+    }
+
+    function openModal(html) {
+      overlayEl.innerHTML = '<div class="modal-backdrop" data-action="closeModal"><div class="modal" role="dialog" aria-modal="true"><div class="modal-handle"></div>' + html + '</div></div>';
+    }
+
+    function closeModal() {
+      overlayEl.innerHTML = '';
+    }
+
+    function openOrderSheet() {
+      const dish = state.dishes.find(item => item.id === currentDishId);
+      if (!dish) return;
+      const unpreparedCount = dish.ingredients.filter(item => !getPrepared(dish.id, item.key)).length;
+      openModal('<div class="modal-title">确认点菜</div><div class="modal-sub">' + escapeHtml(dish.name) + '</div>' +
+        '<div class="modal-form"><div class="two-col"><div class="field"><label>用餐日期</label><select id="orderDate"><option>今天</option><option>明天</option><option>后天</option></select></div><div class="field"><label>餐次（选填）</label><select id="orderMeal"><option value="">不选择</option><option>早餐</option><option>午餐</option><option>晚餐</option><option>其他</option></select></div></div>' +
+        '<div class="field"><label>备注（选填）</label><textarea id="orderNote" placeholder="例如：少放辣"></textarea></div>' +
+        '<div class="order-summary">将为 <strong>' + unpreparedCount + '</strong> 项未准备食材加入购物清单。</div></div>' +
+        '<div class="modal-actions"><button class="secondary-btn" data-action="closeModal">再想想</button><button class="primary-btn" data-action="confirmOrder">确认点菜</button></div>');
+    }
+
+    function placeOrder() {
+      const dish = state.dishes.find(item => item.id === currentDishId);
+      if (!dish) return;
+      const now = new Date();
+      const record = {
+        id: 'r' + Date.now(), dishId: dish.id, dishName: dish.name, snapshot: clone(dish),
+        orderer: state.currentUser.name, date: document.getElementById('orderDate').value,
+        meal: document.getElementById('orderMeal').value, note: document.getElementById('orderNote').value.trim(),
+        status: 'pending', createdAt: '今天 ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0')
+      };
+      state.records.unshift(record);
+      dish.ingredients.forEach((item, index) => {
+        if (!getPrepared(dish.id, item.key)) {
+          state.shopping.push({ id: 's' + Date.now() + index, orderId: record.id, dishId: dish.id, name: item.name, quantity: item.quantity, unit: item.unit, note: item.note, purchased: false, createdBy: state.currentUser.name });
+        }
+      });
+      closeModal();
+      render();
+      showToast('已点菜，可分享给家人');
+    }
+
+    function openRecordConfirm(record, type) {
+      const isCancel = type === 'cancel';
+      const shoppingCount = state.shopping.filter(item => item.orderId === record.id).length;
+      openModal('<div class="modal-title">' + (isCancel ? '取消这道菜？' : '完成这道菜？') + '</div><div class="modal-sub">' + escapeHtml(record.dishName) + '</div>' +
+        (isCancel ? '<div class="order-summary">取消后将同时移除本次点菜带入的 ' + shoppingCount + ' 项购物清单项目。点菜历史和菜品快照仍保留。</div>' : '<div class="order-summary">完成后记录不可再次变更，也不会删除历史信息。</div>') +
+        '<div class="modal-actions"><button class="secondary-btn" data-action="closeModal">再想想</button><button class="' + (isCancel ? 'danger-btn' : 'primary-btn') + '" data-action="confirmRecordAction" data-id="' + record.id + '" data-type="' + type + '">确认' + (isCancel ? '取消' : '完成') + '</button></div>');
+    }
+
+    function confirmRecordAction(id, type) {
+      const record = state.records.find(item => item.id === id);
+      if (!record || record.status !== 'pending') return;
+      record.status = type === 'cancel' ? 'cancelled' : 'done';
+      if (type === 'cancel') state.shopping = state.shopping.filter(item => item.orderId !== id);
+      closeModal();
+      render();
+      showToast(type === 'cancel' ? '已取消，相关购物食材已移除' : '已完成这道菜');
+    }
+
+    function openAddShopping() {
+      openModal('<div class="modal-title">手工添加</div><div class="modal-sub">添加一项当前购物清单中没有的食材。</div>' +
+        '<div class="modal-form"><div class="field"><label>名称</label><input id="manualName" placeholder="例如：牛奶"></div><div class="two-col"><div class="field"><label>数量（选填）</label><input id="manualQuantity" type="number" min="0" placeholder="适量可留空"></div><div class="field"><label>单位</label><input id="manualUnit" placeholder="盒、瓶、g"></div></div></div>' +
+        '<div class="modal-actions"><button class="secondary-btn" data-action="closeModal">取消</button><button class="primary-btn" data-action="saveManualShopping">添加</button></div>');
+    }
+
+    function saveManualShopping() {
+      const name = document.getElementById('manualName').value.trim();
+      if (!name) { showToast('请填写食材名称'); return; }
+      const quantityValue = document.getElementById('manualQuantity').value;
+      state.shopping.push({ id: 's' + Date.now(), orderId: null, dishId: null, name, quantity: quantityValue === '' ? null : Number(quantityValue), unit: document.getElementById('manualUnit').value.trim(), note: '', purchased: false, createdBy: state.currentUser.name });
+      closeModal(); render(); showToast('已加入购物清单');
+    }
+
+    function toggleShopGroup(encodedKey, purchasedText) {
+      const key = decodeURIComponent(encodedKey);
+      const targetPurchased = purchasedText !== 'true';
+      state.shopping.forEach(item => {
+        const hasNumber = item.quantity !== null && item.quantity !== undefined;
+        const itemKey = normalizeKey(item.name) + '|' + normalizeKey(item.unit) + '|' + (hasNumber ? 'number' : 'text|' + normalizeKey(item.note));
+        if (itemKey === key && item.purchased !== targetPurchased) item.purchased = targetPurchased;
+      });
+      render();
+    }
+
+    function deleteShopGroup(encodedKey, purchasedText) {
+      const key = decodeURIComponent(encodedKey);
+      state.shopping = state.shopping.filter(item => {
+        const hasNumber = item.quantity !== null && item.quantity !== undefined;
+        const itemKey = normalizeKey(item.name) + '|' + normalizeKey(item.unit) + '|' + (hasNumber ? 'number' : 'text|' + normalizeKey(item.note));
+        return !(itemKey === key && String(item.purchased) === purchasedText);
+      });
+      render(); showToast('已删除对应购物项目');
+    }
+
+    function openInvite() {
+      openModal('<div class="modal-title">邀请家庭成员</div><div class="modal-sub">邀请码 ' + state.family.inviteDays + ' 天内有效，可多人使用；不区分大小写。</div><div class="invite-code">' + state.family.inviteCode + '</div>' +
+        '<div class="modal-actions"><button class="secondary-btn" data-action="regenerateInvite">重新生成</button><button class="primary-btn" data-action="shareInvite">分享邀请</button></div>');
+    }
+
+    function regenerateInvite() {
+      state.family.inviteCode = generateInviteCode();
+      render(); openInvite(); showToast('旧邀请码已失效');
+    }
+
+    function openCapacity() {
+      openModal('<div class="modal-title">家庭人数上限</div><div class="modal-sub">范围：当前成员数至 50 人。</div><div class="range-row"><input id="capacityRange" type="range" min="' + state.members.length + '" max="50" value="' + state.family.maxMembers + '"><div class="range-value" id="capacityValue">' + state.family.maxMembers + '</div></div><div class="modal-actions"><button class="secondary-btn" data-action="closeModal">取消</button><button class="primary-btn" data-action="saveCapacity">保存</button></div>');
+      document.getElementById('capacityRange').addEventListener('input', event => document.getElementById('capacityValue').textContent = event.target.value);
+    }
+
+    function openNickname() {
+      openModal('<div class="modal-title">修改家庭内昵称</div><div class="modal-sub">昵称长度为 1–20 个字符。</div><div class="field"><input id="nicknameInput" maxlength="20" value="' + escapeHtml(state.currentUser.name) + '"></div><div class="modal-actions"><button class="secondary-btn" data-action="closeModal">取消</button><button class="primary-btn" data-action="saveNickname">保存</button></div>');
+    }
+
+    function openRenameFamily() {
+      openModal('<div class="modal-title">修改家庭名称</div><div class="modal-sub">1–12 个字；仅创建者和管理员可修改。</div><div class="field"><input id="familyNameInput" maxlength="12" value="' + escapeHtml(state.family.name) + '"></div><div class="modal-actions"><button class="secondary-btn" data-action="closeModal">取消</button><button class="primary-btn" data-action="saveFamilyName">保存</button></div>');
+    }
+
+    function openDissolve() {
+      openModal('<div class="modal-title">解散家庭？</div><div class="modal-sub">解散后所有成员将失去访问权限。首版不会立即物理删除历史点菜记录和菜品快照。</div><div class="modal-actions"><button class="secondary-btn" data-action="closeModal">再想想</button><button class="danger-btn" data-action="confirmDissolve">确认解散</button></div>');
+    }
+
+    function saveDish() {
+      const name = document.getElementById('dishName').value.trim();
+      const ingredientName = document.getElementById('ingredientName').value.trim();
+      const stepText = document.getElementById('stepText').value.trim();
+      if (!name || !ingredientName || !stepText) { showToast('菜名、食材和步骤为必填'); return; }
+      const quantityValue = document.getElementById('ingredientQuantity').value;
+      const existingDish = editingDishId ? state.dishes.find(item => item.id === editingDishId) : null;
+      const firstIngredient = { key: existingDish && existingDish.ingredients[0] ? existingDish.ingredients[0].key : 'i' + Date.now(), name: ingredientName, quantity: quantityValue === '' ? null : Number(quantityValue), unit: document.getElementById('ingredientUnit').value.trim(), note: quantityValue === '' ? '适量' : '' };
+      const firstStep = { text: stepText, minutes: Number(document.getElementById('stepMinutes').value || 10) };
+      const data = {
+        name, category: document.getElementById('dishCategory').value, time: Number(document.getElementById('dishTime').value || 30),
+        difficulty: document.getElementById('dishDifficulty').value, description: document.getElementById('dishDescription').value.trim(),
+        ingredients: [firstIngredient].concat(existingDish ? existingDish.ingredients.slice(1) : []),
+        steps: [firstStep].concat(existingDish ? existingDish.steps.slice(1) : []),
+        tips: existingDish ? existingDish.tips : ''
+      };
+      if (editingDishId) {
+        const index = state.dishes.findIndex(item => item.id === editingDishId);
+        state.dishes[index] = { ...state.dishes[index], ...data };
+      } else {
+        state.dishes.unshift({ id: 'd' + Date.now(), art: 'art-1', archived: false, ...data });
+      }
+      editingDishId = null; view = 'dishManage'; render(); showToast('菜品已保存');
+    }
+
+    function updateTimers() {
+      document.querySelectorAll('[data-timer-remain]').forEach(el => {
+        if (!timer.endAt) return;
+        const remain = Math.max(0, Math.ceil((timer.endAt - Date.now()) / 1000));
+        const minutes = String(Math.floor(remain / 60)).padStart(2, '0');
+        const seconds = String(remain % 60).padStart(2, '0');
+        el.textContent = remain === 0 ? '已到时' : minutes + ':' + seconds;
+      });
+      document.querySelectorAll('[data-timer-progress]').forEach(el => {
+        if (!timer.endAt || !timer.total) return;
+        const remain = Math.max(0, timer.endAt - Date.now());
+        const progress = Math.min(100, Math.max(0, (1 - remain / (timer.total * 1000)) * 100));
+        el.style.width = progress + '%';
+      });
+    }
+
+    setInterval(updateTimers, 500);
+
+    screenEl.addEventListener('input', event => {
+      if (event.target.id === 'ingredientSearch') {
+        searchText = event.target.value;
+        const list = document.getElementById('dishList');
+        if (list) list.innerHTML = homeDishListHtml();
+      }
+    });
+
+    phoneEl.addEventListener('click', event => {
+      if (event.target.closest('#overlay')) return;
+      const target = event.target.closest('[data-action]');
+      if (!target) return;
+      const action = target.dataset.action;
+      if (action === 'goTab') view = target.dataset.view;
+      if (action === 'back') view = 'home';
+      if (action === 'backRecords') view = 'records';
+      if (action === 'backMy') view = 'my';
+      if (action === 'backDishManage') { view = 'dishManage'; editingDishId = null; }
+      if (action === 'setCategory') { category = target.dataset.value; }
+      if (action === 'openDish') { currentDishId = target.dataset.id; view = 'detail'; }
+      if (action === 'randomDish') {
+        const dishes = getVisibleDishes();
+        if (!dishes.length) { showToast('暂无可用菜品'); return; }
+        const dish = dishes[Math.floor(Math.random() * dishes.length)];
+        currentDishId = dish.id; view = 'detail'; showToast('为你选到：' + dish.name);
+      }
+      if (action === 'goDishManage') view = 'dishManage';
+      if (action === 'goMembers') view = 'members';
+      if (action === 'goCategories') view = 'categories';
+      if (action === 'addDish') { editingDishId = null; view = 'dishForm'; }
+      if (action === 'editDish') { editingDishId = target.dataset.id; view = 'dishForm'; }
+      if (action === 'archiveDish') {
+        const dish = state.dishes.find(item => item.id === target.dataset.id);
+        dish.archived = !dish.archived; showToast(dish.archived ? '菜品已归档' : '菜品已恢复');
+      }
+      if (action === 'togglePrepared') {
+        const dishId = target.dataset.dish; const key = target.dataset.key;
+        prepared[dishId] = prepared[dishId] || {};
+        prepared[dishId][key] = !prepared[dishId][key];
+      }
+      if (action === 'clearPrepared') prepared[currentDishId] = {};
+      if (action === 'startTimer') {
+        const dish = state.dishes.find(item => item.id === currentDishId);
+        const stepIndex = Number(target.dataset.step || 0); const minutes = Number(target.dataset.minutes || 1);
+        if (timer.dishId && (timer.dishId !== dish.id || timer.stepIndex !== stepIndex)) {
+          openModal('<div class="modal-title">切换计时器？</div><div class="modal-sub">同一时间只保留一个进行中的步骤计时。</div><div class="modal-actions"><button class="secondary-btn" data-action="closeModal">取消</button><button class="primary-btn" data-action="confirmSwitchTimer" data-step="' + stepIndex + '" data-minutes="' + minutes + '">切换并计时</button></div>');
+          return;
+        }
+        timer = { dishId: dish.id, stepIndex, endAt: Date.now() + minutes * 60000, total: minutes };
+      }
+      if (action === 'openOrderSheet') { openOrderSheet(); return; }
+      if (action === 'setRecordFilter') recordFilter = target.dataset.value;
+      if (action === 'openSnapshot') { currentRecordId = target.dataset.id; view = 'snapshot'; }
+      if (action === 'completeRecord') { openRecordConfirm(state.records.find(item => item.id === target.dataset.id), 'complete'); return; }
+      if (action === 'cancelRecord') { openRecordConfirm(state.records.find(item => item.id === target.dataset.id), 'cancel'); return; }
+      if (action === 'toggleShopGroup') { toggleShopGroup(target.dataset.key, target.dataset.purchased); return; }
+      if (action === 'deleteShopGroup') { deleteShopGroup(target.dataset.key, target.dataset.purchased); return; }
+      if (action === 'openAddShopping') { openAddShopping(); return; }
+      if (action === 'clearPurchased') { state.shopping = state.shopping.filter(item => !item.purchased); render(); showToast('已清空已购买项目'); return; }
+      if (action === 'openInvite') { openInvite(); return; }
+      if (action === 'shareRecords') { showToast('已拉起微信转发选择页（原型演示）'); return; }
+      if (action === 'openCapacity') { openCapacity(); return; }
+      if (action === 'openRenameFamily') { openRenameFamily(); return; }
+      if (action === 'openNickname') { openNickname(); return; }
+      if (action === 'openDissolve') { openDissolve(); return; }
+      if (action === 'saveDish') { saveDish(); return; }
+      if (action === 'addCategory') {
+        const value = document.getElementById('newCategory').value.trim();
+        if (!value) { showToast('请填写分类名称'); return; }
+        state.categories.push(value); render(); showToast('分类已添加');
+      }
+      if (action === 'createNewFamily') {
+        state.family = { name: '新家庭', maxMembers: 10, inviteCode: generateInviteCode(), inviteDays: 3, status: 'active' };
+        state.members = [{ id: 'u1', name: state.currentUser.name, role: 'owner', joinedAt: '今天' }];
+        state.currentUser.role = 'owner'; view = 'home'; render(); showToast('已创建新家庭');
+      }
+      if (action === 'joinNewFamily') showToast('原型中仅演示加入入口');
+      render();
+    });
+
+    overlayEl.addEventListener('click', event => {
+      if (event.target.classList.contains('modal-backdrop')) { closeModal(); return; }
+      const target = event.target.closest('[data-action]');
+      if (!target) return;
+      const action = target.dataset.action;
+      if (action === 'closeModal') closeModal();
+      if (action === 'confirmOrder') placeOrder();
+      if (action === 'confirmRecordAction') confirmRecordAction(target.dataset.id, target.dataset.type);
+      if (action === 'saveManualShopping') saveManualShopping();
+      if (action === 'shareInvite') showToast('原型中仅演示分享动作');
+      if (action === 'regenerateInvite') regenerateInvite();
+      if (action === 'saveCapacity') { state.family.maxMembers = Number(document.getElementById('capacityRange').value); closeModal(); render(); showToast('人数上限已更新'); }
+      if (action === 'saveNickname') {
+        const value = document.getElementById('nicknameInput').value.trim();
+        if (!value) { showToast('昵称不能为空'); return; }
+        state.currentUser.name = value;
+        const member = state.members.find(item => item.id === state.currentUser.id);
+        if (member) member.name = value;
+        closeModal(); render(); showToast('昵称已更新');
+      }
+      if (action === 'saveFamilyName') {
+        const value = document.getElementById('familyNameInput').value.trim();
+        if (!value) { showToast('家庭名称不能为空'); return; }
+        state.family.name = value;
+        closeModal(); render(); showToast('家庭名称已更新');
+      }
+      if (action === 'confirmDissolve') { closeModal(); state.family.status = 'dissolved'; view = 'locked'; render(); }
+      if (action === 'confirmSwitchTimer') {
+        const dish = state.dishes.find(item => item.id === currentDishId);
+        const minutes = Number(target.dataset.minutes);
+        timer = { dishId: dish.id, stepIndex: Number(target.dataset.step), endAt: Date.now() + minutes * 60000, total: minutes };
+        closeModal(); render();
+      }
+    });
+
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') closeModal(); });
+    document.getElementById('resetDemo').addEventListener('click', () => { resetState(); showToast('演示数据已重置'); });
+
+    resetState();
+  </script>
+</body>
+</html>

@@ -20,7 +20,7 @@
 
 **首版不做订阅消息**（无模板、无额度账本）、**不做长截屏分享**、**不做多人协作编辑**。二期计划：多家庭切换、实时监听、营养计算、评论点赞、第三方菜谱导入。
 
-上游基线界面截图保留在 `docs/images/` 下，展示的是改造前的绿色主题双人界面，**不代表 FamilyDish 界面**。当前 UI 以仓库外的 `family-menu-ui-prototype/design-spec.html` 为准。
+上游基线界面截图保留在 `docs/images/` 下，展示的是改造前的绿色主题双人界面，**不代表 FamilyDish 界面**。当前 UI 以 `docs/ui/design-spec.html` 为准。
 
 ## 技术栈
 

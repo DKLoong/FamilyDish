@@ -20,7 +20,7 @@ Built on WeChat Cloud Development (CloudBase). No servers, no maintenance. Data 
 
 **Not in v1**: subscription messages (no templates, no quota ledger), long-screenshot sharing, and collaborative editing. Planned for phase two: multi-family switching, real-time watchers, nutrition calculation, comments and likes, and third-party recipe import.
 
-Upstream UI screenshots remain under `docs/images/`. They show the old green couple-themed interface and **do not represent FamilyDish**. The current UI reference is `../family-menu-ui-prototype/design-spec.html`.
+Upstream UI screenshots remain under `docs/images/`. They show the old green couple-themed interface and **do not represent FamilyDish**. The current UI reference is `docs/ui/design-spec.html`.
 
 ## Tech Stack
 
